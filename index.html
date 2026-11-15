@@ -9873,6 +9873,18 @@ function renderViewMenu(){
   	panel.appendChild(layoutButton);
   }
 
+  // COLLEGAMENTO ALEXA: solo dal profilo famiglia.
+  if(authToken && authUserType === "family"){
+    var alexaButton = mk("button", "", "COLLEGA ALEXA");
+    alexaButton.type = "button";
+    alexaButton.classList.add("menu-action-button");
+    alexaButton.onclick = function(ev){
+      if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+      openAlexaLinkingPanel();
+    };
+    panel.appendChild(alexaButton);
+  }
+
   // GESTIONE UTENTI: disponibile solo nel profilo famiglia (sessione family).
   if(authToken && authUserType === "family"){
     var manageUsersButton = mk("button", "", "GESTIONE UTENTI");
@@ -9901,6 +9913,70 @@ function renderViewMenu(){
     logoutButton.onclick = authLogout;
     panel.appendChild(logoutButton);
   }
+}
+
+
+function openAlexaLinkingPanel(){
+  var panel = $("viewMenuPanel");
+  clear(panel);
+  panel.style.width = "340px";
+  panel.style.maxWidth = "92vw";
+  panel.style.boxSizing = "border-box";
+
+  var title = mk("div", "", "COLLEGA ALEXA");
+  title.style.fontWeight = "bold";
+  title.style.marginBottom = "10px";
+  panel.appendChild(title);
+
+  var info = mk("div", "", "Genera un codice temporaneo da pronunciare ad Alexa. Il codice è valido per 10 minuti e può essere usato una sola volta.");
+  info.style.fontSize = "14px";
+  info.style.marginBottom = "10px";
+  panel.appendChild(info);
+
+  var code = mk("div", "", "");
+  code.style.fontSize = "32px";
+  code.style.fontWeight = "bold";
+  code.style.letterSpacing = "7px";
+  code.style.textAlign = "center";
+  code.style.padding = "12px 4px";
+  code.style.margin = "8px 0";
+  code.style.border = "1px dashed #777";
+  code.style.minHeight = "42px";
+  panel.appendChild(code);
+
+  var command = mk("div", "", "Dopo aver generato il codice, dì: «Alexa, collega famiglia con codice [codice]».");
+  command.style.fontSize = "14px";
+  command.style.margin = "8px 0";
+  panel.appendChild(command);
+
+  var status = mk("div", "", "");
+  status.style.fontSize = "13px";
+  status.style.margin = "6px 0";
+  panel.appendChild(status);
+
+  var generate = mk("button", "", "GENERA CODICE");
+  generate.type = "button";
+  generate.classList.add("menu-action-button");
+  generate.onclick = function(){
+    generate.disabled = true;
+    code.textContent = "";
+    status.textContent = "Generazione codice in corso...";
+    usersRequest("POST", "/alexa/pairing-code", {}, function(err, data){
+      generate.disabled = false;
+      if(err || !data || !data.ok || !data.pairing_code){
+        status.textContent = err || "Impossibile generare il codice.";
+        return;
+      }
+      code.textContent = data.pairing_code;
+      status.textContent = "Valido per 10 minuti. Usalo una sola volta."; 
+    });
+  };
+  panel.appendChild(generate);
+
+  var close = mk("button", "", "INDIETRO");
+  close.type = "button";
+  close.onclick = function(){ renderViewMenu(); };
+  panel.appendChild(close);
 }
 
 
