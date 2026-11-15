@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "text": "Andare in discarica",
+      "done": false
+    },
+    {
+      "text": "Lampadina proiettore",
+      "done": false
+    },
+    {
+      "text": "Collegare prese sul letto Mattia",
+      "done": false
+    },
+    {
+      "text": "Spedire grattugia",
+      "done": false
+    },
+    {
+      "text": "TEST AUTENTICAZIONE",
+      "done": false
+    }
+  ]
+}
