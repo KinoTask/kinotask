@@ -4796,6 +4796,9 @@ body.k .family-shopping-item > .todo-actions > .todo-delete {
   flex:0 0 36px!important;
   margin:0!important;
 }
+#dashboardToolbar #toolbarNotesButton[hidden] {
+  display:none!important;
+}
 #dashboardToolbar #viewSwitcher {
   flex:1 1 auto;
   width:auto;
@@ -11650,6 +11653,24 @@ function renderViewSwitcher(){
     else notesButton.classList.remove("notes-unread");
     notesButton.title = handwrittenNotesUnread ? "Ci sono appunti nuovi o modificati: apri per leggerli" : "Apri appunti";
     notesButton.setAttribute("aria-label", notesButton.title);
+    var notesTouchHandledAt = 0;
+    function activateToolbarNotes(ev){
+      if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+      openHandwrittenNotesList();
+    }
+    notesButton.ontouchend = function(ev){
+      notesTouchHandledAt = new Date().getTime();
+      activateToolbarNotes(ev);
+      return false;
+    };
+    notesButton.onclick = function(ev){
+      if(new Date().getTime() - notesTouchHandledAt < 1200){
+        if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+        return false;
+      }
+      activateToolbarNotes(ev);
+      return false;
+    };
     setHidden(notesButton, false);
   }
 
