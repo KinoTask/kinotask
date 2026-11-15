@@ -1,0 +1,30 @@
+{
+  "days": {
+    "2026-10-31": [],
+    "2026-11-01": [],
+    "2026-11-02": [],
+    "2026-11-03": [
+      {
+        "text": "Soldi castagnata per asilo",
+        "done": true
+      },
+      {
+        "text": "Soldi per Chiara",
+        "done": true
+      }
+    ],
+    "2026-11-04": [
+      {
+        "text": "I: Macinare semi lino",
+        "done": true
+      }
+    ],
+    "2026-11-05": [],
+    "2026-11-06": [
+      {
+        "text": "test",
+        "done": true
+      }
+    ]
+  }
+}
