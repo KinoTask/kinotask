@@ -9438,7 +9438,7 @@ function buildLayout(view){
 }
 
 /* Riordino delle box direttamente sulla dashboard. */
-var dashboardReorderActive=false, dashboardDraggedBox=null, dashboardTouchTimer=null, dashboardTouchStart=null, dashboardTouchDragging=false;
+var dashboardReorderActive=false, dashboardReorderOriginalRows=null, dashboardDraggedBox=null, dashboardTouchTimer=null, dashboardTouchStart=null, dashboardTouchDragging=false;
 function dashboardBoxId(el){if(!el)return null;for(var i=0;i<(DASHBOARD_BOXES||[]).length;i++)if(DASHBOARD_BOXES[i].element_id===el.id)return DASHBOARD_BOXES[i].id;return null;}
 function dashboardLayoutHost(){var v=findItem(DASHBOARD_VIEWS||[],function(x){return String(x.id)===String(currentView);});return v&&v.view_type==="shared"?$("dashboardContent"):$("personalView");}
 var dashboardPointerId=null,dashboardPointerStart=null,dashboardPointerTimer=null,dashboardPointerDragging=false,dashboardPointerSource=null,dashboardPointerX=0,dashboardPointerY=0,dashboardPreviewZone=null;
@@ -9546,25 +9546,42 @@ function dashboardDropBox(sourceEl,targetEl,clientX,clientY){
   dashboardPreviewRows=null;dashboardPreviewSource=null;dashboardPreviewTarget=null;dashboardPreviewZone=null;
   dashboardSaveRows(rows);
 }
-function dashboardSaveRows(rows){
+function dashboardSaveRows(rows,onSuccess){
   var btn=$("dashboardReorderButton");if(btn){btn.disabled=true;btn.textContent="SALVATAGGIO…";}
+  var cancelBtn=$("dashboardCancelReorderButton");if(cancelBtn)cancelBtn.disabled=true;
   usersRequest("GET","/views",null,function(metaErr,meta){
     var v=meta&&meta.views?findItem(meta.views,function(x){return String(x.id)===String(currentView);}):null;
     var allowed=!!(v&&(Number(v.owner_user_id)===Number(authProfile)||(authUserType==="family"&&Number(v.layout_locked)!==1)));
     if(metaErr||!allowed){if(btn){btn.disabled=false;btn.textContent="FINE";}alert(metaErr||"Non hai i permessi per modificare questo layout.");return;}
     usersRequest("PUT","/views/"+encodeURIComponent(currentView)+"/layout",{rows:rows.map(function(row){return row.map(function(item){return {box_id:item.box_id,enabled:true,is_public:item.is_public===true||Number(item.is_public)===1};});})},function(err,result){
       if(err||!result||!result.ok){if(btn){btn.disabled=false;btn.textContent="FINE";}alert(err||(result&&result.error)||"Salvataggio del layout non riuscito.");return;}
-      loadAuthorizedConfig(function(configErr){if(configErr){if(btn){btn.disabled=false;btn.textContent="FINE";}alert("Layout salvato, ma aggiornamento dashboard non riuscito.");return;}dashboardReorderActive=true;setView(currentView,false);if(btn){btn.disabled=false;btn.textContent="FINE";}});
+      loadAuthorizedConfig(function(configErr){if(configErr){if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;alert("Layout salvato, ma aggiornamento dashboard non riuscito.");return;}dashboardReorderActive=true;setView(currentView,false);if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;if(typeof onSuccess==="function")onSuccess();});
     });
   });
 }
 function toggleDashboardReorder(){
-  if(dashboardReorderActive){dashboardReorderActive=false;applyDashboardReorderMode();var b=$("dashboardReorderButton");if(b)b.textContent="RIORDINA";return;}
+  if(dashboardReorderActive){dashboardReorderActive=false;dashboardReorderOriginalRows=null;applyDashboardReorderMode();var b=$("dashboardReorderButton");if(b)b.textContent="RIORDINA";var c=$("dashboardCancelReorderButton");if(c)c.hidden=true;return;}
   usersRequest("GET","/views",null,function(err,data){
     var v=data&&data.views?findItem(data.views,function(x){return String(x.id)===String(currentView);}):null;
     var allowed=!!(v&&(Number(v.owner_user_id)===Number(authProfile)||(authUserType==="family"&&Number(v.layout_locked)!==1)));
     if(err||!allowed){alert(err||"Non hai i permessi per riordinare questa vista.");return;}
-    dashboardReorderActive=true;applyDashboardReorderMode();var b=$("dashboardReorderButton");if(b)b.textContent="FINE";
+    dashboardReorderOriginalRows=dashboardGetRows();
+    dashboardReorderActive=true;applyDashboardReorderMode();var b=$("dashboardReorderButton");if(b)b.textContent="FINE";var c=$("dashboardCancelReorderButton");if(c)c.hidden=false;
+  });
+}
+function cancelDashboardReorder(){
+  if(!dashboardReorderActive||!dashboardReorderOriginalRows)return;
+  var original=dashboardReorderOriginalRows;
+  var current=dashboardGetRows();
+  if(JSON.stringify(current)===JSON.stringify(original)){
+    dashboardReorderActive=false;dashboardReorderOriginalRows=null;dashboardClearPreview();applyDashboardReorderMode();
+    var b=$("dashboardReorderButton");if(b)b.textContent="RIORDINA";var c=$("dashboardCancelReorderButton");if(c)c.hidden=true;
+    return;
+  }
+  dashboardClearPreview();
+  dashboardSaveRows(original,function(){
+    dashboardReorderActive=false;dashboardReorderOriginalRows=null;applyDashboardReorderMode();
+    var b=$("dashboardReorderButton");if(b)b.textContent="RIORDINA";var c=$("dashboardCancelReorderButton");if(c)c.hidden=true;
   });
 }
 
@@ -11929,6 +11946,14 @@ function renderViewSwitcher(){
     var toolbar=$("dashboardToolbar");if(toolbar)toolbar.appendChild(reorderButton);
   }
   setHidden(reorderButton,false);reorderButton.textContent=dashboardReorderActive?"FINE":"RIORDINA";
+  var cancelReorderButton=$("dashboardCancelReorderButton");
+  if(!cancelReorderButton){
+    cancelReorderButton=mk("button","dashboard-cancel-reorder-button","ANNULLA");cancelReorderButton.id="dashboardCancelReorderButton";cancelReorderButton.type="button";
+    cancelReorderButton.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}cancelDashboardReorder();};
+    cancelReorderButton.style.flex="0 0 auto";cancelReorderButton.style.padding="6px 9px";cancelReorderButton.style.fontSize="12px";cancelReorderButton.style.fontWeight="bold";cancelReorderButton.style.borderRadius="6px";cancelReorderButton.style.margin="0 0 0 5px";
+    var cancelToolbar=$("dashboardToolbar");if(cancelToolbar)cancelToolbar.appendChild(cancelReorderButton);
+  }
+  setHidden(cancelReorderButton,!dashboardReorderActive);
   var orderButton = mk("button", "view-switcher-order-button", "");
   var orderArrow = mk("span", "", "↔");
   orderArrow.style.display = "block";
