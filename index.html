@@ -9743,6 +9743,21 @@ function setView(view, manual){
     setHidden(only[i], only[i].getAttribute("data-only") !== view);
   }
 
+  /* Allunga l'ultimo box visibile di ogni colonna fino alla base comune.
+     Non usare lastElementChild: può essere un box nascosto per la vista corrente. */
+  var layoutColumns = document.querySelectorAll(".dashboard-layout-columns .dashboard-layout-column");
+  for(var lc = 0; lc < layoutColumns.length; lc++){
+    var columnBoxes = layoutColumns[lc].children;
+    var lastVisibleBox = null;
+    for(var lb = 0; lb < columnBoxes.length; lb++){
+      var columnBox = columnBoxes[lb];
+      if(!columnBox.classList.contains("box")) continue;
+      columnBox.style.flex = "0 0 auto";
+      if(!columnBox.hasAttribute("hidden")) lastVisibleBox = columnBox;
+    }
+    if(lastVisibleBox) lastVisibleBox.style.flex = "1 0 auto";
+  }
+
   renderAgenda();
   
   if(personal){
