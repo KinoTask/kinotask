@@ -9392,7 +9392,7 @@ function buildLayout(view){
   var views=DASHBOARD_VIEWS||[],vc=findItem(views,function(v){return String(v.id)===String(view);});
   var i,j,items,b,row,host,stash,rows;
   if(!vc)return;
-  rows=(vc.rows||[]).slice().sort(function(a,b){return a.position-b.position;});
+  rows=(arguments.length>1&&arguments[1]?arguments[1].map(function(items){return {items:items.map(function(item,index){var def=findItem(DASHBOARD_BOXES||[],function(x){return x.id===item.box_id;});return {element_id:def&&def.element_id,position:index,is_public:item.is_public};}).filter(function(x){return !!x.element_id;})};}):(vc.rows||[]).slice().sort(function(a,b){return a.position-b.position;}));
   host=vc.view_type==="shared"?$("dashboardContent"):personalRow();stash=$("stash");
   if(!host||!stash)return;
   for(var v=0;v<views.length;v++){
@@ -9450,8 +9450,8 @@ function applyDashboardReorderMode(){
     boxes[i].style.outline=dashboardReorderActive?"2px dashed #2878c8":"";
     boxes[i].style.outlineOffset=dashboardReorderActive?"2px":"";
     boxes[i].ondragstart=dashboardReorderActive?(function(el){return function(ev){dashboardDraggedBox=el;if(ev.dataTransfer){ev.dataTransfer.effectAllowed="move";try{ev.dataTransfer.setData("text/plain",el.id);}catch(ignore){}}el.style.opacity=".45";};})(boxes[i]):null;
-    boxes[i].ondragend=function(){this.style.opacity="1";dashboardDraggedBox=null;};
-    boxes[i].ondragover=dashboardReorderActive?function(ev){if(!dashboardDraggedBox||dashboardDraggedBox===this)return;ev.preventDefault();if(ev.dataTransfer)ev.dataTransfer.dropEffect="move";}:null;
+    boxes[i].ondragend=function(){this.style.opacity="1";if(dashboardPreviewRows)dashboardClearPreview();dashboardDraggedBox=null;};
+    boxes[i].ondragover=dashboardReorderActive?function(ev){if(!dashboardDraggedBox||dashboardDraggedBox===this)return;ev.preventDefault();if(ev.dataTransfer)ev.dataTransfer.dropEffect="move";var next=dashboardCalculateRows(dashboardDraggedBox,this,ev.clientX,ev.clientY,dashboardGetRows());if(next)dashboardShowPreview(next,dashboardDraggedBox,this);}:null;
     boxes[i].ondrop=dashboardReorderActive?(function(target){return function(ev){ev.preventDefault();if(dashboardDraggedBox&&dashboardDraggedBox!==target)dashboardDropBox(dashboardDraggedBox,target,ev.clientX,ev.clientY);};})(boxes[i]):null;
     if(dashboardReorderActive){
       boxes[i].ontouchstart=(function(el){return function(ev){if(!ev.touches||ev.touches.length!==1)return;dashboardTouchStart={x:ev.touches[0].clientX,y:ev.touches[0].clientY,el:el};dashboardTouchDragging=false;dashboardTouchTimer=setTimeout(function(){dashboardDraggedBox=el;dashboardTouchDragging=true;el.style.opacity=".45";},650);};})(boxes[i]);
@@ -9459,19 +9459,19 @@ function applyDashboardReorderMode(){
         if(!dashboardTouchStart||!ev.touches||!ev.touches.length)return;
         var t=ev.touches[0];
         if(!dashboardTouchDragging&&(Math.abs(t.clientX-dashboardTouchStart.x)>12||Math.abs(t.clientY-dashboardTouchStart.y)>12)){clearTimeout(dashboardTouchTimer);dashboardTouchTimer=null;}
-        if(dashboardTouchDragging)ev.preventDefault();
+        if(dashboardTouchDragging){ev.preventDefault();var under=document.elementFromPoint(t.clientX,t.clientY);while(under&&under!==document.body&&!(under.classList&&under.classList.contains("box")))under=under.parentNode;if(under&&under!==dashboardDraggedBox){var next=dashboardCalculateRows(dashboardDraggedBox,under,t.clientX,t.clientY,dashboardGetRows());if(next)dashboardShowPreview(next,dashboardDraggedBox,under);}}
       };
       boxes[i].ontouchend=function(ev){
         clearTimeout(dashboardTouchTimer);dashboardTouchTimer=null;
         if(dashboardTouchDragging&&dashboardDraggedBox){
           var t=ev.changedTouches&&ev.changedTouches[0],under=t?document.elementFromPoint(t.clientX,t.clientY):null;
           while(under&&under!==document.body&&!(under.classList&&under.classList.contains("box")))under=under.parentNode;
-          if(under&&under!==dashboardDraggedBox)dashboardDropBox(dashboardDraggedBox,under,t.clientX,t.clientY);
+          if(under&&under!==dashboardDraggedBox)dashboardDropBox(dashboardDraggedBox,under,t.clientX,t.clientY);else dashboardClearPreview();
           dashboardDraggedBox.style.opacity="1";
         }
         dashboardTouchStart=null;dashboardTouchDragging=false;dashboardDraggedBox=null;
       };
-      boxes[i].ontouchcancel=function(){clearTimeout(dashboardTouchTimer);dashboardTouchTimer=null;dashboardTouchStart=null;dashboardTouchDragging=false;if(dashboardDraggedBox)dashboardDraggedBox.style.opacity="1";dashboardDraggedBox=null;};
+      boxes[i].ontouchcancel=function(){clearTimeout(dashboardTouchTimer);dashboardTouchTimer=null;dashboardClearPreview();dashboardTouchStart=null;dashboardTouchDragging=false;if(dashboardDraggedBox)dashboardDraggedBox.style.opacity="1";dashboardDraggedBox=null;};
     }else{boxes[i].ontouchstart=null;boxes[i].ontouchmove=null;boxes[i].ontouchend=null;boxes[i].ontouchcancel=null;}
   }
 }
@@ -9479,28 +9479,47 @@ function dashboardGetRows(){
   var vc=findItem(DASHBOARD_VIEWS||[],function(v){return String(v.id)===String(currentView);});if(!vc)return null;
   return (vc.rows||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(row){return (row.items||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(item){return {box_id:item.box_id,is_public:item.is_public===undefined?1:item.is_public};});}).filter(function(row){return row.length;});
 }
-function dashboardDropBox(sourceEl,targetEl,clientX,clientY){
-  if(!dashboardReorderActive||!sourceEl||!targetEl)return;
-  var rows=dashboardGetRows();if(!rows)return;
+var dashboardPreviewRows=null,dashboardPreviewSource=null,dashboardPreviewTarget=null;
+function dashboardCalculateRows(sourceEl,targetEl,clientX,clientY,baseRows){
+  if(!sourceEl||!targetEl)return null;
+  var rows=(baseRows||dashboardGetRows()||[]).map(function(row){return row.slice();});
   var sourceId=dashboardBoxId(sourceEl),targetId=dashboardBoxId(targetEl),sr=-1,si=-1,tr=-1,ti=-1;
   for(var r=0;r<rows.length;r++)for(var j=0;j<rows[r].length;j++){if(rows[r][j].box_id===sourceId){sr=r;si=j;}if(rows[r][j].box_id===targetId){tr=r;ti=j;}}
-  if(sr<0||tr<0||sourceId===targetId)return;
+  if(sr<0||tr<0||sourceId===targetId)return null;
   var source=rows[sr][si],target=rows[tr][ti],rect=targetEl.getBoundingClientRect();
   var yRatio=rect.height?(clientY-rect.top)/rect.height:.5;
-  /* Rilascio nella fascia superiore/inferiore: crea una nuova riga. */
   if(yRatio<.27 || yRatio>.73){
     rows[sr].splice(si,1);if(!rows[sr].length)rows.splice(sr,1);
     tr=-1;for(r=0;r<rows.length;r++)for(j=0;j<rows[r].length;j++)if(rows[r][j].box_id===targetId){tr=r;ti=j;}
-    if(tr<0)return;
+    if(tr<0)return null;
     rows.splice(yRatio<.27?tr:tr+1,0,[source]);
   }else if(rows[tr].length===1){
     var xRatio=rect.width?(clientX-rect.left)/rect.width:.5;
     if(xRatio<.35 || xRatio>.65){
       rows[sr].splice(si,1);if(!rows[sr].length)rows.splice(sr,1);
       tr=-1;for(r=0;r<rows.length;r++)for(j=0;j<rows[r].length;j++)if(rows[r][j].box_id===targetId){tr=r;ti=j;}
-      if(tr<0)return;rows[tr].splice(xRatio<.5?ti:ti+1,0,source);
+      if(tr<0)return null;rows[tr].splice(xRatio<.5?ti:ti+1,0,source);
     }else{rows[sr][si]=target;rows[tr][ti]=source;}
   }else{rows[sr][si]=target;rows[tr][ti]=source;}
+  return rows;
+}
+function dashboardShowPreview(rows,sourceEl,targetEl){
+  if(!rows)return;
+  dashboardPreviewRows=rows;dashboardPreviewSource=sourceEl;dashboardPreviewTarget=targetEl;
+  buildLayout(currentView,rows);
+  var source=$(sourceEl.id);if(source)source.style.opacity=".45";
+}
+function dashboardClearPreview(){
+  if(!dashboardPreviewRows)return;
+  dashboardPreviewRows=null;dashboardPreviewSource=null;dashboardPreviewTarget=null;
+  buildLayout(currentView);
+}
+function dashboardDropBox(sourceEl,targetEl,clientX,clientY){
+  if(!dashboardReorderActive||!sourceEl||!targetEl)return;
+  var rows=(dashboardPreviewRows&&dashboardPreviewSource===sourceEl)?dashboardPreviewRows:
+    dashboardCalculateRows(sourceEl,targetEl,clientX,clientY,dashboardGetRows());
+  if(!rows)return;
+  dashboardPreviewRows=null;dashboardPreviewSource=null;dashboardPreviewTarget=null;
   dashboardSaveRows(rows);
 }
 function dashboardSaveRows(rows){
