@@ -4885,6 +4885,7 @@ body.k #dashboardToolbar #viewSwitcherButtons .view-switcher-button {
 
 </style>
 
+<style>#dashboardToolbar #dashboardReorderButton{background:#edf4ff;border:1px solid #9bbce5;color:#174a7e;white-space:nowrap;}#dashboardToolbar #dashboardReorderButton[hidden]{display:none!important;}.dashboard-layout-row{width:100%;box-sizing:border-box;}.dashboard-layout-row>.col{margin:0!important;}@media(max-width:800px){#dashboardToolbar #dashboardReorderButton{padding:5px 6px;font-size:11px;}}</style>
 </head>
 <body>
 <div class="wrap">
@@ -9388,107 +9389,126 @@ function personalRow(){
 
 
 function buildLayout(view){
-  var views = DASHBOARD_VIEWS || [];
-  var vc = null;
-  var i, j, el, b;
-  var rows, items, row, item;
-  var host, stash;
-
-  for(i = 0; i < views.length; i++){
-    if(views[i].id === view){
-      vc = views[i];
-      break;
+  var views=DASHBOARD_VIEWS||[];
+  var vc=findItem(views,function(v){return String(v.id)===String(view);});
+  var host,stash,rows,i,j,items,box,rowEl,column,count;
+  if(!vc)return;
+  host=vc.view_type==="shared"?$("dashboardContent"):personalRow();
+  stash=$("stash");
+  if(!host||!stash)return;
+  for(var v=0;v<views.length;v++){
+    var allRows=views[v].rows||[];
+    for(i=0;i<allRows.length;i++){
+      items=allRows[i].items||[];
+      for(j=0;j<items.length;j++){box=$(items[j].element_id);if(box&&box.parentNode!==stash)stash.appendChild(box);}
     }
   }
-
-  if(!vc){ return; }
-
-  rows = (vc.rows || []).slice();
-  rows.sort(function(a, b){ return a.position - b.position; });
-
-  host = vc.view_type === "shared" ? $("dashboardContent") : personalRow();
-  stash = $("stash");
-  if(!host || !stash){ return; }
-
-  /* Riporta tutti i box nello stash prima di ricostruire la vista. */
-  for(var v = 0; v < views.length; v++){
-    var allRows = views[v].rows || [];
-    for(i = 0; i < allRows.length; i++){
-      items = allRows[i].items || [];
-      for(j = 0; j < items.length; j++){
-        el = $(items[j].element_id);
-        if(el && el.parentNode !== stash){ stash.appendChild(el); }
-      }
-    }
-  }
-
   clear(host);
-
-  /*
-   * Le righe consecutive con più box formano colonne verticali continue.
-   * In questo modo ogni box successivo parte subito dopo quello precedente
-   * nella propria colonna, senza attendere la colonna più alta.
-   * Una riga con un solo box resta invece a larghezza piena e separa i gruppi.
-   */
-  var segmentRows = [];
-
-  function flushSegment(){
-    if(!segmentRows.length){ return; }
-
-    var columnCount = 0;
-    var segmentContainer = mk("div", "row layout-row");
-    var columns = [];
-
-    for(var r = 0; r < segmentRows.length; r++){
-      if(segmentRows[r].length > columnCount){
-        columnCount = segmentRows[r].length;
-      }
+  rows=(vc.rows||[]).slice().sort(function(a,b){return a.position-b.position;});
+  for(i=0;i<rows.length;i++){
+    items=(rows[i].items||[]).slice().sort(function(a,b){return a.position-b.position;});
+    if(!items.length)continue;
+    rowEl=mk("div","row layout-row dashboard-layout-row");
+    count=Math.min(items.length,2);
+    rowEl.style.display="flex";rowEl.style.alignItems="stretch";rowEl.style.gap="0";
+    for(j=0;j<count;j++){
+      box=$(items[j].element_id);if(!box)continue;
+      setHidden(box,false);
+      column=mk("div","col"+(count===1?" full":""));
+      column.style.cssFloat="none";column.style.float="none";
+      column.style.width=count===1?"100%":"50%";
+      column.style.flex=count===1?"1 1 100%":"1 1 50%";
+      column.style.minWidth="0";column.style.boxSizing="border-box";
+      column.style.display="flex";column.style.flexDirection="column";column.style.padding="0 2px";
+      box.style.width="100%";box.style.boxSizing="border-box";
+      column.appendChild(box);rowEl.appendChild(column);
     }
-
-    for(var c = 0; c < columnCount; c++){
-      var column = mk("div", "col");
-      column.style.width = (100 / columnCount) + "%";
-      columns.push(column);
-      segmentContainer.appendChild(column);
-    }
-
-    host.appendChild(segmentContainer);
-
-    for(var rr = 0; rr < segmentRows.length; rr++){
-      for(var cc = 0; cc < segmentRows[rr].length; cc++){
-        b = $(segmentRows[rr][cc].element_id);
-        if(!b){ continue; }
-        setHidden(b, false);
-        columns[cc].appendChild(b);
-      }
-    }
-
-    segmentRows = [];
+    host.appendChild(rowEl);
   }
+  applyDashboardReorderMode();
+}
 
-  for(i = 0; i < rows.length; i++){
-    row = rows[i];
-    items = (row.items || []).slice();
-    items.sort(function(a, b){ return a.position - b.position; });
-    if(!items.length){ continue; }
 
-    if(items.length === 1){
-      flushSegment();
-      b = $(items[0].element_id);
-      if(!b){ continue; }
-      setHidden(b, false);
-
-      var fullRow = mk("div", "row layout-row");
-      var fullColumn = mk("div", "col full");
-      fullColumn.appendChild(b);
-      fullRow.appendChild(fullColumn);
-      host.appendChild(fullRow);
-    } else {
-      segmentRows.push(items);
-    }
+/* Riordino delle box direttamente sulla dashboard. */
+var dashboardReorderActive=false, dashboardDraggedBox=null, dashboardTouchTimer=null, dashboardTouchStart=null, dashboardTouchDragging=false;
+function dashboardBoxId(el){if(!el)return null;for(var i=0;i<(DASHBOARD_BOXES||[]).length;i++)if(DASHBOARD_BOXES[i].element_id===el.id)return DASHBOARD_BOXES[i].id;return null;}
+function dashboardLayoutHost(){var v=findItem(DASHBOARD_VIEWS||[],function(x){return String(x.id)===String(currentView);});return v&&v.view_type==="shared"?$("dashboardContent"):$("personalView");}
+function applyDashboardReorderMode(){
+  var host=dashboardLayoutHost();if(!host)return;
+  var boxes=host.querySelectorAll(".dashboard-layout-row .box");
+  for(var i=0;i<boxes.length;i++){
+    boxes[i].draggable=!!dashboardReorderActive;
+    boxes[i].style.cursor=dashboardReorderActive?"move":"";
+    boxes[i].style.outline=dashboardReorderActive?"2px dashed #2878c8":"";
+    boxes[i].style.outlineOffset=dashboardReorderActive?"2px":"";
+    boxes[i].ondragstart=dashboardReorderActive?(function(el){return function(ev){dashboardDraggedBox=el;if(ev.dataTransfer){ev.dataTransfer.effectAllowed="move";try{ev.dataTransfer.setData("text/plain",el.id);}catch(ignore){}}el.style.opacity=".45";};})(boxes[i]):null;
+    boxes[i].ondragend=function(){this.style.opacity="1";dashboardDraggedBox=null;};
+    boxes[i].ondragover=dashboardReorderActive?function(ev){if(!dashboardDraggedBox||dashboardDraggedBox===this)return;ev.preventDefault();if(ev.dataTransfer)ev.dataTransfer.dropEffect="move";}:null;
+    boxes[i].ondrop=dashboardReorderActive?(function(target){return function(ev){ev.preventDefault();if(dashboardDraggedBox&&dashboardDraggedBox!==target)dashboardDropBox(dashboardDraggedBox,target,ev.clientX);};})(boxes[i]):null;
+    if(dashboardReorderActive){
+      boxes[i].ontouchstart=(function(el){return function(ev){if(!ev.touches||ev.touches.length!==1)return;dashboardTouchStart={x:ev.touches[0].clientX,y:ev.touches[0].clientY,el:el};dashboardTouchDragging=false;dashboardTouchTimer=setTimeout(function(){dashboardDraggedBox=el;dashboardTouchDragging=true;el.style.opacity=".45";},650);};})(boxes[i]);
+      boxes[i].ontouchmove=function(ev){
+        if(!dashboardTouchStart||!ev.touches||!ev.touches.length)return;
+        var t=ev.touches[0];
+        if(!dashboardTouchDragging&&(Math.abs(t.clientX-dashboardTouchStart.x)>12||Math.abs(t.clientY-dashboardTouchStart.y)>12)){clearTimeout(dashboardTouchTimer);dashboardTouchTimer=null;}
+        if(dashboardTouchDragging)ev.preventDefault();
+      };
+      boxes[i].ontouchend=function(ev){
+        clearTimeout(dashboardTouchTimer);dashboardTouchTimer=null;
+        if(dashboardTouchDragging&&dashboardDraggedBox){
+          var t=ev.changedTouches&&ev.changedTouches[0],under=t?document.elementFromPoint(t.clientX,t.clientY):null;
+          while(under&&under!==document.body&&!(under.classList&&under.classList.contains("box")))under=under.parentNode;
+          if(under&&under!==dashboardDraggedBox)dashboardDropBox(dashboardDraggedBox,under,t.clientX);
+          dashboardDraggedBox.style.opacity="1";
+        }
+        dashboardTouchStart=null;dashboardTouchDragging=false;dashboardDraggedBox=null;
+      };
+      boxes[i].ontouchcancel=function(){clearTimeout(dashboardTouchTimer);dashboardTouchTimer=null;dashboardTouchStart=null;dashboardTouchDragging=false;if(dashboardDraggedBox)dashboardDraggedBox.style.opacity="1";dashboardDraggedBox=null;};
+    }else{boxes[i].ontouchstart=null;boxes[i].ontouchmove=null;boxes[i].ontouchend=null;boxes[i].ontouchcancel=null;}
   }
-
-  flushSegment();
+}
+function dashboardGetRows(){
+  var vc=findItem(DASHBOARD_VIEWS||[],function(v){return String(v.id)===String(currentView);});if(!vc)return null;
+  return (vc.rows||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(row){return (row.items||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(item){return {box_id:item.box_id,is_public:item.is_public===undefined?1:item.is_public};});}).filter(function(row){return row.length;});
+}
+function dashboardDropBox(sourceEl,targetEl,clientX){
+  if(!dashboardReorderActive||!sourceEl||!targetEl)return;
+  var rows=dashboardGetRows();if(!rows)return;
+  var sourceId=dashboardBoxId(sourceEl),targetId=dashboardBoxId(targetEl),sr=-1,si=-1,tr=-1,ti=-1;
+  for(var r=0;r<rows.length;r++)for(var j=0;j<rows[r].length;j++){if(rows[r][j].box_id===sourceId){sr=r;si=j;}if(rows[r][j].box_id===targetId){tr=r;ti=j;}}
+  if(sr<0||tr<0||sourceId===targetId)return;
+  var source=rows[sr][si],target=rows[tr][ti];
+  if(rows[tr].length===1){
+    var rect=targetEl.getBoundingClientRect(),side=clientX<rect.left+rect.width*.35?"left":(clientX>rect.left+rect.width*.65?"right":"center");
+    if(side==="center"){rows[sr][si]=target;rows[tr][ti]=source;}
+    else{
+      rows[sr].splice(si,1);if(!rows[sr].length)rows.splice(sr,1);
+      tr=-1;for(r=0;r<rows.length;r++)for(j=0;j<rows[r].length;j++)if(rows[r][j].box_id===targetId){tr=r;ti=j;}
+      if(tr<0)return;rows[tr].splice(side==="left"?ti:ti+1,0,source);
+    }
+  }else{rows[sr][si]=target;rows[tr][ti]=source;}
+  dashboardSaveRows(rows);
+}
+function dashboardSaveRows(rows){
+  var btn=$("dashboardReorderButton");if(btn){btn.disabled=true;btn.textContent="SALVATAGGIO…";}
+  usersRequest("GET","/views",null,function(metaErr,meta){
+    var v=meta&&meta.views?findItem(meta.views,function(x){return String(x.id)===String(currentView);}):null;
+    var allowed=!!(v&&(Number(v.owner_user_id)===Number(authProfile)||(authUserType==="family"&&Number(v.layout_locked)!==1)));
+    if(metaErr||!allowed){if(btn){btn.disabled=false;btn.textContent="FINE";}alert(metaErr||"Non hai i permessi per modificare questo layout.");return;}
+    usersRequest("PUT","/views/"+encodeURIComponent(currentView)+"/layout",{rows:rows.map(function(row){return row.map(function(item){return {box_id:item.box_id,enabled:true,is_public:item.is_public===true||Number(item.is_public)===1};});})},function(err,result){
+      if(err||!result||!result.ok){if(btn){btn.disabled=false;btn.textContent="FINE";}alert(err||(result&&result.error)||"Salvataggio del layout non riuscito.");return;}
+      loadAuthorizedConfig(function(configErr){if(configErr){if(btn){btn.disabled=false;btn.textContent="FINE";}alert("Layout salvato, ma aggiornamento dashboard non riuscito.");return;}dashboardReorderActive=false;setView(currentView,false);if(btn){btn.disabled=false;btn.textContent="RIORDINA";}});
+    });
+  });
+}
+function toggleDashboardReorder(){
+  if(dashboardReorderActive){dashboardReorderActive=false;applyDashboardReorderMode();var b=$("dashboardReorderButton");if(b)b.textContent="RIORDINA";return;}
+  usersRequest("GET","/views",null,function(err,data){
+    var v=data&&data.views?findItem(data.views,function(x){return String(x.id)===String(currentView);}):null;
+    var allowed=!!(v&&(Number(v.owner_user_id)===Number(authProfile)||(authUserType==="family"&&Number(v.layout_locked)!==1)));
+    if(err||!allowed){alert(err||"Non hai i permessi per riordinare questa vista.");return;}
+    dashboardReorderActive=true;applyDashboardReorderMode();var b=$("dashboardReorderButton");if(b)b.textContent="FINE";
+  });
 }
 
 function setView(view, manual){
@@ -11844,6 +11864,14 @@ function renderViewSwitcher(){
     buttons.appendChild(button);
   }
 
+  var reorderButton=$("dashboardReorderButton");
+  if(!reorderButton){
+    reorderButton=mk("button","dashboard-reorder-button","RIORDINA");reorderButton.id="dashboardReorderButton";reorderButton.type="button";
+    reorderButton.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}toggleDashboardReorder();};
+    reorderButton.style.flex="0 0 auto";reorderButton.style.padding="6px 9px";reorderButton.style.fontSize="12px";reorderButton.style.fontWeight="bold";reorderButton.style.borderRadius="6px";reorderButton.style.margin="0 0 0 5px";
+    var toolbar=$("dashboardToolbar");if(toolbar)toolbar.appendChild(reorderButton);
+  }
+  setHidden(reorderButton,false);reorderButton.textContent=dashboardReorderActive?"FINE":"RIORDINA";
   var orderButton = mk("button", "view-switcher-order-button", "");
   var orderArrow = mk("span", "", "↔");
   orderArrow.style.display = "block";
