@@ -9551,14 +9551,18 @@ function dashboardCalculateSections(sourceEl,targetEl,clientX,clientY,baseSectio
   if(xr>=.35&&xr<=.65){
     sections[sourceLoc.section].columns[sourceLoc.column][sourceLoc.item]=targetItem;
     sections[targetLoc.section].columns[targetLoc.column][targetLoc.item]=sourceItem;
-  }else{
-    sections[sourceLoc.section].columns[sourceLoc.column].splice(sourceLoc.item,1);
-    sections=dashboardCleanupSections(sections);
-    targetLoc=dashboardFindItemLocation(sections,targetId);if(!targetLoc)return null;
-    var dest=sections[targetLoc.section].columns[xr<.5?0:1];
+  }else if(sourceLoc.section===targetLoc.section&&sourceLoc.column===targetLoc.column){
+    var sameColumn=sections[sourceLoc.section].columns[sourceLoc.column];
+    sameColumn.splice(sourceLoc.item,1);
+    targetLoc=dashboardFindItemLocation(sections,targetId);
+    if(!targetLoc)return null;
+    sameColumn=sections[targetLoc.section].columns[targetLoc.column];
     var insertAt=yr<.5?targetLoc.item:targetLoc.item+1;
-    if(sourceLoc.section===targetLoc.section&&sourceLoc.column===(xr<.5?0:1)&&sourceLoc.item<insertAt)insertAt--;
-    dest.splice(Math.max(0,Math.min(insertAt,dest.length)),0,sourceItem);
+    sameColumn.splice(Math.max(0,Math.min(insertAt,sameColumn.length)),0,sourceItem);
+  }else{
+    // Il trasferimento fra colonne scambia le due box, evitando colonne vuote.
+    sections[sourceLoc.section].columns[sourceLoc.column][sourceLoc.item]=targetItem;
+    sections[targetLoc.section].columns[targetLoc.column][targetLoc.item]=sourceItem;
   }
   return dashboardCleanupSections(sections);
 }
