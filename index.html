@@ -4812,6 +4812,77 @@ html body #head {
   #dashboardToolbar { gap:4px; }
 }
 
+
+/* Kindle/Silk: barra principale a float, non flex.
+   Evita che hamburger e appunti si sovrappongano allo switch utente
+   nei browser Kindle che calcolano male le larghezze flex. */
+body.k #dashboardToolbar {
+  display:block!important;
+  width:calc(100% - 6px)!important;
+  min-height:36px!important;
+  overflow:hidden!important;
+  white-space:normal!important;
+}
+body.k #dashboardToolbar:after {
+  content:""!important;
+  display:table!important;
+  clear:both!important;
+}
+body.k #dashboardToolbar #viewMenu {
+  display:block!important;
+  position:relative!important;
+  float:left!important;
+  left:auto!important;
+  top:auto!important;
+  width:30px!important;
+  min-width:30px!important;
+  height:34px!important;
+  margin:1px 4px 1px 0!important;
+  z-index:1001!important;
+}
+body.k #dashboardToolbar #viewMenuToggle {
+  display:block!important;
+  position:relative!important;
+  width:30px!important;
+  min-width:30px!important;
+  height:30px!important;
+  margin:0!important;
+}
+body.k #dashboardToolbar #toolbarNotesButton {
+  display:block!important;
+  position:relative!important;
+  float:left!important;
+  width:36px!important;
+  min-width:36px!important;
+  height:36px!important;
+  margin:0 5px 0 0!important;
+}
+body.k #dashboardToolbar #viewSwitcher {
+  display:block!important;
+  position:relative!important;
+  float:none!important;
+  overflow:hidden!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  margin:0!important;
+}
+body.k #dashboardToolbar #viewSwitcherButtons {
+  display:block!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  width:auto!important;
+  max-width:none!important;
+  min-width:0!important;
+  padding:1px 0!important;
+  white-space:nowrap!important;
+}
+body.k #dashboardToolbar #viewSwitcherButtons .view-switcher-button {
+  display:inline-block!important;
+  vertical-align:middle!important;
+  float:none!important;
+}
+
 </style>
 
 </head>
