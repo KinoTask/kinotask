@@ -11655,7 +11655,9 @@ function alignBoxes(){
   var rows = host.querySelectorAll(".dashboard-layout-columns");
   /* Le sezioni precedenti restano naturali: si allunga solo il fondo
      dell'ultima sezione a colonne dell'intera vista. */
-  for(var r = rows.length - 1; r < rows.length; r++){
+  if(rows.length){
+    var r = rows.length - 1;
+    if(!rows[r]) return;
     var rowChildren = rows[r].children;
     var columns = [];
     for(var rc = 0; rc < rowChildren.length; rc++){
