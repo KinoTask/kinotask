@@ -11667,7 +11667,11 @@ function alignBoxes(){
    */
   var rows = host.querySelectorAll(".dashboard-layout-columns");
   for(var r = 0; r < rows.length; r++){
-    var columns = rows[r].querySelectorAll(":scope > .dashboard-layout-column");
+    var rowChildren = rows[r].children;
+    var columns = [];
+    for(var rc = 0; rc < rowChildren.length; rc++){
+      if(rowChildren[rc].classList.contains("dashboard-layout-column")) columns.push(rowChildren[rc]);
+    }
     var lastBoxes = [];
     var targetBottom = 0;
 
