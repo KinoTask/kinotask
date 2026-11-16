@@ -9441,38 +9441,61 @@ function buildLayout(view){
 var dashboardReorderActive=false, dashboardDraggedBox=null, dashboardTouchTimer=null, dashboardTouchStart=null, dashboardTouchDragging=false;
 function dashboardBoxId(el){if(!el)return null;for(var i=0;i<(DASHBOARD_BOXES||[]).length;i++)if(DASHBOARD_BOXES[i].element_id===el.id)return DASHBOARD_BOXES[i].id;return null;}
 function dashboardLayoutHost(){var v=findItem(DASHBOARD_VIEWS||[],function(x){return String(x.id)===String(currentView);});return v&&v.view_type==="shared"?$("dashboardContent"):$("personalView");}
+var dashboardPointerId=null,dashboardPointerStart=null,dashboardPointerTimer=null,dashboardPointerDragging=false,dashboardPointerSource=null,dashboardPointerX=0,dashboardPointerY=0;
+function dashboardFindBoxAt(x,y){
+  var el=document.elementFromPoint(x,y);
+  while(el&&el!==document.body&&!(el.classList&&el.classList.contains("box")))el=el.parentNode;
+  return el&&el!==document.body?el:null;
+}
+function dashboardPointerMove(ev){
+  if(dashboardPointerId===null||ev.pointerId!==dashboardPointerId)return;
+  dashboardPointerX=ev.clientX;dashboardPointerY=ev.clientY;
+  if(!dashboardPointerDragging){
+    if(Math.abs(ev.clientX-dashboardPointerStart.x)>12||Math.abs(ev.clientY-dashboardPointerStart.y)>12){clearTimeout(dashboardPointerTimer);dashboardPointerTimer=null;dashboardPointerId=null;dashboardPointerSource=null;}
+    return;
+  }
+  ev.preventDefault();
+  var target=dashboardFindBoxAt(ev.clientX,ev.clientY);
+  if(target&&target!==dashboardPointerSource&&target!==dashboardPreviewTarget){
+    var next=dashboardCalculateRows(dashboardPointerSource,target,ev.clientX,ev.clientY,dashboardGetRows());
+    if(next)dashboardShowPreview(next,dashboardPointerSource,target);
+  }
+}
+function dashboardPointerUp(ev){
+  if(dashboardPointerId===null||ev.pointerId!==dashboardPointerId)return;
+  clearTimeout(dashboardPointerTimer);dashboardPointerTimer=null;
+  var source=dashboardPointerSource,target=dashboardFindBoxAt(ev.clientX,ev.clientY),dragging=dashboardPointerDragging;
+  if(dragging&&source&&target&&target!==source){
+    var next=dashboardCalculateRows(source,target,ev.clientX,ev.clientY,dashboardGetRows());
+    if(next){dashboardPreviewRows=next;dashboardPreviewSource=source;dashboardDropBox(source,target,ev.clientX,ev.clientY);}
+    else dashboardClearPreview();
+  }else if(dragging)dashboardClearPreview();
+  if(source)source.style.opacity="1";
+  dashboardPointerId=null;dashboardPointerStart=null;dashboardPointerDragging=false;dashboardPointerSource=null;
+}
 function applyDashboardReorderMode(){
   var host=dashboardLayoutHost();if(!host)return;
   var boxes=host.querySelectorAll(".dashboard-layout-row .box");
   for(var i=0;i<boxes.length;i++){
-    boxes[i].draggable=!!dashboardReorderActive;
-    boxes[i].style.cursor=dashboardReorderActive?"move":"";
-    boxes[i].style.outline=dashboardReorderActive?"2px dashed #2878c8":"";
-    boxes[i].style.outlineOffset=dashboardReorderActive?"2px":"";
-    boxes[i].ondragstart=dashboardReorderActive?(function(el){return function(ev){dashboardDraggedBox=el;if(ev.dataTransfer){ev.dataTransfer.effectAllowed="move";try{ev.dataTransfer.setData("text/plain",el.id);}catch(ignore){}}el.style.opacity=".45";};})(boxes[i]):null;
-    boxes[i].ondragend=function(){this.style.opacity="1";if(dashboardPreviewRows)dashboardClearPreview();dashboardDraggedBox=null;};
-    boxes[i].ondragover=dashboardReorderActive?function(ev){if(!dashboardDraggedBox||dashboardDraggedBox===this)return;ev.preventDefault();if(ev.dataTransfer)ev.dataTransfer.dropEffect="move";var next=dashboardCalculateRows(dashboardDraggedBox,this,ev.clientX,ev.clientY,dashboardGetRows());if(next)dashboardShowPreview(next,dashboardDraggedBox,this);}:null;
-    boxes[i].ondrop=dashboardReorderActive?(function(target){return function(ev){ev.preventDefault();if(dashboardDraggedBox&&dashboardDraggedBox!==target)dashboardDropBox(dashboardDraggedBox,target,ev.clientX,ev.clientY);};})(boxes[i]):null;
-    if(dashboardReorderActive){
-      boxes[i].ontouchstart=(function(el){return function(ev){if(!ev.touches||ev.touches.length!==1)return;dashboardTouchStart={x:ev.touches[0].clientX,y:ev.touches[0].clientY,el:el};dashboardTouchDragging=false;dashboardTouchTimer=setTimeout(function(){dashboardDraggedBox=el;dashboardTouchDragging=true;el.style.opacity=".45";},650);};})(boxes[i]);
-      boxes[i].ontouchmove=function(ev){
-        if(!dashboardTouchStart||!ev.touches||!ev.touches.length)return;
-        var t=ev.touches[0];
-        if(!dashboardTouchDragging&&(Math.abs(t.clientX-dashboardTouchStart.x)>12||Math.abs(t.clientY-dashboardTouchStart.y)>12)){clearTimeout(dashboardTouchTimer);dashboardTouchTimer=null;}
-        if(dashboardTouchDragging){ev.preventDefault();var under=document.elementFromPoint(t.clientX,t.clientY);while(under&&under!==document.body&&!(under.classList&&under.classList.contains("box")))under=under.parentNode;if(under&&under!==dashboardDraggedBox){var next=dashboardCalculateRows(dashboardDraggedBox,under,t.clientX,t.clientY,dashboardGetRows());if(next)dashboardShowPreview(next,dashboardDraggedBox,under);}}
-      };
-      boxes[i].ontouchend=function(ev){
-        clearTimeout(dashboardTouchTimer);dashboardTouchTimer=null;
-        if(dashboardTouchDragging&&dashboardDraggedBox){
-          var t=ev.changedTouches&&ev.changedTouches[0],under=t?document.elementFromPoint(t.clientX,t.clientY):null;
-          while(under&&under!==document.body&&!(under.classList&&under.classList.contains("box")))under=under.parentNode;
-          if(under&&under!==dashboardDraggedBox)dashboardDropBox(dashboardDraggedBox,under,t.clientX,t.clientY);else dashboardClearPreview();
-          dashboardDraggedBox.style.opacity="1";
-        }
-        dashboardTouchStart=null;dashboardTouchDragging=false;dashboardDraggedBox=null;
-      };
-      boxes[i].ontouchcancel=function(){clearTimeout(dashboardTouchTimer);dashboardTouchTimer=null;dashboardClearPreview();dashboardTouchStart=null;dashboardTouchDragging=false;if(dashboardDraggedBox)dashboardDraggedBox.style.opacity="1";dashboardDraggedBox=null;};
-    }else{boxes[i].ontouchstart=null;boxes[i].ontouchmove=null;boxes[i].ontouchend=null;boxes[i].ontouchcancel=null;}
+    var el=boxes[i];
+    el.draggable=false;
+    el.style.cursor=dashboardReorderActive?"grab":"";
+    el.style.touchAction=dashboardReorderActive?"none":"";
+    el.style.outline=dashboardReorderActive?"2px dashed #2878c8":"";
+    el.style.outlineOffset=dashboardReorderActive?"2px":"";
+    el.onpointerdown=dashboardReorderActive?(function(box){return function(ev){
+      if(ev.button!==undefined&&ev.button!==0)return;
+      dashboardPointerId=ev.pointerId;dashboardPointerStart={x:ev.clientX,y:ev.clientY};
+      dashboardPointerSource=box;dashboardPointerDragging=false;
+      dashboardPointerTimer=setTimeout(function(){
+        if(dashboardPointerId===ev.pointerId){dashboardPointerDragging=true;box.style.opacity=".45";box.style.cursor="grabbing";}
+      },ev.pointerType==="touch"?500:0);
+      try{box.setPointerCapture(ev.pointerId);}catch(ignore){}
+      if(ev.pointerType!=="touch")ev.preventDefault();
+    };})(el):null;
+    el.onpointermove=dashboardReorderActive?dashboardPointerMove:null;
+    el.onpointerup=dashboardReorderActive?dashboardPointerUp:null;
+    el.onpointercancel=dashboardReorderActive?function(ev){if(dashboardPointerId===ev.pointerId){clearTimeout(dashboardPointerTimer);dashboardPointerTimer=null;dashboardClearPreview();if(dashboardPointerSource)dashboardPointerSource.style.opacity="1";dashboardPointerId=null;dashboardPointerStart=null;dashboardPointerDragging=false;dashboardPointerSource=null;}}:null;
   }
 }
 function dashboardGetRows(){
