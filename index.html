@@ -10517,6 +10517,8 @@ function openLayoutManagement(){
 		};
 	}
 
+	var draggedLayoutItem = null;
+
 	function renderEditor(){
 		clear(editor);
 
@@ -10526,55 +10528,77 @@ function openLayoutManagement(){
 		});
 
 		var used = [];
-
 		for(var r = 0; r < currentRows.length; r++){
 			for(var j = 0; j < currentRows[r].length; j++){
 				used.push(currentRows[r][j].box_id);
 			}
 		}
 
+		var hint = mk("div", "small", "Trascina una box su un'altra: a sinistra o destra per affiancarla, in alto o in basso per inserirla in una nuova riga. Le frecce restano disponibili come alternativa.");
+		hint.style.margin = "0 0 2px";
+		hint.style.padding = "9px 11px";
+		hint.style.background = "#f3f6fa";
+		hint.style.border = "1px solid #dce4ee";
+		hint.style.borderRadius = "9px";
+		editor.appendChild(hint);
+
 		for(var r = 0; r < currentRows.length; r++){
 			var row = currentRows[r];
-
 			var rowBox = mk("div", "", "");
-			rowBox.style.border = "1px solid #aaa";
-			rowBox.style.borderRadius = "6px";
-			rowBox.style.padding = "8px";
+			rowBox.style.border = "1px solid #d9e0e8";
+			rowBox.style.borderRadius = "11px";
+			rowBox.style.padding = "9px";
+			rowBox.style.background = "#f8fafc";
 			rowBox.style.display = "flex";
 			rowBox.style.flexDirection = "column";
 			rowBox.style.gap = "7px";
+			rowBox.style.marginBottom = "2px";
 
+			var rowHead = mk("div", "", "");
+			rowHead.style.display = "flex";
+			rowHead.style.alignItems = "center";
+			rowHead.style.justifyContent = "space-between";
 			var rowTitle = mk("div", "", "RIGA " + (r + 1));
 			rowTitle.style.fontWeight = "bold";
-			rowBox.appendChild(rowTitle);
+			rowTitle.style.fontSize = "12px";
+			rowTitle.style.letterSpacing = ".04em";
+			rowTitle.style.color = "#526174";
+			rowHead.appendChild(rowTitle);
+			var rowMode = mk("div", "", row.length === 2 ? "2 COLONNE" : "LARGHEZZA INTERA");
+			rowMode.style.fontSize = "10px";
+			rowMode.style.fontWeight = "bold";
+			rowMode.style.color = "#64748b";
+			rowHead.appendChild(rowMode);
+			rowBox.appendChild(rowHead);
 
+			var cards = mk("div", "", "");
+			cards.style.display = "flex";
+			cards.style.gap = "8px";
+			cards.style.alignItems = "stretch";
+			cards.style.width = "100%";
 			for(var j = 0; j < row.length; j++){
-				renderBox(rowBox, row[j], r, j);
+				renderBox(cards, row[j], r, j);
 			}
-
+			rowBox.appendChild(cards);
 			editor.appendChild(rowBox);
 		}
 
 		if(!currentRows.length){
-			var empty = mk("div", "", "Nessun box configurato.");
+			var empty = mk("div", "", "Nessun box configurato. Aggiungi una box per iniziare.");
 			empty.style.textAlign = "center";
+			empty.style.padding = "24px 12px";
+			empty.style.color = "#64748b";
 			editor.appendChild(empty);
 		}
 
 		clear(addSelect);
-
 		var firstOption = document.createElement("option");
 		firstOption.value = "";
 		firstOption.textContent = "Seleziona un box...";
 		addSelect.appendChild(firstOption);
-
 		for(var i = 0; i < availableBoxes.length; i++){
 			var catalogBox = availableBoxes[i];
-
-			if(used.indexOf(catalogBox.id) !== -1){
-				continue;
-			}
-
+			if(used.indexOf(catalogBox.id) !== -1){ continue; }
 			var option = document.createElement("option");
 			option.value = catalogBox.id;
 			option.textContent = catalogBox.title;
@@ -10584,16 +10608,9 @@ function openLayoutManagement(){
 		addButton.disabled = !canEdit || addSelect.options.length <= 1;
 		addSelect.disabled = !canEdit;
 		saveButton.disabled = !canEdit;
-
-		if(!canEdit){
-			addButton.style.display = "none";
-			addSelect.style.display = "none";
-			saveButton.style.display = "none";
-		}else{
-			addButton.style.display = "";
-			addSelect.style.display = "";
-			saveButton.style.display = "";
-		}
+		addButton.style.display = canEdit ? "" : "none";
+		addSelect.style.display = canEdit ? "" : "none";
+		saveButton.style.display = canEdit ? "" : "none";
 	}
 
 	function renderBox(rowBox, item, rowIndex, itemIndex){
@@ -10602,20 +10619,37 @@ function openLayoutManagement(){
 		});
 
 		var itemBox = mk("div", "", "");
-		itemBox.style.border = "1px solid #ccc";
-		itemBox.style.borderRadius = "5px";
-		itemBox.style.padding = "8px";
+		itemBox.style.border = "1px solid #d6dee8";
+		itemBox.style.borderRadius = "10px";
+		itemBox.style.padding = "10px";
+		itemBox.style.background = "#fff";
 		itemBox.style.display = "flex";
 		itemBox.style.flexDirection = "column";
-		itemBox.style.gap = "7px";
+		itemBox.style.gap = "9px";
+		itemBox.style.flex = rowBox.children.length ? "1 1 50%" : "1 1 100%";
+		itemBox.style.minWidth = "0";
+		itemBox.style.boxSizing = "border-box";
+		itemBox.style.boxShadow = "0 1px 3px rgba(15,23,42,.06)";
+		itemBox.style.transition = "border-color .12s, background .12s";
+		itemBox.draggable = !!canEdit;
+		itemBox.title = canEdit ? "Trascina per spostare questa box" : "";
 
-		var name = mk(
-			"div",
-			"",
-			catalogBox ? catalogBox.title : item.box_id
-		);
+		var head = mk("div", "", "");
+		head.style.display = "flex";
+		head.style.alignItems = "center";
+		head.style.gap = "8px";
+		var grip = mk("div", "", "⠿");
+		grip.style.fontSize = "20px";
+		grip.style.lineHeight = "1";
+		grip.style.color = "#8290a2";
+		grip.style.cursor = canEdit ? "grab" : "default";
+		head.appendChild(grip);
+		var name = mk("div", "", catalogBox ? catalogBox.title : item.box_id);
 		name.style.fontWeight = "bold";
-		itemBox.appendChild(name);
+		name.style.flex = "1";
+		name.style.minWidth = "0";
+		head.appendChild(name);
+		itemBox.appendChild(head);
 
 		var actions = mk("div", "", "");
 		actions.style.display = "flex";
@@ -10623,40 +10657,27 @@ function openLayoutManagement(){
 
 		var upButton = mk("button", "", "↑");
 		upButton.type = "button";
+		upButton.title = "Sposta prima";
 		upButton.style.flex = "1";
-		upButton.disabled = !canEdit ||
-			(rowIndex === 0 && itemIndex === 0);
-
-		upButton.onclick = function(){
-			moveItem(rowIndex, itemIndex, -1);
-		};
+		upButton.disabled = !canEdit || (rowIndex === 0 && itemIndex === 0);
+		upButton.onclick = function(){ moveItem(rowIndex, itemIndex, -1); };
 
 		var downButton = mk("button", "", "↓");
 		downButton.type = "button";
+		downButton.title = "Sposta dopo";
 		downButton.style.flex = "1";
-
-		var isLast =
-			rowIndex === currentRows.length - 1 &&
+		var isLast = rowIndex === currentRows.length - 1 &&
 			itemIndex === currentRows[rowIndex].length - 1;
-
 		downButton.disabled = !canEdit || isLast;
-
-		downButton.onclick = function(){
-			moveItem(rowIndex, itemIndex, 1);
-		};
+		downButton.onclick = function(){ moveItem(rowIndex, itemIndex, 1); };
 
 		var removeButton = mk("button", "", "RIMUOVI");
 		removeButton.type = "button";
 		removeButton.style.flex = "2";
 		removeButton.disabled = !canEdit;
-
 		removeButton.onclick = function(){
 			currentRows[rowIndex].splice(itemIndex, 1);
-
-			if(!currentRows[rowIndex].length){
-				currentRows.splice(rowIndex, 1);
-			}
-
+			if(!currentRows[rowIndex].length){ currentRows.splice(rowIndex, 1); }
 			renderEditor();
 		};
 
@@ -10665,42 +10686,98 @@ function openLayoutManagement(){
 		actions.appendChild(removeButton);
 		itemBox.appendChild(actions);
 
+		if(canEdit){
+			itemBox.ondragstart = function(ev){
+				draggedLayoutItem = item;
+				itemBox.style.opacity = ".45";
+				if(ev.dataTransfer){
+					ev.dataTransfer.effectAllowed = "move";
+					try{ ev.dataTransfer.setData("text/plain", item.box_id); }catch(ignore){}
+				}
+			};
+			itemBox.ondragend = function(){
+				draggedLayoutItem = null;
+				itemBox.style.opacity = "1";
+				itemBox.style.borderColor = "#d6dee8";
+			};
+			itemBox.ondragover = function(ev){
+				if(!draggedLayoutItem || draggedLayoutItem === item){ return; }
+				ev.preventDefault();
+				if(ev.dataTransfer){ ev.dataTransfer.dropEffect = "move"; }
+				itemBox.style.borderColor = "#2878c8";
+				itemBox.style.background = "#eff6ff";
+			};
+			itemBox.ondragleave = function(){
+				itemBox.style.borderColor = "#d6dee8";
+				itemBox.style.background = "#fff";
+			};
+			itemBox.ondrop = function(ev){
+				ev.preventDefault();
+				itemBox.style.borderColor = "#d6dee8";
+				itemBox.style.background = "#fff";
+				if(!draggedLayoutItem || draggedLayoutItem === item){ return; }
+				placeDraggedItem(draggedLayoutItem, item, ev.clientX, ev.clientY, itemBox);
+				draggedLayoutItem = null;
+			};
+		}
+
 		rowBox.appendChild(itemBox);
 	}
 
-	function moveItem(rowIndex, itemIndex, direction){
-		var flat = [];
-
+	function placeDraggedItem(dragged, target, clientX, clientY, targetElement){
+		var sourceRow = -1, sourceIndex = -1;
 		for(var r = 0; r < currentRows.length; r++){
 			for(var j = 0; j < currentRows[r].length; j++){
-				flat.push(currentRows[r][j]);
+				if(currentRows[r][j] === dragged){ sourceRow = r; sourceIndex = j; }
 			}
 		}
+		if(sourceRow < 0){ return; }
 
+		var rect = targetElement.getBoundingClientRect();
+		var dx = (clientX - rect.left) / Math.max(1, rect.width);
+		var dy = (clientY - rect.top) / Math.max(1, rect.height);
+		var horizontal = dx < .25 || dx > .75;
+		var insertAfter = horizontal ? dx > .5 : dy > .5;
+
+		currentRows[sourceRow].splice(sourceIndex, 1);
+		if(!currentRows[sourceRow].length){ currentRows.splice(sourceRow, 1); }
+
+		var targetRow = -1, targetIndex = -1;
+		for(var rr = 0; rr < currentRows.length; rr++){
+			for(var cc = 0; cc < currentRows[rr].length; cc++){
+				if(currentRows[rr][cc] === target){ targetRow = rr; targetIndex = cc; }
+			}
+		}
+		if(targetRow < 0){ return; }
+
+		var row = currentRows[targetRow];
+		if(horizontal && row.length < 2){
+			row.splice(insertAfter ? targetIndex + 1 : targetIndex, 0, dragged);
+		}else{
+			currentRows.splice(targetRow + (insertAfter ? 1 : 0), 0, [dragged]);
+		}
+		renderEditor();
+	}
+
+	function moveItem(rowIndex, itemIndex, direction){
+		var rowSizes = [];
+		var flat = [];
+		for(var r = 0; r < currentRows.length; r++){
+			rowSizes.push(currentRows[r].length);
+			for(var j = 0; j < currentRows[r].length; j++){ flat.push(currentRows[r][j]); }
+		}
 		var index = 0;
-
-		for(var r = 0; r < rowIndex; r++){
-			index += currentRows[r].length;
-		}
-
+		for(var rr = 0; rr < rowIndex; rr++){ index += currentRows[rr].length; }
 		index += itemIndex;
-
 		var target = index + direction;
-
-		if(target < 0 || target >= flat.length){
-			return;
-		}
-
-		var temp = flat[index];
-		flat[index] = flat[target];
-		flat[target] = temp;
-
+		if(target < 0 || target >= flat.length){ return; }
+		var temp = flat[index]; flat[index] = flat[target]; flat[target] = temp;
 		currentRows = [];
-
-		for(var i = 0; i < flat.length; i += 2){
-			currentRows.push(flat.slice(i, i + 2));
+		var offset = 0;
+		for(var k = 0; k < rowSizes.length; k++){
+			currentRows.push(flat.slice(offset, offset + rowSizes[k]));
+			offset += rowSizes[k];
 		}
-
 		renderEditor();
 	}
 
