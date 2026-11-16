@@ -9463,7 +9463,7 @@ function buildLayout(view, previewSections){
       col.style.display="flex";col.style.flexDirection="column";col.style.alignItems="stretch";
       col.style.minWidth="0";col.style.boxSizing="border-box";col.style.padding="0 2px";
       (items||[]).forEach(function(item){appendBox(item,col);});
-      var last=col.lastElementChild;if(last)last.style.flex="1 0 auto";
+      /* Nessun box intermedio cresce: l'allineamento finale è gestito da alignBoxes(). */
       row.appendChild(col);
     });
     host.appendChild(row);
@@ -9743,21 +9743,7 @@ function setView(view, manual){
     setHidden(only[i], only[i].getAttribute("data-only") !== view);
   }
 
-  /* Allunga l'ultimo box visibile di ogni colonna fino alla base comune.
-     Non usare lastElementChild: può essere un box nascosto per la vista corrente. */
-  var layoutColumns = document.querySelectorAll(".dashboard-layout-columns .dashboard-layout-column");
-  for(var lc = 0; lc < layoutColumns.length; lc++){
-    var columnBoxes = layoutColumns[lc].children;
-    var lastVisibleBox = null;
-    for(var lb = 0; lb < columnBoxes.length; lb++){
-      var columnBox = columnBoxes[lb];
-      if(!columnBox.classList.contains("box")) continue;
-      columnBox.style.flex = "0 0 auto";
-      if(!columnBox.hasAttribute("hidden")) lastVisibleBox = columnBox;
-    }
-    if(lastVisibleBox) lastVisibleBox.style.flex = "1 0 auto";
-  }
-
+  /* Le altezze vengono ricalcolate da alignBoxes() soltanto sull'ultima sezione a colonne. */
   renderAgenda();
   
   if(personal){
@@ -11651,6 +11637,7 @@ function alignBoxes(){
     all[i].style.minHeight = "";
     all[i].style.height = "";
     all[i].style.flexGrow = "";
+    all[i].style.flex = "";
   }
 
   var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
@@ -11666,7 +11653,9 @@ function alignBoxes(){
    * estesi quanto basta per allineare il fondo delle due colonne.
    */
   var rows = host.querySelectorAll(".dashboard-layout-columns");
-  for(var r = 0; r < rows.length; r++){
+  /* Le sezioni precedenti restano naturali: si allunga solo il fondo
+     dell'ultima sezione a colonne dell'intera vista. */
+  for(var r = rows.length - 1; r < rows.length; r++){
     var rowChildren = rows[r].children;
     var columns = [];
     for(var rc = 0; rc < rowChildren.length; rc++){
