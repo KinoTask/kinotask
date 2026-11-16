@@ -9465,9 +9465,9 @@ function dashboardPointerMove(ev){
 function dashboardPointerUp(ev){
   if(dashboardPointerId===null||ev.pointerId!==dashboardPointerId)return;
   clearTimeout(dashboardPointerTimer);dashboardPointerTimer=null;
-  var source=dashboardPointerSource,target=dashboardFindBoxAt(ev.clientX,ev.clientY),dragging=dashboardPointerDragging;
+  var source=dashboardPointerSource,target=(dashboardPreviewRows&&dashboardPreviewSource===source)?dashboardPreviewTarget:dashboardFindBoxAt(ev.clientX,ev.clientY),dragging=dashboardPointerDragging;
   if(dragging&&source&&target&&target!==source){
-    var next=dashboardCalculateRows(source,target,ev.clientX,ev.clientY,dashboardGetRows());
+    var next=(dashboardPreviewRows&&dashboardPreviewSource===source)?dashboardPreviewRows:dashboardCalculateRows(source,target,ev.clientX,ev.clientY,dashboardGetRows());
     if(next){dashboardPreviewRows=next;dashboardPreviewSource=source;dashboardDropBox(source,target,ev.clientX,ev.clientY);}
     else dashboardClearPreview();
   }else if(dragging)dashboardClearPreview();
