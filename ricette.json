@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-16T20:21:26.540380+01:00",
+  "generated_at": "2026-11-17T00:01:02.362830+01:00",
   "site": "U003128",
   "siteType": "02",
   "menus": {
@@ -261,6 +261,143 @@
         "ingredients": [
           {
             "name": "PANE AI CEREALI",
+            "quantity": "30",
+            "unit": "Gr"
+          }
+        ]
+      }
+    },
+    "2026-11-18": {
+      "P01034": {
+        "dishCode": "P01034",
+        "name": "Lasagne al ragù di soia biologica",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "LATTE INTERO",
+            "quantity": "73",
+            "unit": "Gr"
+          },
+          {
+            "name": "POLPA DI POMODORO BIOLOGICA",
+            "quantity": "70",
+            "unit": "Gr"
+          },
+          {
+            "name": "PASTA ALL'UOVO",
+            "quantity": "45",
+            "unit": "Gr"
+          },
+          {
+            "name": "SOIA BIOLOGICA",
+            "quantity": "9,3",
+            "unit": "Gr"
+          },
+          {
+            "name": "PARMIGIANO REGGIANO",
+            "quantity": "7",
+            "unit": "Gr"
+          },
+          {
+            "name": "SEDANO",
+            "quantity": "6,7",
+            "unit": "Gr"
+          },
+          {
+            "name": "CAROTE",
+            "quantity": "6,7",
+            "unit": "Gr"
+          },
+          {
+            "name": "CIPOLLE",
+            "quantity": "6,7",
+            "unit": "Gr"
+          },
+          {
+            "name": "AMIDO DI MAIS",
+            "quantity": "6",
+            "unit": "Gr"
+          },
+          {
+            "name": "BURRO",
+            "quantity": "5,3",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "3,3",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALE IODATO",
+            "quantity": "1,2",
+            "unit": "Gr"
+          },
+          {
+            "name": "ESTRATTO VEGETALE",
+            "quantity": "0,7",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALVIA",
+            "quantity": "0,03",
+            "unit": "Gr"
+          },
+          {
+            "name": "ROSMARINO",
+            "quantity": "0,017",
+            "unit": "Gr"
+          },
+          {
+            "name": "NOCE MOSCATA",
+            "quantity": "0,01",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P01887": {
+        "dishCode": "P01887",
+        "name": "Finocchi in insalata",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "FINOCCHI",
+            "quantity": "32",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "3,6",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALE IODATO",
+            "quantity": "0,2",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P00959": {
+        "dishCode": "P00959",
+        "name": "Frutta fresca di stagione",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": []
+      },
+      "P01889": {
+        "dishCode": "P01889",
+        "name": "Pane tipo 0",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "PANE",
             "quantity": "30",
             "unit": "Gr"
           }
