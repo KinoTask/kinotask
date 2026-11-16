@@ -11640,67 +11640,61 @@ function alignBoxes(){
   var currentViewConfig = findItem(DASHBOARD_VIEWS, function(v){
     return v.id === currentView;
   });
-
-  var host = currentViewConfig &&
-             currentViewConfig.view_type === "shared"
+  var host = currentViewConfig && currentViewConfig.view_type === "shared"
     ? $("dashboardContent")
     : personalRow();
-
   if(!host){ return; }
 
   var all = host.querySelectorAll(".box");
-  var rows = host.querySelectorAll(".layout-row");
-  var i, boxes;
-
-  /* Rimuove sempre le altezze calcolate in precedenza. */
+  var i;
   for(i = 0; i < all.length; i++){
     all[i].style.minHeight = "";
     all[i].style.height = "";
     all[i].style.flexGrow = "";
   }
 
-  /* Su smartphone in verticale i box devono seguire il contenuto:
-     l'allineamento delle colonne è utile solo quando sono affiancate. */
   var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
   var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-
-  /* Su smartphone in verticale i box seguono il contenuto.
-     Su Kindle manteniamo invece l'allineamento dei box affiancati. */
   if(!IS_KINDLE && viewportWidth <= 600 && viewportHeight > viewportWidth){
     return;
   }
 
   /*
-   * Si allunga soltanto l'ultimo box di ogni colonna dell'ultimo gruppo.
-   * I box intermedi restano naturali e le colonne scorrono indipendentemente.
-   * Il fondo comune è almeno il fondo del viewport, oppure quello della
-   * colonna più lunga se il contenuto supera già l'altezza dello schermo.
+   * Ogni sezione a due colonne è una coppia di pile indipendenti:
+   * i box intermedi mantengono la propria altezza naturale e restano
+   * consecutivi nella colonna; soltanto gli ultimi box visibili vengono
+   * estesi quanto basta per allineare il fondo delle due colonne.
    */
-  if(!rows.length){ return; }
+  var rows = host.querySelectorAll(".dashboard-layout-columns");
+  for(var r = 0; r < rows.length; r++){
+    var columns = rows[r].querySelectorAll(":scope > .dashboard-layout-column");
+    var lastBoxes = [];
+    var targetBottom = 0;
 
-  var lastRow = rows[rows.length - 1];
-  var columns = [];
-  var scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
-  /* Su tutte le piattaforme si allunga solo il box più corto
-     fino al fondo del box adiacente, mai fino al fondo del viewport. */
-  var targetBottom = 0;
+    for(var c = 0; c < columns.length; c++){
+      var children = columns[c].children;
+      var lastVisible = null;
+      for(var b = 0; b < children.length; b++){
+        var candidate = children[b];
+        if(!candidate.classList.contains("box")) continue;
+        candidate.style.flex = "0 0 auto";
+        if(!candidate.hasAttribute("hidden") && candidate.offsetWidth > 0){
+          lastVisible = candidate;
+        }
+      }
+      if(lastVisible){
+        var rect = lastVisible.getBoundingClientRect();
+        lastBoxes.push({box:lastVisible,bottom:rect.bottom});
+        if(rect.bottom > targetBottom) targetBottom = rect.bottom;
+      }
+    }
 
-  for(i = 0; i < lastRow.children.length; i++){
-    boxes = boxesOf(lastRow.children[i]);
-    if(!boxes.length){ continue; }
-
-    var lastBox = boxes[boxes.length - 1];
-    var rect = lastBox.getBoundingClientRect();
-    columns.push({box:lastBox, bottom:rect.bottom});
-
-    if(rect.bottom > targetBottom){ targetBottom = rect.bottom; }
-  }
-
-  for(i = 0; i < columns.length; i++){
-    var extra = targetBottom - columns[i].bottom;
-    if(extra > 0){
-      columns[i].box.style.minHeight =
-        (columns[i].box.offsetHeight + extra) + "px";
+    for(var k = 0; k < lastBoxes.length; k++){
+      var extra = targetBottom - lastBoxes[k].bottom;
+      if(extra > 1){
+        lastBoxes[k].box.style.minHeight =
+          (lastBoxes[k].box.offsetHeight + extra) + "px";
+      }
     }
   }
 }
