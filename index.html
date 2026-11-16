@@ -10626,7 +10626,7 @@ function openLayoutManagement(){
 		itemBox.style.display = "flex";
 		itemBox.style.flexDirection = "column";
 		itemBox.style.gap = "9px";
-		itemBox.style.flex = rowBox.children.length ? "1 1 50%" : "1 1 100%";
+		itemBox.style.flex = currentRows[rowIndex].length === 2 ? "1 1 50%" : "1 1 100%";
 		itemBox.style.minWidth = "0";
 		itemBox.style.boxSizing = "border-box";
 		itemBox.style.boxShadow = "0 1px 3px rgba(15,23,42,.06)";
