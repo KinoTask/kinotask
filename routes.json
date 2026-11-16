@@ -1,5 +1,5 @@
 {
-  "day": "lunedi",
+  "day": "martedi",
   "routes": {
     "casa_lavoro": {
       "id": "casa_lavoro",
@@ -7,28 +7,42 @@
       "to": "Lavoro",
       "mode": "arrival",
       "target_time": "08:00",
-      "departure": "2026-11-16T20:38:04.716434+01:00",
-      "arrival": "2026-11-16T20:51:25.716434+01:00",
-      "duration_minutes": 13,
+      "departure": "2026-11-17T07:39:12+01:00",
+      "arrival": "2026-11-17T08:00:00+01:00",
+      "duration_minutes": 16,
       "static_duration_minutes": 14,
       "buffer_minutes": 5,
       "distance_meters": 10717,
-      "calculated_at": "2026-11-16T20:36:04.716434+01:00"
+      "calculated_at": "2026-11-17T00:01:02.385853+01:00"
     },
     "lavoro_asilo": {
       "id": "lavoro_asilo",
       "from": "Lavoro",
       "to": "Asilo",
-      "mode": "departure",
+      "mode": "arrival",
       "target_time": "17:15",
-      "departure": "2026-11-16T20:38:13.590482+01:00",
-      "arrival": "2026-11-16T20:49:26.590482+01:00",
-      "duration_minutes": 11,
+      "departure": "2026-11-17T16:53:46+01:00",
+      "arrival": "2026-11-17T17:15:00+01:00",
+      "duration_minutes": 16,
       "static_duration_minutes": 11,
-      "buffer_minutes": 0,
+      "buffer_minutes": 5,
       "distance_meters": 9927,
-      "calculated_at": "2026-11-16T20:36:13.590482+01:00"
+      "calculated_at": "2026-11-17T00:01:02.385853+01:00"
+    },
+    "asilo_piscina": {
+      "id": "asilo_piscina",
+      "from": "Asilo",
+      "to": "Piscina",
+      "mode": "arrival",
+      "target_time": "17:45",
+      "departure": "2026-11-17T17:30:29+01:00",
+      "arrival": "2026-11-17T17:45:00+01:00",
+      "duration_minutes": 10,
+      "static_duration_minutes": 8,
+      "buffer_minutes": 5,
+      "distance_meters": 4803,
+      "calculated_at": "2026-11-17T00:01:02.385853+01:00"
     }
   },
-  "generated_at": "2026-11-16T20:36:13.590482+01:00"
+  "generated_at": "2026-11-17T00:01:02.385853+01:00"
 }
