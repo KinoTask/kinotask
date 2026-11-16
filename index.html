@@ -9552,9 +9552,9 @@ function dashboardSaveRows(rows,onSuccess){
   usersRequest("GET","/views",null,function(metaErr,meta){
     var v=meta&&meta.views?findItem(meta.views,function(x){return String(x.id)===String(currentView);}):null;
     var allowed=!!(v&&(Number(v.owner_user_id)===Number(authProfile)||(authUserType==="family"&&Number(v.layout_locked)!==1)));
-    if(metaErr||!allowed){if(btn){btn.disabled=false;btn.textContent="FINE";}alert(metaErr||"Non hai i permessi per modificare questo layout.");return;}
+    if(metaErr||!allowed){if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;alert(metaErr||"Non hai i permessi per modificare questo layout.");return;}
     usersRequest("PUT","/views/"+encodeURIComponent(currentView)+"/layout",{rows:rows.map(function(row){return row.map(function(item){return {box_id:item.box_id,enabled:true,is_public:item.is_public===true||Number(item.is_public)===1};});})},function(err,result){
-      if(err||!result||!result.ok){if(btn){btn.disabled=false;btn.textContent="FINE";}alert(err||(result&&result.error)||"Salvataggio del layout non riuscito.");return;}
+      if(err||!result||!result.ok){if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;alert(err||(result&&result.error)||"Salvataggio del layout non riuscito.");return;}
       loadAuthorizedConfig(function(configErr){if(configErr){if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;alert("Layout salvato, ma aggiornamento dashboard non riuscito.");return;}dashboardReorderActive=true;setView(currentView,false);if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;if(typeof onSuccess==="function")onSuccess();});
     });
   });
