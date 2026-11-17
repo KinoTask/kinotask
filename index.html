@@ -4917,6 +4917,25 @@ body.k #dashboardToolbar #viewSwitcherButtons .view-switcher-button {
   gap:5px;
   min-height:30px;
 }
+#dashboardToolbar #loggedUser {
+  display:inline-block!important;
+  width:max-content!important;
+  max-width:none!important;
+  padding:3px 10px!important;
+  border-radius:999px!important;
+  background:#E6EFEA!important;
+  color:#1F5C4D!important;
+  border:0!important;
+  font-weight:600!important;
+  text-align:center!important;
+}
+#dashboardToolbar #dashboardToolbarAccount { align-items:flex-end; }
+#dashboardToolbar #dashboardToolbarActions { width:100%; }
+#dashboardToolbar #dashboardLayoutButton {
+  flex:0 0 auto!important;
+  padding-left:9px!important;
+  padding-right:9px!important;
+}
 @media(max-width:800px) {
   #dashboardToolbar #dashboardToolbarAccount { gap:2px; margin-left:4px; }
   #dashboardToolbar #dashboardToolbarAccount #loggedUser { font-size:10px!important; }
@@ -11692,12 +11711,25 @@ function openUserManagement(){
   loadUsers();
 }
 
+function syncDashboardLayoutButtonWidth(){
+  var userLabel=$("loggedUser");
+  var layoutButton=$("dashboardLayoutButton");
+  if(!userLabel || !layoutButton)return;
+  var width=userLabel.offsetWidth;
+  if(width>0){
+    layoutButton.style.width=width+"px";
+    layoutButton.style.minWidth=width+"px";
+    layoutButton.style.boxSizing="border-box";
+  }
+}
+
 function updateLoggedUser() {
   var el = document.getElementById("loggedUser");
   if (!el) return;
 
   if (!authToken || !authProfile) {
     el.textContent = "";
+    syncDashboardLayoutButtonWidth();
     return;
   }
 
@@ -11718,12 +11750,14 @@ function updateLoggedUser() {
   }
 
   if (!name) {
-    el.textContent = "Utente";
+    el.textContent = "User";
+    syncDashboardLayoutButtonWidth();
     return;
   }
 
   var typeLabel = type === "family" ? "Famiglia" : "Utente";
-  el.textContent = "Utente: " + name + " (" + typeLabel + ")";
+  el.textContent = "User: " + name;
+  syncDashboardLayoutButtonWidth();
 }
 
 function restoreLoginNames(){
@@ -12303,6 +12337,7 @@ function renderViewSwitcher(){
     var toolbarActions=$("dashboardToolbarActions");
     if(toolbarActions)toolbarActions.appendChild(layoutButton);
   }
+  syncDashboardLayoutButtonWidth();
 
   var layoutMenu=$("dashboardLayoutMenu");
   if(!layoutMenu){
