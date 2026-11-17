@@ -9797,6 +9797,8 @@ function setView(view, manual){
   closeViewMenu();
   var openLayoutMenu=$("dashboardLayoutMenu");
   if(openLayoutMenu)openLayoutMenu.hidden=true;
+  var openAddPanel=$("dashboardAddBoxPanel");
+  if(openAddPanel)openAddPanel.hidden=true;
 
   currentView = viewConfig.id;
   view = currentView;
@@ -10502,12 +10504,10 @@ function openUserSwitchPrompt(viewId, userLabel){
 
 
 function openAddBoxPanel(){
-  var panel=$("viewMenuPanel");
+  var panel=$("dashboardAddBoxPanel");
   if(!panel)return;
+  setHidden($("dashboardLayoutMenu"),true);
   setHidden(panel,false);
-  panel.removeAttribute("hidden");
-  var menuToggle=$("viewMenuToggle");
-  if(menuToggle)menuToggle.setAttribute("aria-expanded","true");
   clear(panel);
   panel.style.width="360px";
   panel.style.maxWidth="94vw";
@@ -10568,7 +10568,7 @@ function openAddBoxPanel(){
     });
   };
   wrap.appendChild(create);
-  var back=mk("button","","INDIETRO");back.type="button";back.onclick=renderViewMenu;wrap.appendChild(back);
+  var back=mk("button","","INDIETRO");back.type="button";back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};wrap.appendChild(back);
   panel.appendChild(wrap);
 
   usersRequest("GET","/views",null,function(err,data){
@@ -12328,11 +12328,31 @@ function renderViewSwitcher(){
       toolbarForMenu.appendChild(layoutMenu);
     }
 
+    var addBoxPanel=$("dashboardAddBoxPanel");
+    if(!addBoxPanel){
+      addBoxPanel=mk("div","dashboard-add-box-panel","");
+      addBoxPanel.id="dashboardAddBoxPanel";
+      addBoxPanel.style.position="absolute";
+      addBoxPanel.style.right="0";
+      addBoxPanel.style.top="100%";
+      addBoxPanel.style.zIndex="10021";
+      addBoxPanel.style.width="360px";
+      addBoxPanel.style.maxWidth="94vw";
+      addBoxPanel.style.maxHeight="75vh";
+      addBoxPanel.style.overflowY="auto";
+      addBoxPanel.style.background="#fff";
+      addBoxPanel.style.border="1px solid #999";
+      addBoxPanel.style.borderRadius="5px";
+      addBoxPanel.style.boxShadow="0 2px 6px rgba(0,0,0,.2)";
+      addBoxPanel.hidden=true;
+      if(toolbarForMenu)toolbarForMenu.appendChild(addBoxPanel);
+    }
+
     var addBoxAction=mk("button","","+ AGGIUNGI BOX");
     addBoxAction.type="button";
     addBoxAction.onclick=function(ev){
       if(ev){ev.preventDefault();ev.stopPropagation();}
-      layoutMenu.hidden=true;
+      setHidden(layoutMenu,true);
       openAddBoxPanel();
     };
     layoutMenu.appendChild(addBoxAction);
@@ -12345,7 +12365,24 @@ function renderViewSwitcher(){
       layoutMenu.hidden=true;
       toggleDashboardReorder();
     };
+    reorderAction.style.display="block";
+    reorderAction.style.width="100%";
+    reorderAction.style.padding="8px 10px";
+    reorderAction.style.textAlign="left";
+    reorderAction.style.border="0";
+    reorderAction.style.background="transparent";
+    reorderAction.style.color="#222";
+    reorderAction.style.cursor="pointer";
     layoutMenu.appendChild(reorderAction);
+
+    addBoxAction.style.display="block";
+    addBoxAction.style.width="100%";
+    addBoxAction.style.padding="8px 10px";
+    addBoxAction.style.textAlign="left";
+    addBoxAction.style.border="0";
+    addBoxAction.style.background="transparent";
+    addBoxAction.style.color="#222";
+    addBoxAction.style.cursor="pointer";
 
     layoutButton.onclick=function(ev){
       if(ev){ev.preventDefault();ev.stopPropagation();}
