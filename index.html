@@ -9736,6 +9736,11 @@ function setView(view, manual){
   var activeViewConfig=findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(view);});
   if(activeViewConfig){
     var activeSections=Array.isArray(activeViewConfig.sections)?activeViewConfig.sections:[];
+    if(!activeSections.length && Array.isArray(activeViewConfig.rows)){
+      activeSections=dashboardLegacyRowsToSections(activeViewConfig.rows).map(function(section){
+        return {columns:section.columns.map(function(items){return {items:items.map(function(item){return {box_id:item.box_id};});};})};
+      });
+    }
     DASHBOARD_BOXES.forEach(function(def){
       if(!def.numeric_id || !def.box_key)return;
       var included=false;
@@ -10471,7 +10476,9 @@ function openAddBoxPanel(){
     var sections=dashboardGetSections()||[];
     sections.forEach(function(sec){(sec.columns||[]).forEach(function(col){col.forEach(function(item){present[item.box_id]=true;});});});
     var candidates=(DASHBOARD_BOXES||[]).filter(function(b){
-      return b && b.can_add_to_layout && !b.numeric_id && !present[b.id];
+      return b && Number(b.can_add_to_layout) === 1 &&
+        !b.box_key && !present[b.id] &&
+        String(b.view_type) === String(view.view_type);
     });
     if(!candidates.length){available.textContent="Nessun altro box disponibile.";return;}
     candidates.forEach(function(def){
@@ -12056,10 +12063,6 @@ function loadAuthorizedConfig(callback){
     DASHBOARD_BOXES = data.boxes.filter(function(box){
       return box && box.id && box.element_id && box.view_type;
     });
-    DASHBOARD_BOXES.forEach(function(box){
-      if(box.numeric_id && box.box_key) createCustomBoxElement(box);
-    });
-
     updateDashboardBoxTitles();
 
     AUTH_PERMISSIONS = Array.isArray(data.permissions)
@@ -12069,6 +12072,11 @@ function loadAuthorizedConfig(callback){
 
     USERS = data.users.filter(function(u){
       return u && u.id && u.name;
+    });
+    DASHBOARD_BOXES.forEach(function(box){
+      if(box.numeric_id && box.box_key && Number(box.available_to_user) === 1){
+        createCustomBoxElement(box);
+      }
     });
 
     finish(null);
