@@ -1,145 +1,8 @@
 {
-  "generated_at": "2026-11-17T00:01:02.362830+01:00",
+  "generated_at": "2026-11-18T00:01:02.762414+01:00",
   "site": "U003128",
   "siteType": "02",
   "menus": {
-    "2026-11-16": {
-      "P100098": {
-        "dishCode": "P100098",
-        "name": "Ravioli di magro olio e salvia",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "RAVIOLI DI MAGRO",
-            "quantity": "79",
-            "unit": "Gr"
-          },
-          {
-            "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "5",
-            "unit": "Gr"
-          },
-          {
-            "name": "PARMIGIANO REGGIANO",
-            "quantity": "3",
-            "unit": "Gr"
-          },
-          {
-            "name": "SALE IODATO",
-            "quantity": "0,2",
-            "unit": "Gr"
-          },
-          {
-            "name": "SALVIA",
-            "quantity": "0,25",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P100503": {
-        "dishCode": "P100503",
-        "name": "Straccetti di tacchino alla romana",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "FESA DI TACCHINO",
-            "quantity": "67",
-            "unit": "Gr"
-          },
-          {
-            "name": "CAROTE",
-            "quantity": "4,2",
-            "unit": "Gr"
-          },
-          {
-            "name": "CIPOLLE",
-            "quantity": "3,5",
-            "unit": "Gr"
-          },
-          {
-            "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "3,5",
-            "unit": "Gr"
-          },
-          {
-            "name": "AMIDO DI MAIS",
-            "quantity": "3,3",
-            "unit": "Gr"
-          },
-          {
-            "name": "SEDANO",
-            "quantity": "3",
-            "unit": "Gr"
-          },
-          {
-            "name": "ESTRATTO PER BRODO VEGETALE",
-            "quantity": "2,2",
-            "unit": "Gr"
-          },
-          {
-            "name": "SALE IODATO",
-            "quantity": "0,2",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P100455": {
-        "dishCode": "P100455",
-        "name": "Fagiolini all'olio",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "FAGIOLINI",
-            "quantity": "50",
-            "unit": "Gr"
-          },
-          {
-            "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "2,5",
-            "unit": "Gr"
-          },
-          {
-            "name": "SALE IODATO",
-            "quantity": "0,2",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P00007": {
-        "dishCode": "P00007",
-        "name": "Frutta fresca di stagione",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "ARANCE",
-            "quantity": "143",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P01889": {
-        "dishCode": "P01889",
-        "name": "Pane tipo 0",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "PANE",
-            "quantity": "30",
-            "unit": "Gr"
-          }
-        ]
-      }
-    },
     "2026-11-17": {
       "P100449": {
         "dishCode": "P100449",
@@ -398,6 +261,148 @@
         "ingredients": [
           {
             "name": "PANE",
+            "quantity": "30",
+            "unit": "Gr"
+          }
+        ]
+      }
+    },
+    "2026-11-19": {
+      "P101309": {
+        "dishCode": "P101309",
+        "name": "Passato verdura saporito riso e orzo",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "MINESTRONE",
+            "quantity": "58",
+            "unit": "Gr"
+          },
+          {
+            "name": "RISO",
+            "quantity": "12,5",
+            "unit": "Gr"
+          },
+          {
+            "name": "ORZO",
+            "quantity": "12,5",
+            "unit": "Gr"
+          },
+          {
+            "name": "PATATE",
+            "quantity": "33",
+            "unit": "Gr"
+          },
+          {
+            "name": "POLPA DI POMODORO",
+            "quantity": "19",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "4,2",
+            "unit": "Gr"
+          },
+          {
+            "name": "PARMIGIANO REGGIANO",
+            "quantity": "3",
+            "unit": "Gr"
+          },
+          {
+            "name": "AGLIO",
+            "quantity": "0,4",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALVIA",
+            "quantity": "0,2",
+            "unit": "Gr"
+          },
+          {
+            "name": "ROSMARINO",
+            "quantity": "0,2",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALE IODATO",
+            "quantity": "0,2",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P00142": {
+        "dishCode": "P00142",
+        "name": "Formaggio (caciotta biologica)",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "CACIOTTA BIOLOGICA",
+            "quantity": "40",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P01851": {
+        "dishCode": "P01851",
+        "name": "Patate arrosto",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "PATATE",
+            "quantity": "80",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "3",
+            "unit": "Gr"
+          },
+          {
+            "name": "ROSMARINO",
+            "quantity": "0,35",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALVIA",
+            "quantity": "0,35",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALE IODATO",
+            "quantity": "0,2",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P00006": {
+        "dishCode": "P00006",
+        "name": "Frutta fresca di stagione",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "MANDARANCI e CLEMENTINE",
+            "quantity": "138",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P01890": {
+        "dishCode": "P01890",
+        "name": "Pane di farina integrale biologica ",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "PANE DI FARINA INTEGRALE BIOLOGICA",
             "quantity": "30",
             "unit": "Gr"
           }
