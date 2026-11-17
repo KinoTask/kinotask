@@ -9752,7 +9752,7 @@ function setView(view, manual){
     });
     if(!hasActiveSectionItems && Array.isArray(activeViewConfig.rows)){
       activeSections=dashboardLegacyRowsToSections(activeViewConfig.rows).map(function(section){
-        return {columns:section.columns.map(function(items){return {items:items.map(function(item){return {box_id:item.box_id};});};})};
+        return {columns:section.columns.map(function(items){return {items:items.map(function(item){return {box_id:item.box_id};})};})};
       });
     }
     DASHBOARD_BOXES.forEach(function(def){
