@@ -27,7 +27,7 @@
       "static_duration_minutes": 11,
       "buffer_minutes": 5,
       "distance_meters": 9927,
-      "calculated_at": "2026-11-17T00:03:02.343759+01:00"
+      "calculated_at": "2026-11-17T07:00:02.799577+01:00"
     },
     "asilo_piscina": {
       "id": "asilo_piscina",
@@ -35,14 +35,14 @@
       "to": "Piscina",
       "mode": "arrival",
       "target_time": "17:45",
-      "departure": "2026-11-17T17:30:29+01:00",
+      "departure": "2026-11-17T17:30:31+01:00",
       "arrival": "2026-11-17T17:45:00+01:00",
-      "duration_minutes": 10,
+      "duration_minutes": 9,
       "static_duration_minutes": 8,
       "buffer_minutes": 5,
       "distance_meters": 4803,
-      "calculated_at": "2026-11-17T00:03:02.343759+01:00"
+      "calculated_at": "2026-11-17T07:00:02.799577+01:00"
     }
   },
-  "generated_at": "2026-11-17T00:03:02.343759+01:00"
+  "generated_at": "2026-11-17T07:00:02.799577+01:00"
 }
