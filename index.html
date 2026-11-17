@@ -4886,7 +4886,7 @@ body.k #dashboardToolbar #viewSwitcherButtons .view-switcher-button {
 </style>
 
 <style>#dashboardToolbar #dashboardReorderButton{background:#edf4ff;border:1px solid #9bbce5;color:#174a7e;white-space:nowrap;}#dashboardToolbar #dashboardReorderButton[hidden]{display:none!important;}.dashboard-layout-row{width:100%;box-sizing:border-box;}.dashboard-layout-row>.col{margin:0!important;}@media(max-width:800px){#dashboardToolbar #dashboardReorderButton{padding:5px 6px;font-size:11px;}}</style>
-<style>.dashboard-layout-columns{align-items:stretch;}.dashboard-layout-column>.box{flex-shrink:0;margin-top:0!important;margin-bottom:0!important;}@media(max-width:800px){.dashboard-layout-columns{display:flex!important;flex-direction:column!important;}.dashboard-layout-column{width:100%!important;padding:0!important;}.dashboard-layout-column>.box{flex:0 0 auto!important;}}</style>
+<style>.dashboard-layout-columns{align-items:stretch;}.dashboard-layout-column>.box{display:block!important;flex:none!important;margin:0!important;}@media(max-width:800px){.dashboard-layout-columns{display:flex!important;flex-direction:column!important;}.dashboard-layout-column{display:block!important;width:100%!important;padding:0!important;}.dashboard-layout-column>.box{display:block!important;flex:none!important;margin:0!important;}}</style>
 </head>
 <body>
 <div class="wrap">
@@ -9460,7 +9460,7 @@ function buildLayout(view, previewSections){
     (section.columns||[]).forEach(function(items){
       var col=mk("div","col dashboard-layout-column");
       col.style.width="50%";col.style.cssFloat="none";col.style.float="none";
-      col.style.display="flex";col.style.flexDirection="column";col.style.alignItems="stretch";
+      col.style.display="block";
       col.style.minWidth="0";col.style.boxSizing="border-box";col.style.padding="0 2px";
       (items||[]).forEach(function(item){appendBox(item,col);});
       /* Nessun box intermedio cresce: l'allineamento finale è gestito da alignBoxes(). */
