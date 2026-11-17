@@ -9368,7 +9368,7 @@ function checkScheduledView(){
 
   if(!v){ return; }
 
-  if(currentView !== v){
+  if(String(currentView) !== String(v)){
     setView(v, false);
   }
 }
@@ -9711,13 +9711,17 @@ function setView(view, manual){
   });
   
   if(!viewConfig){
+    viewConfig=findItem(DASHBOARD_VIEWS,function(v){
+      return String(v.id)===String(view);
+    });
+  }
+  if(!viewConfig){
     console.error("Vista non autorizzata o inesistente:", view);
     currentView = null;
-    return;
-  }
-  
-  if(!viewConfig){
-    currentView = null;
+    setHidden($("viewSwitcher"), true);
+    setText($("err"), DASHBOARD_VIEWS.length
+      ? "Nessuna vista selezionabile. Verificare la configurazione delle viste."
+      : "Il profilo non ha ricevuto alcuna vista autorizzata dal server.");
     return;
   }
   
@@ -12528,7 +12532,9 @@ function startDashboard(preferredView){
 	setHidden($("head"), false);
 	setHidden($("dashboardContent"), false);
 
-	setView(preferredView || getScheduledView(), false);
+	var initialView=preferredView || getScheduledView();
+	if(!initialView && DASHBOARD_VIEWS.length) initialView=DASHBOARD_VIEWS[0].id;
+	setView(initialView, false);
 	renderViewMenu();
 	
 	bindSeg("recurringTaskDays", function(day){
