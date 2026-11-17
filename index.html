@@ -9828,7 +9828,7 @@ function cancelDashboardReorder(){
 
 function dashboardBoxRenderer(boxId, def){
   var renderers = {
-    agenda: function(){ if(typeof loadAgenda === "function") safe(loadAgenda, "loadAgenda"); },
+    agenda: function(){ if(typeof loadAgenda === "function") safe(loadAgenda, "loadAgenda"); if(typeof renderAgenda === "function") safe(renderAgenda, "renderAgenda"); },
     shopping: function(){ if(typeof loadShoppingList === "function") safe(loadShoppingList, "loadShoppingList"); },
     personalTasks: function(){ if(typeof loadAgenda === "function") safe(loadAgenda, "loadAgenda"); },
     personalGlobalTasks: function(){ if(typeof loadTasks === "function") safe(loadTasks, "loadTasks"); },
