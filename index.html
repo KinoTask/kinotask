@@ -10180,33 +10180,7 @@ function renderViewMenu(){
 		}
   }
 
-  // CONFIGURAZIONE LAYOUT: disponibile in tutte le sessioni autenticate.
-  if(authToken){
-	var layoutButton = mk(
-	  "button",
-	  "",
-	  IS_KINDLE ? "IMPOSTAZIONI" : "⚙ IMPOSTAZIONI"
-	);
-
-	if(IS_KINDLE){
-	  var gearIcon = mk("span", "settings-gear", "≡");
-	  layoutButton.insertBefore(gearIcon, layoutButton.firstChild);
-	}
-
-	layoutButton.type = "button";
-	layoutButton.classList.add("menu-action-button");
-  
-  	layoutButton.onclick = function(ev){
-  		if(ev){
-  			ev.preventDefault();
-  			ev.stopPropagation();
-  		}
-  
-  		openLayoutManagement();
-  	};
-  
-  	panel.appendChild(layoutButton);
-  }
+  // La vecchia voce IMPOSTAZIONI (riorganizzazione layout) è stata rimossa.
 
   // COLLEGAMENTO ALEXA: solo dal profilo famiglia.
   if(authToken && authUserType === "family"){
@@ -10412,6 +10386,145 @@ function openUserSwitchPrompt(viewId, userLabel){
   pin.focus();
 }
 
+
+
+function openAddBoxPanel(){
+  var panel=$("viewMenuPanel");
+  clear(panel);
+  panel.style.width="360px";
+  panel.style.maxWidth="94vw";
+  panel.style.boxSizing="border-box";
+  var wrap=mk("div","","");
+  wrap.style.padding="10px";
+  wrap.style.display="flex";
+  wrap.style.flexDirection="column";
+  wrap.style.gap="9px";
+  var title=mk("div","","AGGIUNGI BOX");
+  title.style.fontWeight="bold";
+  title.style.textAlign="center";
+  wrap.appendChild(title);
+  var availableTitle=mk("div","","BOX DISPONIBILI");
+  availableTitle.style.fontWeight="bold";
+  availableTitle.style.fontSize="13px";
+  wrap.appendChild(availableTitle);
+  var available=mk("div","","");
+  available.style.display="flex";
+  available.style.flexDirection="column";
+  available.style.gap="5px";
+  wrap.appendChild(available);
+  var customTitle=mk("div","","BOX CUSTOM");
+  customTitle.style.fontWeight="bold";
+  customTitle.style.fontSize="13px";
+  customTitle.style.marginTop="8px";
+  wrap.appendChild(customTitle);
+  var name=document.createElement("input");
+  name.type="text";name.placeholder="Nome della tasklist";name.maxLength=80;
+  name.style.width="100%";name.style.boxSizing="border-box";name.style.padding="9px";
+  wrap.appendChild(name);
+  var scope=document.createElement("select");
+  scope.style.width="100%";scope.style.padding="9px";
+  var familyOpt=document.createElement("option");familyOpt.value="family";familyOpt.textContent="Condivisa con la famiglia";
+  var personalOpt=document.createElement("option");personalOpt.value="personal";personalOpt.textContent="Personale";
+  scope.appendChild(familyOpt);scope.appendChild(personalOpt);wrap.appendChild(scope);
+  var assignment=document.createElement("input");assignment.type="checkbox";
+  var assignmentLabel=mk("label","","");
+  assignmentLabel.style.display="flex";assignmentLabel.style.alignItems="center";assignmentLabel.style.gap="7px";
+  assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode("Abilita assegnazione delle attività"));
+  wrap.appendChild(assignmentLabel);
+  var create=mk("button","","CREA TASKLIST");create.type="button";
+  create.onclick=function(){
+    var value=name.value.trim();
+    if(!value){alert("Inserisci il nome della tasklist.");name.focus();return;}
+    create.disabled=true;
+    usersRequest("POST","/custom-boxes",{title:value,view_id:currentView,assignment_enabled:assignment.checked,scope:scope.value},function(err,data){
+      create.disabled=false;
+      if(err||!data||!data.ok||!data.box){alert(err||(data&&data.error)||"Creazione non riuscita.");return;}
+      var box=data.box;
+      var def={id:box.box_id,element_id:box.element_id,title:box.title,view_type:(findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(currentView);})||{}).view_type||"shared",numeric_id:box.id,box_key:box.box_key,custom_family_id:box.family_id,custom_owner_user_id:box.owner_user_id,assignment_enabled:box.assignment_enabled,can_add_to_layout:1};
+      DASHBOARD_BOXES.push(def);
+      createCustomBoxElement(def);
+      var sections=dashboardGetSections()||[];
+      sections.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
+      closeViewMenu();
+      dashboardSaveSections(sections,function(){loadCustomBoxTasks(def);});
+    });
+  };
+  wrap.appendChild(create);
+  var back=mk("button","","INDIETRO");back.type="button";back.onclick=renderViewMenu;wrap.appendChild(back);
+  panel.appendChild(wrap);
+
+  usersRequest("GET","/views",null,function(err,data){
+    if(err||!data||!data.views){available.textContent=err||"Impossibile caricare le viste.";return;}
+    var view=data.views.filter(function(v){return String(v.id)===String(currentView);})[0];
+    if(!view){available.textContent="Vista non disponibile.";return;}
+    var present={};
+    var sections=dashboardGetSections()||[];
+    sections.forEach(function(sec){(sec.columns||[]).forEach(function(col){col.forEach(function(item){present[item.box_id]=true;});});});
+    var candidates=(DASHBOARD_BOXES||[]).filter(function(b){
+      return b && b.can_add_to_layout && !b.numeric_id && !present[b.id];
+    });
+    if(!candidates.length){available.textContent="Nessun altro box disponibile.";return;}
+    candidates.forEach(function(def){
+      var button=mk("button","","+ "+(def.title||def.id));button.type="button";
+      button.onclick=function(){
+        var next=dashboardGetSections()||[];
+        next.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
+        dashboardSaveSections(next,function(){closeViewMenu();});
+      };
+      available.appendChild(button);
+    });
+  });
+}
+
+function createCustomBoxElement(def){
+  if($(def.element_id))return;
+  var box=mk("div","box","");
+  box.id=def.element_id;
+  box.setAttribute("data-custom-box-id",String(def.numeric_id));
+  var heading=mk("div","section-heading","");
+  var h=mk("h2","",def.title);heading.appendChild(h);box.appendChild(heading);
+  var list=mk("div","","");list.id="customTasks_"+def.numeric_id;box.appendChild(list);
+  var addRow=mk("div","","");addRow.style.display="flex";addRow.style.gap="6px";addRow.style.marginTop="8px";
+  var input=document.createElement("input");input.type="text";input.placeholder="Nuova attività";input.style.flex="1";input.style.minWidth="0";addRow.appendChild(input);
+  if(def.assignment_enabled){
+    var select=document.createElement("select");select.id="customAssignee_"+def.numeric_id;select.style.maxWidth="105px";
+    var none=document.createElement("option");none.value="";none.textContent="Nessuno";select.appendChild(none);
+    (USERS||[]).forEach(function(u){var o=document.createElement("option");o.value=u.id;o.textContent=u.name;select.appendChild(o);});
+    addRow.appendChild(select);
+  }
+  var add=mk("button","","+");add.type="button";add.onclick=function(){
+    var description=input.value.trim();if(!description)return;
+    var payload={description:description};
+    var assignee=$("customAssignee_"+def.numeric_id);if(assignee&&assignee.value)payload.assigned_user_id=Number(assignee.value);
+    add.disabled=true;
+    usersRequest("POST","/custom-boxes/"+def.numeric_id+"/tasks",payload,function(err,data){
+      add.disabled=false;if(err||!data||!data.ok){alert(err||(data&&data.error)||"Salvataggio non riuscito.");return;}
+      input.value="";loadCustomBoxTasks(def);
+    });
+  };
+  addRow.appendChild(add);box.appendChild(addRow);
+  var stash=$("stash");if(stash)stash.appendChild(box);
+}
+
+function loadCustomBoxTasks(def){
+  var list=$("customTasks_"+def.numeric_id);if(!list)return;
+  list.textContent="Caricamento...";
+  usersRequest("GET","/custom-boxes/"+def.numeric_id+"/tasks",null,function(err,data){
+    if(err||!data||!data.ok){list.textContent=err||(data&&data.error)||"Errore caricamento";return;}
+    clear(list);
+    (data.tasks||[]).forEach(function(task){
+      var row=mk("div","","");row.style.display="flex";row.style.alignItems="center";row.style.gap="7px";row.style.padding="5px 0";
+      var check=document.createElement("input");check.type="checkbox";check.checked=!!task.done;
+      check.onchange=function(){usersRequest("PATCH","/custom-tasks/"+task.id,{done:check.checked},function(e){if(e){check.checked=!check.checked;alert(e);}});};
+      row.appendChild(check);
+      var label=mk("span","",task.description);label.style.flex="1";if(task.done)label.style.textDecoration="line-through";row.appendChild(label);
+      if(task.assigned_user_name){var assigned=mk("small","",task.assigned_user_name);row.appendChild(assigned);}
+      var del=mk("button","","🗑");del.type="button";del.onclick=function(){if(!confirm("Eliminare questa attività?"))return;usersRequest("DELETE","/custom-tasks/"+task.id,null,function(e){if(e)alert(e);else loadCustomBoxTasks(def);});};row.appendChild(del);
+      list.appendChild(row);
+    });
+    if(!(data.tasks||[]).length)list.textContent="Nessuna attività.";
+  });
+}
 
 function openLayoutManagement(){
 	var panel = $("viewMenuPanel");
@@ -12045,6 +12158,22 @@ function renderViewSwitcher(){
     })(view.id);
     buttons.appendChild(button);
   }
+
+  var addBoxButton=$("dashboardAddBoxButton");
+  if(!addBoxButton){
+    addBoxButton=mk("button","dashboard-add-box-button","+ AGGIUNGI BOX");
+    addBoxButton.id="dashboardAddBoxButton";
+    addBoxButton.type="button";
+    addBoxButton.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openAddBoxPanel();};
+    addBoxButton.style.flex="0 0 auto";
+    addBoxButton.style.padding="6px 9px";
+    addBoxButton.style.fontSize="12px";
+    addBoxButton.style.fontWeight="bold";
+    addBoxButton.style.borderRadius="6px";
+    addBoxButton.style.margin="0 0 0 5px";
+    var addToolbar=$("dashboardToolbar");if(addToolbar)addToolbar.appendChild(addBoxButton);
+  }
+  setHidden(addBoxButton,false);
 
   var reorderButton=$("dashboardReorderButton");
   if(!reorderButton){
