@@ -9417,7 +9417,10 @@ function buildLayout(view, previewSections){
   var views=DASHBOARD_VIEWS||[],vc=findItem(views,function(v){return String(v.id)===String(view);});
   var i,j,b,host,stash,sections;
   if(!vc)return;
-  sections=previewSections || (Array.isArray(vc.sections)&&vc.sections.length
+  var hasSectionItems=Array.isArray(vc.sections)&&vc.sections.some(function(section){
+    return (section.columns||[]).some(function(col){return (col.items||[]).length>0;});
+  });
+  sections=previewSections || (hasSectionItems
     ? vc.sections.map(function(section){return {type:section.type,columns:(section.columns||[]).map(function(col){return (col.items||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(item){return {box_id:item.box_id,is_public:item.is_public};});})};})
     : dashboardLegacyRowsToSections(vc.rows||[]));
   /* Le sezioni consecutive a colonne formano un'unica coppia di pile:
@@ -9453,7 +9456,7 @@ function buildLayout(view, previewSections){
   clear(host);
 
   function appendBox(item,parent){
-    var def=findItem(DASHBOARD_BOXES||[],function(x){return x.id===item.box_id;});
+    var def=findItem(DASHBOARD_BOXES||[],function(x){return String(x.id)===String(item.box_id);});
     b=def?$(def.element_id):null;
     if(!b)return;
     setHidden(b,false);b.style.width="100%";b.style.boxSizing="border-box";b.style.flex="";
@@ -9509,7 +9512,10 @@ function dashboardCloneSections(sections){return JSON.parse(JSON.stringify(secti
 function dashboardGetSections(){
   var vc=findItem(DASHBOARD_VIEWS||[],function(v){return String(v.id)===String(currentView);});
   if(!vc)return null;
-  var sections=Array.isArray(vc.sections)&&vc.sections.length
+  var hasSectionItems=Array.isArray(vc.sections)&&vc.sections.some(function(section){
+    return (section.columns||[]).some(function(col){return (col.items||[]).length>0;});
+  });
+  var sections=hasSectionItems
     ? vc.sections.map(function(section){return {type:section.type,columns:(section.columns||[]).map(function(col){return (col.items||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(item){return {box_id:item.box_id,is_public:item.is_public===undefined?1:item.is_public};});})};})
     : dashboardLegacyRowsToSections(vc.rows||[]);
   return dashboardCloneSections(sections);
@@ -9736,7 +9742,10 @@ function setView(view, manual){
   var activeViewConfig=findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(view);});
   if(activeViewConfig){
     var activeSections=Array.isArray(activeViewConfig.sections)?activeViewConfig.sections:[];
-    if(!activeSections.length && Array.isArray(activeViewConfig.rows)){
+    var hasActiveSectionItems=activeSections.some(function(section){
+      return (section.columns||[]).some(function(column){return (column.items||[]).length>0;});
+    });
+    if(!hasActiveSectionItems && Array.isArray(activeViewConfig.rows)){
       activeSections=dashboardLegacyRowsToSections(activeViewConfig.rows).map(function(section){
         return {columns:section.columns.map(function(items){return {items:items.map(function(item){return {box_id:item.box_id};});};})};
       });
@@ -9744,7 +9753,7 @@ function setView(view, manual){
     DASHBOARD_BOXES.forEach(function(def){
       if(!def.numeric_id || !def.box_key)return;
       var included=false;
-      activeSections.forEach(function(section){(section.columns||[]).forEach(function(column){(column.items||[]).forEach(function(item){if(item.box_id===def.id)included=true;});});});
+      activeSections.forEach(function(section){(section.columns||[]).forEach(function(column){(column.items||[]).forEach(function(item){if(String(item.box_id)===String(def.id))included=true;});});});
       if(included)loadCustomBoxTasks(def);
     });
   }
