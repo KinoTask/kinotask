@@ -9374,8 +9374,13 @@ function checkScheduledView(){
 }
 
 function closeViewMenu(){
-  setHidden($("viewMenuPanel"), true);
-  $("viewMenuToggle").setAttribute("aria-expanded", "false");
+  var panel=$("viewMenuPanel");
+  if(panel){
+    setHidden(panel, true);
+    panel.setAttribute("hidden","hidden");
+  }
+  var toggle=$("viewMenuToggle");
+  if(toggle)toggle.setAttribute("aria-expanded", "false");
 }
 
 function personalRow(){
@@ -10436,6 +10441,11 @@ function openUserSwitchPrompt(viewId, userLabel){
 
 function openAddBoxPanel(){
   var panel=$("viewMenuPanel");
+  if(!panel)return;
+  setHidden(panel,false);
+  panel.removeAttribute("hidden");
+  var menuToggle=$("viewMenuToggle");
+  if(menuToggle)menuToggle.setAttribute("aria-expanded","true");
   clear(panel);
   panel.style.width="360px";
   panel.style.maxWidth="94vw";
@@ -12296,6 +12306,26 @@ function renderViewSwitcher(){
     var cancelToolbar=$("dashboardToolbar");if(cancelToolbar)cancelToolbar.appendChild(cancelReorderButton);
   }
   setHidden(cancelReorderButton,!dashboardReorderActive);
+
+  // Le azioni di layout sono disponibili solo se il profilo può modificare
+  // la vista corrente. Nascondile subito, prima di verificare il permesso.
+  setHidden(layoutButton,true);
+  setHidden(layoutMenu,true);
+  var permissionViewId=String(currentView);
+  usersRequest("GET","/views",null,function(permissionErr,permissionData){
+    if(permissionErr || !permissionData || !Array.isArray(permissionData.views) ||
+       String(currentView)!==permissionViewId)return;
+    var permissionView=findItem(permissionData.views,function(v){
+      return String(v.id)===permissionViewId;
+    });
+    var canEdit=!!(permissionView && Number(permissionView.can_edit)===1);
+    setHidden(layoutButton,!canEdit);
+    if(!canEdit){
+      setHidden(layoutMenu,true);
+      if(dashboardReorderActive)cancelDashboardReorder();
+    }
+  });
+
   var orderButton = mk("button", "view-switcher-order-button", "");
   var orderArrow = mk("span", "", "↔");
   orderArrow.style.display = "block";
@@ -12607,6 +12637,8 @@ function startDashboard(preferredView){
 	if(!initialView && DASHBOARD_VIEWS.length) initialView=DASHBOARD_VIEWS[0].id;
 	setView(initialView, false);
 	renderViewMenu();
+  // Il ripristino/login/cambio profilo non deve lasciare aperto l'hamburger.
+  closeViewMenu();
 	
 	bindSeg("recurringTaskDays", function(day){
 	  recurringSel = day;
