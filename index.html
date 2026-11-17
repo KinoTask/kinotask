@@ -9420,6 +9420,21 @@ function buildLayout(view, previewSections){
   sections=previewSections || (Array.isArray(vc.sections)&&vc.sections.length
     ? vc.sections.map(function(section){return {type:section.type,columns:(section.columns||[]).map(function(col){return (col.items||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(item){return {box_id:item.box_id,is_public:item.is_public};});})};})
     : dashboardLegacyRowsToSections(vc.rows||[]));
+  /* Le sezioni consecutive a colonne formano un'unica coppia di pile:
+     nessuna colonna deve attendere l'altezza dell'altra prima di proseguire. */
+  var groupedSections=[];
+  sections.forEach(function(section){
+    if(section.type==="columns" && groupedSections.length &&
+       groupedSections[groupedSections.length-1].type==="columns"){
+      var previous=groupedSections[groupedSections.length-1];
+      for(var gc=0;gc<2;gc++){
+        previous.columns[gc]=(previous.columns[gc]||[]).concat((section.columns||[])[gc]||[]);
+      }
+    }else{
+      groupedSections.push({type:section.type,columns:(section.columns||[]).map(function(col){return col.slice();})});
+    }
+  });
+  sections=groupedSections;
   host=vc.view_type==="shared"?$("dashboardContent"):personalRow();stash=$("stash");
   if(!host||!stash)return;
 
@@ -11653,46 +11668,38 @@ function alignBoxes(){
    * estesi quanto basta per allineare il fondo delle due colonne.
    */
   var rows = host.querySelectorAll(".dashboard-layout-columns");
-  /* Le sezioni precedenti restano naturali: si allunga solo il fondo
-     dell'ultima sezione a colonne dell'intera vista. */
-  if(rows.length){
-    var r = rows.length - 1;
-    if(!rows[r]) return;
-    var rowChildren = rows[r].children;
-    var columns = [];
-    for(var rc = 0; rc < rowChildren.length; rc++){
+  /* Ogni gruppo di colonne è indipendente; allinea solo i box terminali
+     di quel gruppo, senza introdurre spazi nelle pile intermedie. */
+  for(var r=0;r<rows.length;r++){
+    var rowChildren=rows[r].children;
+    var columns=[];
+    for(var rc=0;rc<rowChildren.length;rc++){
       if(rowChildren[rc].classList.contains("dashboard-layout-column")) columns.push(rowChildren[rc]);
     }
-    var lastBoxes = [];
-    var targetBottom = 0;
-
-    for(var c = 0; c < columns.length; c++){
-      var children = columns[c].children;
-      var lastVisible = null;
-      for(var b = 0; b < children.length; b++){
-        var candidate = children[b];
+    var lastBoxes=[];
+    var targetBottom=0;
+    for(var c=0;c<columns.length;c++){
+      var children=columns[c].children;
+      var lastVisible=null;
+      for(var b=0;b<children.length;b++){
+        var candidate=children[b];
         if(!candidate.classList.contains("box")) continue;
-        candidate.style.flex = "0 0 auto";
-        if(!candidate.hasAttribute("hidden") && candidate.offsetWidth > 0){
-          lastVisible = candidate;
-        }
+        candidate.style.flex="none";
+        if(!candidate.hasAttribute("hidden") && candidate.offsetWidth>0) lastVisible=candidate;
       }
       if(lastVisible){
-        var rect = lastVisible.getBoundingClientRect();
+        var rect=lastVisible.getBoundingClientRect();
         lastBoxes.push({box:lastVisible,bottom:rect.bottom});
-        if(rect.bottom > targetBottom) targetBottom = rect.bottom;
+        if(rect.bottom>targetBottom) targetBottom=rect.bottom;
       }
     }
-
-    for(var k = 0; k < lastBoxes.length; k++){
-      var extra = targetBottom - lastBoxes[k].bottom;
-      if(extra > 1){
-        lastBoxes[k].box.style.minHeight =
-          (lastBoxes[k].box.offsetHeight + extra) + "px";
+    for(var k=0;k<lastBoxes.length;k++){
+      var extra=targetBottom-lastBoxes[k].bottom;
+      if(extra>1){
+        lastBoxes[k].box.style.minHeight=(lastBoxes[k].box.offsetHeight+extra)+"px";
       }
     }
-  }
-}
+  }}
 
 function fitKindleButtonSizes(){
   if(!IS_KINDLE){ return; }
