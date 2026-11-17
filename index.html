@@ -5692,29 +5692,31 @@ function userName(id){
 function viewHasBox(view, boxName){
   var views = DASHBOARD_VIEWS || [];
   var viewConfig = null;
-
   for(var i = 0; i < views.length; i++){
-    if(views[i].id === view){
-      viewConfig = views[i];
-      break;
-    }
+    if(String(views[i].id) === String(view)){ viewConfig = views[i]; break; }
   }
+  if(!viewConfig) return false;
 
-  if(!viewConfig || !Array.isArray(viewConfig.rows)){
-    return false;
-  }
-
-  for(var i = 0; i < viewConfig.rows.length; i++){
-    var items = viewConfig.rows[i].items || [];
-
+  var wanted = String(boxName), found = false;
+  function visit(items){
+    items = items || [];
     for(var j = 0; j < items.length; j++){
-      if(items[j].box_id === boxName){
-        return true;
+      var item = items[j] || {};
+      if(String(item.box_id) === wanted || String(item.element_id) === wanted){
+        found = true;
+        return;
       }
     }
   }
 
-  return false;
+  var sections = viewConfig.sections || [];
+  for(var s = 0; s < sections.length && !found; s++){
+    var columns = sections[s].columns || [];
+    for(var c = 0; c < columns.length && !found; c++) visit(columns[c].items);
+  }
+  var rows = viewConfig.rows || [];
+  for(var r = 0; r < rows.length && !found; r++) visit(rows[r].items);
+  return found;
 }
 
 /* ==================================================
@@ -6628,7 +6630,7 @@ function personalTodoPoll() {
 function taskKey(sel){ return fmtDay(todayNum() + TASK_OFF[sel]); }
 
 function loadTasks(silent){
-  if(!todoConnected){
+  if(!authToken){
     taskSyncError = false;
     updateSyncLabels();
     return;
@@ -9824,6 +9826,58 @@ function cancelDashboardReorder(){
   });
 }
 
+function dashboardBoxRenderer(boxId, def){
+  var renderers = {
+    agenda: function(){ if(typeof loadAgenda === "function") safe(loadAgenda, "loadAgenda"); },
+    shopping: function(){ if(typeof loadShoppingList === "function") safe(loadShoppingList, "loadShoppingList"); },
+    personalTasks: function(){ if(typeof loadAgenda === "function") safe(loadAgenda, "loadAgenda"); },
+    personalGlobalTasks: function(){ if(typeof loadTasks === "function") safe(loadTasks, "loadTasks"); },
+    sharedTasks: function(){ if(typeof loadTasks === "function") safe(loadTasks, "loadTasks"); },
+    todo: function(){ if(typeof loadTodo === "function") safe(loadTodo, "loadTodo"); },
+    schoolMenu: function(){ if(typeof loadMenu === "function") safe(loadMenu, "loadMenu"); },
+    personalTodo: function(){ if(typeof personalTodoConnect === "function") personalTodoConnect(); },
+    familyShopping: function(){ if(typeof loadFamilyShoppingList === "function") safe(loadFamilyShoppingList, "loadFamilyShoppingList"); },
+    recurringTasks: function(){ if(typeof loadRecurringTasks === "function") safe(loadRecurringTasks, "loadRecurringTasks"); },
+    personalRoutes: function(){ if(typeof loadRoutes === "function") loadRoutes(currentView); },
+    userAgenda: function(){
+      if(typeof renderUserAgenda === "function") renderUserAgenda();
+      if(typeof loadUserAgenda === "function") loadUserAgenda(currentView);
+    }
+  };
+  if(typeof renderers[boxId] === "function") return renderers[boxId];
+  if(def && def.numeric_id && def.box_key && typeof loadCustomBoxTasks === "function"){
+    return function(){ loadCustomBoxTasks(def); };
+  }
+  return null;
+}
+
+function loadConfiguredViewBoxes(viewConfig){
+  if(!viewConfig) return;
+  var loaded = {};
+  var boxes = DASHBOARD_BOXES || [];
+  function visit(items){
+    items = items || [];
+    for(var i = 0; i < items.length; i++){
+      var item = items[i] || {};
+      var id = String(item.box_id || "");
+      if(!id || loaded[id]) continue;
+      var def = findItem(boxes, function(box){ return String(box.id) === id; });
+      var renderer = dashboardBoxRenderer(id, def);
+      if(typeof renderer !== "function") continue;
+      loaded[id] = true;
+      try { renderer(); }
+      catch(e){ showErr("Errore caricamento box " + id + ": " + (e && e.message ? e.message : String(e))); }
+    }
+  }
+  var sections = viewConfig.sections || [];
+  for(var s = 0; s < sections.length; s++){
+    var columns = sections[s].columns || [];
+    for(var c = 0; c < columns.length; c++) visit(columns[c].items);
+  }
+  var rows = viewConfig.rows || [];
+  for(var r = 0; r < rows.length; r++) visit(rows[r].items);
+}
+
 function setView(view, manual){
   if(manual){ viewManualUntil = Date.now() + 10 * 60 * 1000; }
   
@@ -9871,64 +9925,13 @@ function setView(view, manual){
   setHidden($("personalView"), !personal);
 
   buildLayout(view);
-  var activeViewConfig=findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(view);});
-  if(activeViewConfig){
-    var activeSections=Array.isArray(activeViewConfig.sections)?activeViewConfig.sections:[];
-    var hasActiveSectionItems=activeSections.some(function(section){
-      return (section.columns||[]).some(function(column){return (column.items||[]).length>0;});
-    });
-    if(!hasActiveSectionItems && Array.isArray(activeViewConfig.rows)){
-      activeSections=dashboardLegacyRowsToSections(activeViewConfig.rows).map(function(section){
-        return {columns:section.columns.map(function(items){return {items:items.map(function(item){return {box_id:item.box_id};})};})};
-      });
-    }
-    DASHBOARD_BOXES.forEach(function(def){
-      if(!def.numeric_id || !def.box_key)return;
-      var included=false;
-      activeSections.forEach(function(section){(section.columns||[]).forEach(function(column){(column.items||[]).forEach(function(item){if(String(item.box_id)===String(def.id))included=true;});});});
-      if(included)loadCustomBoxTasks(def);
-    });
-  }
-
-  if (
-    viewHasBox(view, "personalTodo") &&
-    $("personalTodoBox")
-  ) {
-    personalTodoConnect();
-  }
-
-  /* La vecchia loadShoppingList() usa #shoppingList, non più presente.
-     La lista attuale viene caricata solo quando prevista dalla vista. */
-  if (viewHasBox(view, "familyShopping")) {
-    safe(loadFamilyShoppingList);
-  }
-
-  if (viewHasBox(view, "recurringTasks")) {
-    safe(loadRecurringTasks, "loadRecurringTasks");
-  }
-
-
-  /* box riservati a una sola vista (data-only) */
+  /* Le box attive sono determinate dal layout D1 (sezioni v2 o righe legacy). */
   var only = document.querySelectorAll(".box[data-only]");
   for(i = 0; i < only.length; i++){
     setHidden(only[i], only[i].getAttribute("data-only") !== view);
   }
 
-  /* Le altezze vengono ricalcolate da alignBoxes() soltanto sull'ultima sezione a colonne. */
-  renderAgenda();
-  
-  if(personal){
-    safe(renderPersonalTasks);
-  
-    if(viewHasBox(view, "personalRoutes")){
-      loadRoutes(view);
-    }
-  
-    if(viewHasBox(view, "userAgenda")){
-      renderUserAgenda();
-      loadUserAgenda(view);
-    }
-  }
+  loadConfiguredViewBoxes(viewConfig);
 
   closeViewMenu();
   scheduleAlign();
@@ -12614,54 +12617,16 @@ function showLoggedOut(message){
 
 function initBoxRefresh() {
 
-  var boxes = [
-
-    {
-      id: "recurringTasksBox",
-      load: function () { loadRecurringTasks(); }
-    },
-
-    {
-      id: "personalGlobalTaskBox",
-      load: function () { loadTasks(); }
-    },
-    {
-      id: "personalTasksBox",
-      load: function () { loadAgenda(); }
-    },
-    {
-      id: "personalRoutesBox",
-      load: function () { loadRoutes(currentView); }
-    },
-    {
-      id: "userAgendaBox",
-      load: function () { loadUserAgenda(currentView); }
-    },
-    {
-      id: "agendaBox",
-      load: function () { loadAgenda(); }
-    },
-    {
-      id: "familyShoppingBox",
-      load: function () { loadFamilyShoppingList(); }
-    },
-    {
-      id: "sharedTasksBox",
-      load: function () { loadTasks(); }
-    },
-    {
-      id: "todoBox",
-      load: function () { todoConnect(); }
-    },
-	{
-	  id: "personalTodoBox",
-	  load: function () { personalTodoConnect(); }
-	},
-    {
-      id: "schoolMenuBox",
-      load: function () { loadMenu(); }
+  var boxes = [];
+  var catalog = DASHBOARD_BOXES || [];
+  for(var catalogIndex = 0; catalogIndex < catalog.length; catalogIndex++){
+    var catalogBox = catalog[catalogIndex];
+    if(!catalogBox || !catalogBox.element_id) continue;
+    var loader = dashboardBoxRenderer(String(catalogBox.id), catalogBox);
+    if(typeof loader === "function"){
+      boxes.push({id:catalogBox.element_id,load:loader});
     }
-  ];
+  }
 
   for (var i = 0; i < boxes.length; i++) {
 
