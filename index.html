@@ -11755,8 +11755,17 @@ function updateLoggedUser() {
     return;
   }
 
-  var typeLabel = type === "family" ? "Famiglia" : "Utente";
   el.textContent = "User: " + name;
+  el.style.display = "inline-block";
+  el.style.width = "max-content";
+  el.style.maxWidth = "none";
+  el.style.padding = "3px 10px";
+  el.style.borderRadius = "999px";
+  el.style.background = "#E6EFEA";
+  el.style.color = "#1F5C4D";
+  el.style.border = "0";
+  el.style.fontWeight = "600";
+  el.style.textAlign = "center";
   syncDashboardLayoutButtonWidth();
 }
 
@@ -12320,8 +12329,8 @@ function renderViewSwitcher(){
   // Un unico pulsante LAYOUT apre le due azioni di gestione della vista.
   var oldAddBoxButton=$("dashboardAddBoxButton");
   if(oldAddBoxButton && oldAddBoxButton.parentNode)oldAddBoxButton.parentNode.removeChild(oldAddBoxButton);
-  var oldReorderButton=$("dashboardReorderButton");
-  if(oldReorderButton && oldReorderButton.parentNode)oldReorderButton.parentNode.removeChild(oldReorderButton);
+  // Il pulsante RIORDINA appartiene al popup LAYOUT: non rimuoverlo
+  // a ogni rendering, altrimenti il menu rimane senza la seconda voce.
 
   var layoutButton=$("dashboardLayoutButton");
   if(!layoutButton){
