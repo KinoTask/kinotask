@@ -9733,6 +9733,16 @@ function setView(view, manual){
   setHidden($("personalView"), !personal);
 
   buildLayout(view);
+  var activeViewConfig=findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(view);});
+  if(activeViewConfig){
+    var activeSections=Array.isArray(activeViewConfig.sections)?activeViewConfig.sections:[];
+    DASHBOARD_BOXES.forEach(function(def){
+      if(!def.numeric_id || !def.box_key)return;
+      var included=false;
+      activeSections.forEach(function(section){(section.columns||[]).forEach(function(column){(column.items||[]).forEach(function(item){if(item.box_id===def.id)included=true;});});});
+      if(included)loadCustomBoxTasks(def);
+    });
+  }
 
   if (
     viewHasBox(view, "personalTodo") &&
@@ -12045,6 +12055,9 @@ function loadAuthorizedConfig(callback){
 
     DASHBOARD_BOXES = data.boxes.filter(function(box){
       return box && box.id && box.element_id && box.view_type;
+    });
+    DASHBOARD_BOXES.forEach(function(box){
+      if(box.numeric_id && box.box_key) createCustomBoxElement(box);
     });
 
     updateDashboardBoxTitles();
