@@ -10209,6 +10209,18 @@ function renderViewMenu(){
 		}
   }
 
+  // AGGIUNGI BOX: accessibile dal menu hamburger per la vista attualmente selezionata.
+  if(authToken){
+    var addBoxMenuButton = mk("button", "", "+ AGGIUNGI BOX");
+    addBoxMenuButton.type = "button";
+    addBoxMenuButton.classList.add("menu-action-button");
+    addBoxMenuButton.onclick = function(ev){
+      if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+      openAddBoxPanel();
+    };
+    panel.appendChild(addBoxMenuButton);
+  }
+
   // La vecchia voce IMPOSTAZIONI (riorganizzazione layout) è stata rimossa.
 
   // COLLEGAMENTO ALEXA: solo dal profilo famiglia.
@@ -12194,21 +12206,9 @@ function renderViewSwitcher(){
     buttons.appendChild(button);
   }
 
+  // AGGIUNGI BOX è disponibile nel menu hamburger, non nella barra delle viste.
   var addBoxButton=$("dashboardAddBoxButton");
-  if(!addBoxButton){
-    addBoxButton=mk("button","dashboard-add-box-button","+ AGGIUNGI BOX");
-    addBoxButton.id="dashboardAddBoxButton";
-    addBoxButton.type="button";
-    addBoxButton.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openAddBoxPanel();};
-    addBoxButton.style.flex="0 0 auto";
-    addBoxButton.style.padding="6px 9px";
-    addBoxButton.style.fontSize="12px";
-    addBoxButton.style.fontWeight="bold";
-    addBoxButton.style.borderRadius="6px";
-    addBoxButton.style.margin="0 0 0 5px";
-    var addToolbar=$("dashboardToolbar");if(addToolbar)addToolbar.appendChild(addBoxButton);
-  }
-  setHidden(addBoxButton,false);
+  if(addBoxButton) addBoxButton.parentNode.removeChild(addBoxButton);
 
   var reorderButton=$("dashboardReorderButton");
   if(!reorderButton){
