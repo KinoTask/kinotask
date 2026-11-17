@@ -5610,7 +5610,11 @@ function api(method, query, data, cb){
     var res = null;
     try { res = JSON.parse(x.responseText); } catch(e){}
     if(x.status >= 200 && x.status < 300){ fin(null, res); }
-    else { fin(res && res.error ? res.error : "Errore HTTP " + x.status, res); }
+    else {
+      var apiError = res && res.error ? res.error : "Errore HTTP " + x.status;
+      if(res && res.detail){ apiError += ": " + String(res.detail); }
+      fin(apiError, res);
+    }
   };
 
   x.onerror = function(){
