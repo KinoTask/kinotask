@@ -9675,7 +9675,7 @@ function applyDashboardReorderMode(){
 function toggleDashboardReorder(){
   if(dashboardReorderActive){
     dashboardReorderActive=false;dashboardReorderOriginalRows=null;applyDashboardReorderMode();
-    var b=$("dashboardReorderButton");if(b)b.textContent="RIORDINA";
+    var b=$("dashboardReorderButton");if(b)b.textContent="RIORDINA";var lb=$("dashboardLayoutButton");if(lb)lb.textContent="LAYOUT";var lb=$("dashboardLayoutButton");if(lb)lb.textContent="LAYOUT";
     var c=$("dashboardCancelReorderButton");if(c)c.hidden=true;return;
   }
   usersRequest("GET","/views",null,function(err,data){
@@ -9684,7 +9684,7 @@ function toggleDashboardReorder(){
     if(err||!allowed){alert(err||"Non hai i permessi per riordinare questa vista.");return;}
     dashboardReorderOriginalRows=dashboardGetSections();
     dashboardReorderActive=true;applyDashboardReorderMode();
-    var b=$("dashboardReorderButton");if(b)b.textContent="FINE";
+    var b=$("dashboardReorderButton");if(b)b.textContent="FINE";var lb=$("dashboardLayoutButton");if(lb)lb.textContent="FINE";
     var c=$("dashboardCancelReorderButton");if(c)c.hidden=false;
   });
 }
@@ -9726,6 +9726,11 @@ function setView(view, manual){
     return;
   }
   
+  // Chiude subito eventuali menu aperti prima di cambiare vista.
+  closeViewMenu();
+  var openLayoutMenu=$("dashboardLayoutMenu");
+  if(openLayoutMenu)openLayoutMenu.hidden=true;
+
   currentView = viewConfig.id;
   view = currentView;
 
@@ -12206,18 +12211,83 @@ function renderViewSwitcher(){
     buttons.appendChild(button);
   }
 
-  // AGGIUNGI BOX è disponibile nel menu hamburger, non nella barra delle viste.
-  var addBoxButton=$("dashboardAddBoxButton");
-  if(addBoxButton) addBoxButton.parentNode.removeChild(addBoxButton);
+  // Un unico pulsante LAYOUT apre le due azioni di gestione della vista.
+  var oldAddBoxButton=$("dashboardAddBoxButton");
+  if(oldAddBoxButton && oldAddBoxButton.parentNode)oldAddBoxButton.parentNode.removeChild(oldAddBoxButton);
+  var oldReorderButton=$("dashboardReorderButton");
+  if(oldReorderButton && oldReorderButton.parentNode)oldReorderButton.parentNode.removeChild(oldReorderButton);
 
-  var reorderButton=$("dashboardReorderButton");
-  if(!reorderButton){
-    reorderButton=mk("button","dashboard-reorder-button","RIORDINA");reorderButton.id="dashboardReorderButton";reorderButton.type="button";
-    reorderButton.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}toggleDashboardReorder();};
-    reorderButton.style.flex="0 0 auto";reorderButton.style.padding="6px 9px";reorderButton.style.fontSize="12px";reorderButton.style.fontWeight="bold";reorderButton.style.borderRadius="6px";reorderButton.style.margin="0 0 0 5px";
-    var toolbar=$("dashboardToolbar");if(toolbar)toolbar.appendChild(reorderButton);
+  var layoutButton=$("dashboardLayoutButton");
+  if(!layoutButton){
+    layoutButton=mk("button","dashboard-layout-button","LAYOUT");
+    layoutButton.id="dashboardLayoutButton";
+    layoutButton.type="button";
+    layoutButton.style.flex="0 0 auto";
+    layoutButton.style.padding="6px 9px";
+    layoutButton.style.fontSize="12px";
+    layoutButton.style.fontWeight="bold";
+    layoutButton.style.borderRadius="6px";
+    layoutButton.style.margin="0 0 0 5px";
+    var toolbar=$("dashboardToolbar");
+    if(toolbar)toolbar.appendChild(layoutButton);
   }
-  setHidden(reorderButton,false);reorderButton.textContent=dashboardReorderActive?"FINE":"RIORDINA";
+
+  var layoutMenu=$("dashboardLayoutMenu");
+  if(!layoutMenu){
+    layoutMenu=mk("div","dashboard-layout-menu","");
+    layoutMenu.id="dashboardLayoutMenu";
+    layoutMenu.style.position="absolute";
+    layoutMenu.style.right="4px";
+    layoutMenu.style.top="100%";
+    layoutMenu.style.zIndex="10020";
+    layoutMenu.style.minWidth="150px";
+    layoutMenu.style.padding="6px";
+    layoutMenu.style.background="#fff";
+    layoutMenu.style.border="1px solid #999";
+    layoutMenu.style.borderRadius="5px";
+    layoutMenu.style.boxShadow="0 2px 6px rgba(0,0,0,.2)";
+    layoutMenu.style.display="flex";
+    layoutMenu.style.flexDirection="column";
+    layoutMenu.style.gap="5px";
+    layoutMenu.hidden=true;
+    var toolbarForMenu=$("dashboardToolbar");
+    if(toolbarForMenu){
+      if(!toolbarForMenu.style.position)toolbarForMenu.style.position="relative";
+      toolbarForMenu.appendChild(layoutMenu);
+    }
+
+    var addBoxAction=mk("button","","+ AGGIUNGI BOX");
+    addBoxAction.type="button";
+    addBoxAction.onclick=function(ev){
+      if(ev){ev.preventDefault();ev.stopPropagation();}
+      layoutMenu.hidden=true;
+      openAddBoxPanel();
+    };
+    layoutMenu.appendChild(addBoxAction);
+
+    var reorderAction=mk("button","","RIORDINA");
+    reorderAction.id="dashboardReorderButton";
+    reorderAction.type="button";
+    reorderAction.onclick=function(ev){
+      if(ev){ev.preventDefault();ev.stopPropagation();}
+      layoutMenu.hidden=true;
+      toggleDashboardReorder();
+    };
+    layoutMenu.appendChild(reorderAction);
+
+    layoutButton.onclick=function(ev){
+      if(ev){ev.preventDefault();ev.stopPropagation();}
+      if(dashboardReorderActive){
+        layoutMenu.hidden=true;
+        toggleDashboardReorder();
+      }else{
+        layoutMenu.hidden=!layoutMenu.hidden;
+      }
+    };
+  }
+  layoutButton.textContent=dashboardReorderActive?"FINE":"LAYOUT";
+  var reorderActionButton=$("dashboardReorderButton");
+  if(reorderActionButton)reorderActionButton.textContent=dashboardReorderActive?"FINE":"RIORDINA";
   var cancelReorderButton=$("dashboardCancelReorderButton");
   if(!cancelReorderButton){
     cancelReorderButton=mk("button","dashboard-cancel-reorder-button","ANNULLA");cancelReorderButton.id="dashboardCancelReorderButton";cancelReorderButton.type="button";
