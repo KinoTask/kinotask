@@ -9598,7 +9598,7 @@ function dashboardSaveSections(sections,onSuccess){
   var cancelBtn=$("dashboardCancelReorderButton");if(cancelBtn)cancelBtn.disabled=true;
   usersRequest("GET","/views",null,function(metaErr,meta){
     var v=meta&&meta.views?findItem(meta.views,function(x){return String(x.id)===String(currentView);}):null;
-    var allowed=!!(v&&(Number(v.owner_user_id)===Number(authProfile)||(authUserType==="family"&&Number(v.layout_locked)!==1)));
+    var allowed=!!(v&&Number(v.can_edit)===1);
     if(metaErr||!allowed){buildLayout(currentView);if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;alert(metaErr||"Non hai i permessi per modificare questo layout.");return;}
     var payload=sections.map(function(section){return {type:section.type,columns:section.columns.map(function(column){return column.map(function(item){return {box_id:item.box_id,enabled:true,is_public:item.is_public===true||Number(item.is_public)===1};});})};});
     usersRequest("PUT","/views/"+encodeURIComponent(currentView)+"/layout",{sections:payload},function(err,result){
