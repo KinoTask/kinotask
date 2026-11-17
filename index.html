@@ -9559,6 +9559,17 @@ function buildLayout(view, previewSections){
   function appendBox(item,parent){
     var def=findItem(DASHBOARD_BOXES||[],function(x){return String(x.id)===String(item.box_id);});
     b=def?$(def.element_id):null;
+    /* I box custom sono generati dal catalogo DB, non devono esistere
+       come markup statico nell'HTML. */
+    if(!b && def && def.numeric_id && def.box_key){
+      createCustomBoxElement(def);
+      b=$(def.element_id);
+    }
+    /* Non scartare in silenzio un'associazione valida del DB. */
+    if(!b && def){
+      console.warn("Box presente nel DB ma renderer/elemento non disponibile:",def.id,def.element_id);
+      return;
+    }
     if(!b)return;
     setHidden(b,false);b.style.width="100%";b.style.boxSizing="border-box";b.style.flex="";
     parent.appendChild(b);
@@ -9700,7 +9711,9 @@ function dashboardClearPreview(){
   dashboardPreviewRows=null;dashboardPreviewSource=null;dashboardPreviewTarget=null;dashboardPreviewZone=null;
   buildLayout(currentView);
 }
-function dashboardSaveSections(sections,onSuccess){
+function dashboardSaveSections(sections,onSuccess,options){
+  options=options||{};
+  var activateReorder=options.activateReorder!==false;
   var btn=$("dashboardReorderButton");if(btn){btn.disabled=true;btn.textContent="SALVATAGGIO…";}
   var cancelBtn=$("dashboardCancelReorderButton");if(cancelBtn)cancelBtn.disabled=true;
   usersRequest("GET","/views",null,function(metaErr,meta){
@@ -9712,8 +9725,11 @@ function dashboardSaveSections(sections,onSuccess){
       if(err||!result||!result.ok){buildLayout(currentView);if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;alert(err||(result&&result.error)||"Salvataggio del layout non riuscito.");return;}
       loadAuthorizedConfig(function(configErr){
         if(configErr){if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;alert("Layout salvato, ma aggiornamento dashboard non riuscito.");return;}
-        dashboardReorderActive=true;setView(currentView,false);
-        if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;
+        dashboardReorderActive=activateReorder;
+        if(!activateReorder)dashboardReorderOriginalRows=null;
+        setView(currentView,false);
+        if(btn){btn.disabled=false;btn.textContent=activateReorder?"FINE":"RIORDINA";}
+        if(cancelBtn){cancelBtn.disabled=false;setHidden(cancelBtn,!activateReorder);}
         if(typeof onSuccess==="function")onSuccess();
       });
     });
@@ -10597,7 +10613,7 @@ function openAddBoxPanel(){
       var sections=dashboardGetSections()||[];
       sections.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
       closeViewMenu();
-      dashboardSaveSections(sections,function(){loadCustomBoxTasks(def);});
+      dashboardSaveSections(sections,function(){loadCustomBoxTasks(def);},{activateReorder:false});
     });
   };
   wrap.appendChild(create);
@@ -10611,10 +10627,13 @@ function openAddBoxPanel(){
     var present={};
     var sections=dashboardGetSections()||[];
     sections.forEach(function(sec){(sec.columns||[]).forEach(function(col){col.forEach(function(item){present[item.box_id]=true;});});});
+    /* Il catalogo arriva da /config (D1): anche i box custom con box_key
+       sono aggiungibili. Non escluderli in base al tipo di record. */
     var candidates=(DASHBOARD_BOXES||[]).filter(function(b){
       return b && Number(b.can_add_to_layout) === 1 &&
-        !b.box_key && !present[b.id] &&
-        String(b.view_type) === String(view.view_type);
+        !present[b.id] &&
+        String(b.view_type) === String(view.view_type) &&
+        (!b.custom_family_id || Number(b.available_to_user) === 1);
     });
     if(!candidates.length){available.textContent="Nessun altro box disponibile.";return;}
     candidates.forEach(function(def){
@@ -10622,7 +10641,11 @@ function openAddBoxPanel(){
       button.onclick=function(){
         var next=dashboardGetSections()||[];
         next.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
-        dashboardSaveSections(next,function(){closeViewMenu();});
+        /* Aggiungere un box salva il layout ma non deve attivare il riordino. */
+        dashboardSaveSections(next,function(){
+          closeViewMenu();
+          if(def.numeric_id && def.box_key)loadCustomBoxTasks(def);
+        },{activateReorder:false});
       };
       available.appendChild(button);
     });
