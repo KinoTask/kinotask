@@ -4883,6 +4883,64 @@ body.k #dashboardToolbar #viewSwitcherButtons .view-switcher-button {
   float:none!important;
 }
 
+/* Utente connesso e comandi layout nella barra principale */
+#dashboardToolbar #dashboardToolbarAccount {
+  display:flex;
+  flex:0 0 auto;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  gap:3px;
+  position:relative;
+  margin-left:6px;
+  min-width:0;
+}
+#dashboardToolbar #dashboardToolbarAccount #loggedUser {
+  display:block!important;
+  position:static!important;
+  top:auto!important;
+  right:auto!important;
+  margin:0!important;
+  padding:0 2px!important;
+  font-size:11px!important;
+  line-height:1.2!important;
+  text-align:right!important;
+  white-space:nowrap!important;
+  color:#555!important;
+  background:transparent!important;
+  border:0!important;
+}
+#dashboardToolbar #dashboardToolbarActions {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+  min-height:30px;
+}
+@media(max-width:800px) {
+  #dashboardToolbar #dashboardToolbarAccount { gap:2px; margin-left:4px; }
+  #dashboardToolbar #dashboardToolbarAccount #loggedUser { font-size:10px!important; }
+}
+body.k #dashboardToolbar #dashboardToolbarAccount {
+  display:block!important;
+  float:right!important;
+  position:relative!important;
+  margin:0 0 0 4px!important;
+  text-align:right!important;
+}
+body.k #dashboardToolbar #dashboardToolbarAccount #loggedUser {
+  display:block!important;
+  margin:0 0 2px!important;
+  font-size:9px!important;
+  line-height:1.1!important;
+  white-space:nowrap!important;
+}
+body.k #dashboardToolbar #dashboardToolbarActions {
+  display:flex!important;
+  justify-content:flex-end!important;
+  align-items:center!important;
+  min-height:30px!important;
+}
 </style>
 
 <style>#dashboardToolbar #dashboardReorderButton{background:#edf4ff;border:1px solid #9bbce5;color:#174a7e;white-space:nowrap;}#dashboardToolbar #dashboardReorderButton[hidden]{display:none!important;}.dashboard-layout-row{width:100%;box-sizing:border-box;}.dashboard-layout-row>.col{margin:0!important;}@media(max-width:800px){#dashboardToolbar #dashboardReorderButton{padding:5px 6px;font-size:11px;}}</style>
@@ -5013,7 +5071,6 @@ body.k #dashboardToolbar #viewSwitcherButtons .view-switcher-button {
     </div>
   </div>
   <div id="headerRight">
-    <div id="loggedUser"></div>
     <div id="weatherRow">
       <div id="weatherIcon"></div>
       <div id="weather">Meteo: caricamento...</div>
@@ -5035,6 +5092,11 @@ body.k #dashboardToolbar #viewSwitcherButtons .view-switcher-button {
   <div id="viewSwitcher" class="view-switcher" hidden>
     <div id="viewSwitcherTitle" class="view-switcher-title"></div>
     <div id="viewSwitcherButtons" class="view-switcher-buttons"></div>
+  </div>
+
+  <div id="dashboardToolbarAccount">
+    <div id="loggedUser"></div>
+    <div id="dashboardToolbarActions"></div>
   </div>
 </div>
 
@@ -12238,8 +12300,8 @@ function renderViewSwitcher(){
     layoutButton.style.fontWeight="bold";
     layoutButton.style.borderRadius="6px";
     layoutButton.style.margin="0 0 0 5px";
-    var toolbar=$("dashboardToolbar");
-    if(toolbar)toolbar.appendChild(layoutButton);
+    var toolbarActions=$("dashboardToolbarActions");
+    if(toolbarActions)toolbarActions.appendChild(layoutButton);
   }
 
   var layoutMenu=$("dashboardLayoutMenu");
@@ -12260,7 +12322,7 @@ function renderViewSwitcher(){
     layoutMenu.style.flexDirection="column";
     layoutMenu.style.gap="5px";
     layoutMenu.hidden=true;
-    var toolbarForMenu=$("dashboardToolbar");
+    var toolbarForMenu=$("dashboardToolbarAccount");
     if(toolbarForMenu){
       if(!toolbarForMenu.style.position)toolbarForMenu.style.position="relative";
       toolbarForMenu.appendChild(layoutMenu);
@@ -12303,7 +12365,7 @@ function renderViewSwitcher(){
     cancelReorderButton=mk("button","dashboard-cancel-reorder-button","ANNULLA");cancelReorderButton.id="dashboardCancelReorderButton";cancelReorderButton.type="button";
     cancelReorderButton.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}cancelDashboardReorder();};
     cancelReorderButton.style.flex="0 0 auto";cancelReorderButton.style.padding="6px 9px";cancelReorderButton.style.fontSize="12px";cancelReorderButton.style.fontWeight="bold";cancelReorderButton.style.borderRadius="6px";cancelReorderButton.style.margin="0 0 0 5px";
-    var cancelToolbar=$("dashboardToolbar");if(cancelToolbar)cancelToolbar.appendChild(cancelReorderButton);
+    var cancelToolbar=$("dashboardToolbarActions");if(cancelToolbar)cancelToolbar.appendChild(cancelReorderButton);
   }
   setHidden(cancelReorderButton,!dashboardReorderActive);
 
