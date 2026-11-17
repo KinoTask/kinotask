@@ -9438,7 +9438,8 @@ function buildLayout(view, previewSections){
     }
   });
   sections=groupedSections;
-  // Usa la stessa regola di setView(): solo le viste personal vanno nel contenitore personale.\n  host=vc.view_type==="personal"?personalRow():$("dashboardContent");stash=$("stash");
+  // Usa la stessa regola di setView(): solo le viste personal vanno nel contenitore personale.
+  host=vc.view_type==="personal"?personalRow():$("dashboardContent");stash=$("stash");
   if(!host||!stash)return;
 
   for(var v=0;v<views.length;v++){
