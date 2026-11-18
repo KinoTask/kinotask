@@ -9776,6 +9776,16 @@ function dashboardPointerUp(ev){
   if(source)source.style.opacity="1";
   dashboardPointerId=null;dashboardPointerStart=null;dashboardPointerDragging=false;dashboardPointerSource=null;
 }
+function dashboardRemoveBoxFromLayout(boxEl){
+  var boxId=dashboardBoxId(boxEl);
+  if(!boxId)return;
+  if(!confirm("Rimuovere questa box dalla vista?"))return;
+  var sections=dashboardCloneSections(dashboardGetSections()||[]);
+  var loc=dashboardFindItemLocation(sections,boxId);
+  if(!loc)return;
+  sections[loc.section].columns[loc.column].splice(loc.item,1);
+  dashboardSaveSections(dashboardCleanupSections(sections));
+}
 function applyDashboardReorderMode(){
   var host=dashboardLayoutHost();if(!host)return;
   var boxes=host.querySelectorAll(".dashboard-layout-row .box");
@@ -9785,7 +9795,42 @@ function applyDashboardReorderMode(){
     el.style.touchAction=dashboardReorderActive?"none":"";
     el.style.outline=dashboardReorderActive?"2px dashed #2878c8":"";
     el.style.outlineOffset=dashboardReorderActive?"2px":"";
+    if(dashboardReorderActive){
+      if(!el._dashboardReorderPosition)el._dashboardReorderPosition=el.style.position;
+      if(!el.querySelector(".dashboard-box-remove-control")){
+        el.style.position="relative";
+        var remove=mk("button","dashboard-box-remove-control","× RIMUOVI");
+        remove.type="button";
+        remove.title="Rimuovi questa box dalla vista";
+        remove.style.position="absolute";
+        remove.style.top="6px";
+        remove.style.right="6px";
+        remove.style.zIndex="20";
+        remove.style.padding="5px 8px";
+        remove.style.fontSize="11px";
+        remove.style.fontWeight="bold";
+        remove.style.border="1px solid #b42318";
+        remove.style.borderRadius="5px";
+        remove.style.background="#fff";
+        remove.style.color="#b42318";
+        remove.onclick=function(ev){
+          if(ev){ev.preventDefault();ev.stopPropagation();}
+          dashboardRemoveBoxFromLayout(el);
+          return false;
+        };
+        remove.onpointerdown=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}};
+        el.appendChild(remove);
+      }
+    }else{
+      var removeControl=el.querySelector(".dashboard-box-remove-control");
+      if(removeControl)removeControl.parentNode.removeChild(removeControl);
+      if(el._dashboardReorderPosition!==undefined){
+        el.style.position=el._dashboardReorderPosition;
+        el._dashboardReorderPosition=null;
+      }
+    }
     el.onpointerdown=dashboardReorderActive?(function(box){return function(ev){
+      if(ev.target&&ev.target.closest&&ev.target.closest(".dashboard-box-remove-control"))return;
       if(ev.button!==undefined&&ev.button!==0)return;
       dashboardPointerId=ev.pointerId;dashboardPointerStart={x:ev.clientX,y:ev.clientY};
       dashboardPointerSource=box;dashboardPointerDragging=false;
