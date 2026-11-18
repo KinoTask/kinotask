@@ -10794,7 +10794,7 @@ function showArchivedCustomBoxChoice(message, callback){
   overlay.style.background="rgba(0,0,0,.45)";
   var dialog=document.createElement("div");
   dialog.setAttribute("role","dialog");dialog.setAttribute("aria-modal","true");
-  dialog.style.width="min(440px, 100%)";dialog.style.maxWidth="100%";
+  dialog.style.width="440px";dialog.style.maxWidth="100%";
   dialog.style.maxHeight="calc(100vh - 32px)";dialog.style.overflowY="auto";
   dialog.style.boxSizing="border-box";dialog.style.padding="18px";
   dialog.style.borderRadius="12px";dialog.style.background="#fff";dialog.style.color="#222";
@@ -10820,9 +10820,9 @@ function showArchivedCustomBoxChoice(message, callback){
     button.onclick=function(){close(choice);};actions.appendChild(button);
     return button;
   }
-  makeButton("ANNULLA",null,false);
-  makeButton("NO","no",false);
   var yes=makeButton("SÌ","yes",true);
+  makeButton("NO","no",false);
+  makeButton("ANNULLA",null,false);
   dialog.appendChild(text);dialog.appendChild(actions);overlay.appendChild(dialog);
   overlay.addEventListener("click",function(ev){if(ev.target===overlay)close(null);});
   function onKey(ev){if(ev.key==="Escape"){ev.preventDefault();close(null);}}
