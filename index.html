@@ -10970,10 +10970,18 @@ function customBoxSelectedUserIds(container){
   return result;
 }
 
-function openCustomBoxEditor(def){
+function openCustomBoxEditor(def, anchor){
   var panel=$('dashboardAddBoxPanel');if(!panel)return;
   setHidden($('dashboardLayoutMenu'),true);setHidden(panel,false);clear(panel);
+  panel.style.position='fixed';
   panel.style.width='380px';panel.style.maxWidth='94vw';panel.style.boxSizing='border-box';
+  /* Ancora il pannello al pulsante MODIFICA, non alla toolbar generale. */
+  var anchorRect=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
+  if(anchorRect){
+    var left=Math.max(8,Math.min(anchorRect.left,window.innerWidth-Math.min(380,window.innerWidth-16)-8));
+    panel.style.left=left+'px';panel.style.right='auto';
+    panel.style.top=(anchorRect.bottom+6)+'px';
+  }
   var wrap=mk('div','','');wrap.style.padding='10px';wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.gap='9px';
   wrap.appendChild(mk('div','','MODIFICA BOX'));
   var name=document.createElement('input');name.type='text';name.maxLength=80;name.value=def.title||'';name.placeholder='Nome del box';name.style.padding='9px';name.style.width='100%';name.style.boxSizing='border-box';wrap.appendChild(name);
@@ -10995,7 +11003,7 @@ function openCustomBoxEditor(def){
   });
   save.onclick=function(){
     var title=name.value.trim();if(!title){alert('Inserisci il nome del box.');name.focus();return;}
-    var payload={title:title,assignment_enabled:assignment.checked,scope:scope.value,user_ids:scope.value==='selected'?customBoxSelectedUserIds(users):[]};
+    var payload={title:title,assignment_enabled:assignment.checked,scope:scope.value,user_ids:scope.value==='selected'?customBoxSelectedUserIds(users):[],view_id:currentView};
     if(scope.value==='selected'&&!payload.user_ids.length){alert('Seleziona almeno un utente.');return;}
     save.disabled=true;usersRequest('PUT','/custom-boxes/'+def.numeric_id,payload,function(err,data){
       save.disabled=false;if(err||!data||!data.ok){alert(err||(data&&data.error)||'Modifica non riuscita.');return;}
@@ -11025,7 +11033,7 @@ function createCustomBoxElement(def){
        dal catalogo con una nuova configurazione dopo il cambio vista. */
     existingEdit.onclick=function(ev){
       if(ev){ev.preventDefault();ev.stopPropagation();}
-      openCustomBoxEditor(def);
+      openCustomBoxEditor(def, existingEdit);
     };
     loadCustomBoxTasks(def);
     return;
@@ -11039,7 +11047,7 @@ function createCustomBoxElement(def){
   heading.appendChild(mk("h2","",def.title || "Attività"));
   var edit=mk("button","custom-box-edit","MODIFICA");
   edit.type="button";edit.title="Modifica nome, condivisione e assegnazione del box";edit.style.marginLeft="auto";edit.style.fontSize="11px";edit.style.padding="4px 7px";
-  edit.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openCustomBoxEditor(def);};
+  edit.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openCustomBoxEditor(def, edit);};
   heading.appendChild(edit);
   box.appendChild(heading);
 
