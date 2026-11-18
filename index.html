@@ -9567,8 +9567,8 @@ function buildLayout(view, previewSections){
     b=def?$(def.element_id):null;
     /* I box custom sono generati dal catalogo DB, non devono esistere
        come markup statico nell'HTML. */
-    if(!b && def && def.numeric_id && def.box_key){
-      createCustomBoxElement(def);
+    if(!b && def){
+      createDashboardBoxElement(def);
       b=$(def.element_id);
     }
     /* Non scartare in silenzio un'associazione valida del DB. */
@@ -10657,6 +10657,33 @@ function openAddBoxPanel(){
       available.appendChild(button);
     });
   });
+}
+
+/* Crea il contenitore dei box di sistema che non hanno markup statico.
+   La presenza e la posizione del box continuano a dipendere esclusivamente da D1. */
+function createDashboardBoxElement(def){
+  if(!def || $(def.element_id))return $(def && def.element_id);
+  if(String(def.id)!=="shopping")return null;
+
+  var box=mk("div","box","");
+  box.id=def.element_id;
+  box.setAttribute("data-dashboard-box-id",String(def.id));
+
+  var heading=mk("div","section-heading","");
+  heading.appendChild(mk("h2","",def.title || "Amazon Shopping"));
+  box.appendChild(heading);
+
+  var list=mk("div","");
+  list.id="shoppingList";
+  box.appendChild(list);
+
+  var times=mk("div","small","");
+  times.id="shoppingTimes";
+  box.appendChild(times);
+
+  var stash=$("stash");
+  if(stash)stash.appendChild(box);
+  return box;
 }
 
 function createCustomBoxElement(def){
@@ -12868,9 +12895,7 @@ function startDashboard(preferredView){
 	initBoxRefresh();
 
 	safe(loadAgenda, "loadAgenda");
-	/* loadShoppingList appartiene al vecchio contenitore #shoppingList,
-	   rimosso quando la lista è stata migrata a #familyShoppingList.
-	   Il box attuale viene caricato dal relativo loader dinamico. */
+	/* Amazon Shopping viene creato e caricato da setView() solo se presente nel layout D1. */
 	safe(loadWeather, "loadWeather");
 	safe(loadSunTimes, "loadSunTimes");
 	safe(loadMenu, "loadMenu");
@@ -12888,6 +12913,10 @@ function startDashboard(preferredView){
 
 	if(!shoppingRefreshTimer){
 	  shoppingRefreshTimer = setInterval(function(){
+		if(viewHasBox(currentView, "shopping")){
+		  safe(loadShoppingList, "loadShoppingList");
+		}
+
 		if(viewHasBox(currentView, "familyShopping")){
 		  safe(loadFamilyShoppingList);
 		}
