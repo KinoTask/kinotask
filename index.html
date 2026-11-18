@@ -10842,7 +10842,7 @@ function openAddBoxPanel(){
         var count=Number(data.archived&&data.archived.task_count||0);
         var message="Nello storico è già presente un box \""+(data.archived.title||value)+"\"";
         message+=count ? " con "+count+" attività." : ".";
-        message+="\\n\\nVuoi ripristinare il vecchio box con tutte le sue attività?\\n\\nSì: recupera anche le attività.\\nNo: riutilizza il box vuoto ed elimina le vecchie attività.";
+        message+="\n\nVuoi ripristinare il vecchio box con tutte le sue attività?\n\nSì: recupera anche le attività.\nNo: riutilizza il box vuoto ed elimina le vecchie attività.";
         var restore=confirm(message);
         payload.reuse_archived=true;
         payload.restore_tasks=restore;
