@@ -10850,6 +10850,7 @@ function openAddBoxPanel(anchor){
   var panel=$("dashboardAddBoxPanel");
   if(!panel)return;
   if(panel.parentNode!==document.body)document.body.appendChild(panel);
+  var addAnchorRect=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
   setHidden($("dashboardLayoutMenu"),true);
   setHidden(panel,false);
   clear(panel);
@@ -10858,7 +10859,6 @@ function openAddBoxPanel(anchor){
   panel.style.boxSizing="border-box";panel.style.background="#fff";
   panel.style.border="1px solid #999";panel.style.borderRadius="5px";
   panel.style.boxShadow="0 4px 18px rgba(0,0,0,.25)";
-  var addAnchorRect=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
   panel.style.maxWidth="94vw";
   panel.style.boxSizing="border-box";
   var wrap=mk("div","","");
