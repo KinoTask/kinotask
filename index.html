@@ -10889,50 +10889,166 @@ function createDashboardBoxElement(def){
 }
 
 function createCustomBoxElement(def){
-  if($(def.element_id))return;
+  if(!def || !def.element_id) return;
+  if($(def.element_id)){
+    loadCustomBoxTasks(def);
+    return;
+  }
+
   var box=mk("div","box","");
   box.id=def.element_id;
   box.setAttribute("data-custom-box-id",String(def.numeric_id));
+
   var heading=mk("div","section-heading","");
-  var h=mk("h2","",def.title);heading.appendChild(h);box.appendChild(heading);
-  var list=mk("div","","");list.id="customTasks_"+def.numeric_id;box.appendChild(list);
-  var addRow=mk("div","","");addRow.style.display="flex";addRow.style.gap="6px";addRow.style.marginTop="8px";
-  var input=document.createElement("input");input.type="text";input.placeholder="Nuova attività";input.style.flex="1";input.style.minWidth="0";addRow.appendChild(input);
-  if(def.assignment_enabled){
-    var select=document.createElement("select");select.id="customAssignee_"+def.numeric_id;select.style.maxWidth="105px";
-    var none=document.createElement("option");none.value="";none.textContent="Nessuno";select.appendChild(none);
-    (USERS||[]).forEach(function(u){var o=document.createElement("option");o.value=u.id;o.textContent=u.name;select.appendChild(o);});
-    addRow.appendChild(select);
-  }
-  var add=mk("button","","+");add.type="button";add.onclick=function(){
-    var description=input.value.trim();if(!description)return;
-    var payload={description:description};
-    var assignee=$("customAssignee_"+def.numeric_id);if(assignee&&assignee.value)payload.assigned_user_id=Number(assignee.value);
+  heading.appendChild(mk("h2","",def.title || "Attività"));
+  box.appendChild(heading);
+
+  /* Stessa struttura dei box task: campo e pulsante Aggiungi sopra l'elenco. */
+  var addRow=mk("div","add-ctl","");
+  addRow.className="add-ctl custom-box-add";
+  var input=mk("input");
+  input.type="text";
+  input.maxLength=500;
+  input.placeholder="Nuova attività";
+  input.setAttribute("aria-label","Nuova attività");
+  addRow.appendChild(input);
+
+  var add=mk("button","","Aggiungi");
+  add.type="button";
+  add.onclick=function(){
+    var description=input.value.replace(/^\\s+|\\s+$/g,"");
+    if(!description) return;
+    if(description.length>500){alert("Massimo 500 caratteri.");return;}
     add.disabled=true;
-    usersRequest("POST","/custom-boxes/"+def.numeric_id+"/tasks",payload,function(err,data){
-      add.disabled=false;if(err||!data||!data.ok){alert(err||(data&&data.error)||"Salvataggio non riuscito.");return;}
-      input.value="";loadCustomBoxTasks(def);
+    usersRequest("POST","/custom-boxes/"+def.numeric_id+"/tasks",{description:description},function(err,data){
+      add.disabled=false;
+      if(err||!data||!data.ok){alert(err||(data&&data.error)||"Salvataggio non riuscito.");return;}
+      input.value="";
+      loadCustomBoxTasks(def);
     });
   };
-  addRow.appendChild(add);box.appendChild(addRow);
-  var stash=$("stash");if(stash)stash.appendChild(box);
+  input.onkeydown=function(ev){
+    ev=ev||window.event;
+    if(ev.key==="Enter" || ev.keyCode===13){ev.preventDefault();add.click();}
+  };
+  addRow.appendChild(add);
+  box.appendChild(addRow);
+
+  var list=mk("div","");
+  list.id="customTasks_"+def.numeric_id;
+  box.appendChild(list);
+
+  var stash=$("stash");
+  if(stash)stash.appendChild(box);
+  loadCustomBoxTasks(def);
+}
+
+function customTaskAssignControl(def,task){
+  var btn=mk("button","todo-assign",IS_KINDLE?"↗":"👥");
+  btn.type="button";
+  btn.title="Assegna attività";
+  btn.setAttribute("aria-label","Assegna attività");
+
+  var menu=mk("div","todo-assign-menu");
+  menu.appendChild(mk("div","todo-assign-title","Assegna a:"));
+  var options=mk("div","todo-assign-options");
+  var radios=[];
+  var noneLabel=mk("label","todo-assign-option");
+  var none=document.createElement("input");
+  none.type="radio";
+  none.name="customAssignee_"+def.numeric_id+"_"+task.id;
+  none.value="";
+  none.checked=task.assigned_user_id===null || typeof task.assigned_user_id==="undefined";
+  noneLabel.appendChild(none);
+  noneLabel.appendChild(document.createTextNode("Nessuno"));
+  options.appendChild(noneLabel);
+  radios.push(none);
+
+  (USERS||[]).forEach(function(user){
+    var label=mk("label","todo-assign-option");
+    var radio=document.createElement("input");
+    radio.type="radio";
+    radio.name="customAssignee_"+def.numeric_id+"_"+task.id;
+    radio.value=String(user.id);
+    radio.checked=String(task.assigned_user_id)===String(user.id);
+    label.appendChild(radio);
+    label.appendChild(document.createTextNode(user.name));
+    options.appendChild(label);
+    radios.push(radio);
+  });
+  menu.appendChild(options);
+
+  var buttons=mk("div","todo-assign-buttons");
+  var save=mk("button","","Salva");
+  var cancel=mk("button","","Annulla");
+  save.type="button";
+  cancel.type="button";
+  buttons.appendChild(save);
+  buttons.appendChild(cancel);
+  menu.appendChild(buttons);
+
+  btn.onclick=function(){
+    var wasOpen=menu.classList.contains("open");
+    closeAssignMenus();
+    if(!wasOpen)menu.classList.add("open");
+  };
+  cancel.onclick=function(){menu.classList.remove("open");};
+  save.onclick=function(){
+    var assigned=null;
+    for(var i=0;i<radios.length;i++){
+      if(radios[i].checked){assigned=radios[i].value?Number(radios[i].value):null;break;}
+    }
+    save.disabled=true;
+    usersRequest("PATCH","/custom-tasks/"+task.id,{assigned_user_id:assigned},function(err,data){
+      save.disabled=false;
+      if(err||!data||!data.ok){alert(err||(data&&data.error)||"Assegnazione non riuscita.");return;}
+      menu.classList.remove("open");
+      loadCustomBoxTasks(def);
+    });
+  };
+  return {btn:btn,menu:menu};
 }
 
 function loadCustomBoxTasks(def){
-  var list=$("customTasks_"+def.numeric_id);if(!list)return;
+  var list=$("customTasks_"+def.numeric_id);
+  if(!list)return;
   list.textContent="Caricamento...";
   usersRequest("GET","/custom-boxes/"+def.numeric_id+"/tasks",null,function(err,data){
-    if(err||!data||!data.ok){list.textContent=err||(data&&data.error)||"Errore caricamento";return;}
+    if(err||!data||!data.ok){
+      list.textContent=err||(data&&data.error)||"Errore caricamento";
+      return;
+    }
     clear(list);
     (data.tasks||[]).forEach(function(task){
-      var row=mk("div","","");row.style.display="flex";row.style.alignItems="center";row.style.gap="7px";row.style.padding="5px 0";
-      var check=document.createElement("input");check.type="checkbox";check.checked=!!task.done;
-      check.onchange=function(){usersRequest("PATCH","/custom-tasks/"+task.id,{done:check.checked},function(e){if(e){check.checked=!check.checked;alert(e);}});};
-      row.appendChild(check);
-      var label=mk("span","",task.description);label.style.flex="1";if(task.done)label.style.textDecoration="line-through";row.appendChild(label);
-      if(task.assigned_user_name){var assigned=mk("small","",task.assigned_user_name);row.appendChild(assigned);}
-      var del=mk("button","","🗑");del.type="button";del.onclick=function(){if(!confirm("Eliminare questa attività?"))return;usersRequest("DELETE","/custom-tasks/"+task.id,null,function(e){if(e)alert(e);else loadCustomBoxTasks(def);});};row.appendChild(del);
-      list.appendChild(row);
+      var item={
+        text:task.description,
+        done:!!task.done,
+        assignees:task.assigned_user_id===null || typeof task.assigned_user_id==="undefined"
+          ? [] : [Number(task.assigned_user_id)]
+      };
+      var assignment=def.assignment_enabled ? customTaskAssignControl(def,task) : null;
+      var row=itemRow(item,false,
+        function(){
+          var next=!item.done;
+          usersRequest("PATCH","/custom-tasks/"+task.id,{done:next},function(e,result){
+            if(e||!result||!result.ok){alert(e||(result&&result.error)||"Aggiornamento non riuscito.");loadCustomBoxTasks(def);}
+            else loadCustomBoxTasks(def);
+          });
+        },
+        function(){
+          if(!confirm("Eliminare questa attività?"))return;
+          usersRequest("DELETE","/custom-tasks/"+task.id,null,function(e,result){
+            if(e||!result||!result.ok){alert(e||(result&&result.error)||"Eliminazione non riuscita.");}
+            else loadCustomBoxTasks(def);
+          });
+        },
+        assignment ? assignment.btn : null,
+        "recurring-task-owners"
+      );
+      var wrap=mk("div","todo-wrap");
+      wrap.appendChild(row);
+      if(assignment)wrap.appendChild(assignment.menu);
+      list.appendChild(wrap);
     });
     if(!(data.tasks||[]).length)list.textContent="Nessuna attività.";
   });
