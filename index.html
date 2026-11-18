@@ -10784,6 +10784,53 @@ function openUserSwitchPrompt(viewId, userLabel){
 
 
 
+function showArchivedCustomBoxChoice(message, callback){
+  var overlay=document.createElement("div");
+  overlay.style.position="fixed";
+  overlay.style.left="0";overlay.style.top="0";overlay.style.right="0";overlay.style.bottom="0";
+  overlay.style.zIndex="100000";
+  overlay.style.display="flex";overlay.style.alignItems="center";overlay.style.justifyContent="center";
+  overlay.style.padding="16px";overlay.style.boxSizing="border-box";
+  overlay.style.background="rgba(0,0,0,.45)";
+  var dialog=document.createElement("div");
+  dialog.setAttribute("role","dialog");dialog.setAttribute("aria-modal","true");
+  dialog.style.width="min(440px, 100%)";dialog.style.maxWidth="100%";
+  dialog.style.maxHeight="calc(100vh - 32px)";dialog.style.overflowY="auto";
+  dialog.style.boxSizing="border-box";dialog.style.padding="18px";
+  dialog.style.borderRadius="12px";dialog.style.background="#fff";dialog.style.color="#222";
+  dialog.style.boxShadow="0 8px 32px rgba(0,0,0,.3)";
+  var text= document.createElement("div");
+  text.textContent=message;text.style.whiteSpace="pre-line";text.style.lineHeight="1.5";
+  var actions=document.createElement("div");
+  actions.style.display="flex";actions.style.flexWrap="wrap";actions.style.justifyContent="flex-end";
+  actions.style.gap="8px";actions.style.marginTop="20px";
+  var finished=false;
+  function close(choice){
+    if(finished)return;finished=true;
+    document.removeEventListener("keydown",onKey);
+    if(overlay.parentNode)overlay.parentNode.removeChild(overlay);
+    callback(choice);
+  }
+  function makeButton(label,choice,primary){
+    var button=document.createElement("button");button.type="button";button.textContent=label;
+    button.style.padding="10px 18px";button.style.minWidth="82px";button.style.borderRadius="22px";
+    button.style.border=primary?"1px solid #4030c8":"1px solid #c8c8d0";
+    button.style.background=primary?"#4030c8":"#f1f2f6";
+    button.style.color=primary?"#fff":"#222";button.style.fontWeight="600";button.style.cursor="pointer";
+    button.onclick=function(){close(choice);};actions.appendChild(button);
+    return button;
+  }
+  makeButton("ANNULLA",null,false);
+  makeButton("NO","no",false);
+  var yes=makeButton("SÌ","yes",true);
+  dialog.appendChild(text);dialog.appendChild(actions);overlay.appendChild(dialog);
+  overlay.addEventListener("click",function(ev){if(ev.target===overlay)close(null);});
+  function onKey(ev){if(ev.key==="Escape"){ev.preventDefault();close(null);}}
+  document.addEventListener("keydown",onKey);
+  document.body.appendChild(overlay);
+  yes.focus();
+}
+
 function openAddBoxPanel(){
   var panel=$("dashboardAddBoxPanel");
   if(!panel)return;
@@ -10848,18 +10895,16 @@ function openAddBoxPanel(){
         var count=Number(data.archived&&data.archived.task_count||0);
         var message="Nello storico è già presente un box \""+(data.archived.title||value)+"\"";
         message+=count ? " con "+count+" attività." : ".";
-        message+="\n\nVuoi ripristinare il vecchio box con tutte le sue attività?\n\nSì: recupera anche le attività.\nNo: riutilizza il box vuoto ed elimina le vecchie attività.";
-        var restore=confirm(message);
-        if(!restore){
-          var confirmEmpty=confirm("Vuoi davvero riutilizzare il box vuoto ed eliminare le vecchie attività?\n\nAnnulla per non modificare il box archiviato.");
-          if(!confirmEmpty){create.disabled=false;return;}
-        }
-        payload.reuse_archived=true;
-        payload.restore_tasks=restore;
-        usersRequest("POST","/custom-boxes",payload,function(reuseErr,reuseData){
-          create.disabled=false;
-          if(reuseErr||!reuseData||!reuseData.ok||!reuseData.box){alert(reuseErr||(reuseData&&reuseData.error)||"Riutilizzo del box non riuscito.");return;}
-          finishCustomBoxCreation(reuseData.box);
+        message+="\n\nVuoi ripristinare il vecchio box con tutte le sue attività?";
+        showArchivedCustomBoxChoice(message,function(choice){
+          if(choice===null){create.disabled=false;return;}
+          payload.reuse_archived=true;
+          payload.restore_tasks=choice==="yes";
+          usersRequest("POST","/custom-boxes",payload,function(reuseErr,reuseData){
+            create.disabled=false;
+            if(reuseErr||!reuseData||!reuseData.ok||!reuseData.box){alert(reuseErr||(reuseData&&reuseData.error)||"Riutilizzo del box non riuscito.");return;}
+            finishCustomBoxCreation(reuseData.box);
+          });
         });
         return;
       }
@@ -11015,6 +11060,20 @@ function openCustomBoxEditor(def, anchor){
     });
   };
   wrap.appendChild(save);wrap.appendChild(back);panel.appendChild(wrap);
+  /* Mantieni il pannello vicino al pulsante, ma sempre interamente visibile. */
+  panel.style.maxHeight="calc(100vh - 16px)";
+  panel.style.overflowY="auto";
+  var panelRect=panel.getBoundingClientRect();
+  var viewportHeight=window.innerHeight||document.documentElement.clientHeight;
+  var viewportWidth=window.innerWidth||document.documentElement.clientWidth;
+  var left=anchorRect?anchorRect.left:8;
+  left=Math.max(8,Math.min(left,viewportWidth-panelRect.width-8));
+  var top=anchorRect?anchorRect.bottom+8:8;
+  if(top+panelRect.height>viewportHeight-8){
+    var above=anchorRect?anchorRect.top-panelRect.height-8:-1;
+    top=above>=8?above:Math.max(8,viewportHeight-panelRect.height-8);
+  }
+  panel.style.left=left+"px";panel.style.right="auto";panel.style.top=top+"px";
 }
 function createCustomBoxElement(def){
   if(!def || !def.element_id) return;
