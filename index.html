@@ -11167,6 +11167,21 @@ function openCustomBoxEditor(def, anchor){
   var grantRows=mk('div','custom-box-permission-rows','');grantPanel.appendChild(grantRows);
   var grantSave=mk('button','','SALVA AUTORIZZAZIONI');grantSave.type='button';
   grantPanel.appendChild(grantSave);grantPanel.hidden=true;wrap.appendChild(grantPanel);
+  var archive=mk('button','','ARCHIVIA BOX PER TUTTI');archive.type='button';archive.hidden=true;
+  archive.style.borderColor='#b42318';archive.style.color='#b42318';
+  archive.onclick=function(){
+    if(!confirm('Archiviare definitivamente questo box per tutti? Non sarà più disponibile tra i box aggiungibili. Le attività resteranno conservate nel database.'))return;
+    archive.disabled=true;
+    usersRequest('DELETE','/custom-boxes/'+encodeURIComponent(def.numeric_id),null,function(err,data){
+      archive.disabled=false;
+      if(err||!data||!data.ok){alert(err||(data&&data.error)||'Archiviazione non riuscita.');return;}
+      setHidden(panel,true);
+      loadAuthorizedConfig(function(configErr){
+        if(configErr){alert('Box archiviato, ma aggiornamento dashboard non riuscito. Ricarica la pagina.');return;}
+        setView(currentView,false);
+      });
+    });
+  };
   var save=mk('button','','SALVA MODIFICHE');save.type='button';
   var back=mk('button','','INDIETRO');back.type='button';back.onclick=function(){setHidden(panel,true);setHidden($('dashboardLayoutMenu'),false);};
   function updateUsers(){
@@ -11207,6 +11222,7 @@ function openCustomBoxEditor(def, anchor){
         section._permissionInputs=inputs;section._userId=Number(user.id);grantRows.appendChild(section);
       });
       grantPanel.hidden=false;
+      archive.hidden=false;
       grantSave.onclick=function(){
         var payload=[];
         for(var i=0;i<grantRows.children.length;i++){
@@ -11246,7 +11262,7 @@ function openCustomBoxEditor(def, anchor){
     }
     submitBoxUpdate(false);
   };
-  wrap.appendChild(save);wrap.appendChild(back);panel.appendChild(wrap);
+  wrap.appendChild(archive);wrap.appendChild(save);wrap.appendChild(back);panel.appendChild(wrap);
   positionCustomBoxPanel(panel,anchorRect);
   bindCustomBoxPanelPosition(panel,anchorRect);
 }
