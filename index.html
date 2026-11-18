@@ -11268,6 +11268,9 @@ function loadCustomBoxTasks(def){
       list.textContent=err||(data&&data.error)||"Errore caricamento";
       return;
     }
+    // Usa il valore aggiornato restituito dall'API, non il flag eventualmente
+    // obsoleto nella definizione del box già caricata in memoria.
+    def.assignment_enabled = data.assignment_enabled === true;
     clear(list);
     (data.tasks||[]).forEach(function(task){
       var item={
@@ -11276,7 +11279,7 @@ function loadCustomBoxTasks(def){
         assignees:task.assigned_user_id===null || typeof task.assigned_user_id==="undefined"
           ? [] : [Number(task.assigned_user_id)]
       };
-      var assignment=def.assignment_enabled ? customTaskAssignControl(def,task) : null;
+      var assignment=data.assignment_enabled ? customTaskAssignControl(def,task) : null;
       var row=itemRow(item,false,
         function(){
           var next=!item.done;
