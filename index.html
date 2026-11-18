@@ -9882,7 +9882,7 @@ function dashboardSaveSections(sections,onSuccess,options){
         dashboardReorderActive=activateReorder;
         if(!activateReorder)dashboardReorderOriginalRows=null;
         setView(currentView,false);
-        if(btn){btn.disabled=false;btn.textContent=activateReorder?"FINE":"RIORDINA";}
+        if(btn){btn.disabled=false;btn.textContent=activateReorder?"FINE":"GESTISCI";}
         if(cancelBtn){cancelBtn.disabled=false;setHidden(cancelBtn,!activateReorder);}
         if(typeof onSuccess==="function")onSuccess();
       });
@@ -10013,7 +10013,7 @@ function applyDashboardReorderMode(){
 function toggleDashboardReorder(){
   if(dashboardReorderActive){
     dashboardReorderActive=false;dashboardReorderOriginalRows=null;applyDashboardReorderMode();
-    var b=$("dashboardReorderButton");if(b)b.textContent="RIORDINA";var lb=$("dashboardLayoutButton");if(lb)lb.textContent="LAYOUT";var lb=$("dashboardLayoutButton");if(lb)lb.textContent="LAYOUT";
+    var b=$("dashboardReorderButton");if(b)b.textContent="GESTISCI";var lb=$("dashboardLayoutButton");if(lb)lb.textContent="LAYOUT";var lb=$("dashboardLayoutButton");if(lb)lb.textContent="LAYOUT";
     var c=$("dashboardCancelReorderButton");if(c)c.hidden=true;return;
   }
   usersRequest("GET","/views",null,function(err,data){
@@ -10031,13 +10031,13 @@ function cancelDashboardReorder(){
   var original=dashboardReorderOriginalRows,current=dashboardGetSections();
   if(JSON.stringify(current)===JSON.stringify(original)){
     dashboardReorderActive=false;dashboardReorderOriginalRows=null;dashboardClearPreview();applyDashboardReorderMode();
-    var b=$("dashboardReorderButton");if(b)b.textContent="RIORDINA";var lb=$("dashboardLayoutButton");if(lb)lb.textContent="LAYOUT";
+    var b=$("dashboardReorderButton");if(b)b.textContent="GESTISCI";var lb=$("dashboardLayoutButton");if(lb)lb.textContent="LAYOUT";
     var c=$("dashboardCancelReorderButton");if(c)c.hidden=true;return;
   }
   dashboardClearPreview();
   dashboardSaveSections(original,function(){
     dashboardReorderActive=false;dashboardReorderOriginalRows=null;applyDashboardReorderMode();
-    var b=$("dashboardReorderButton");if(b)b.textContent="RIORDINA";
+    var b=$("dashboardReorderButton");if(b)b.textContent="GESTISCI";
     var c=$("dashboardCancelReorderButton");if(c)c.hidden=true;
   });
 }
@@ -12773,7 +12773,7 @@ function renderViewSwitcher(){
   // Un unico pulsante LAYOUT apre le due azioni di gestione della vista.
   var oldAddBoxButton=$("dashboardAddBoxButton");
   if(oldAddBoxButton && oldAddBoxButton.parentNode)oldAddBoxButton.parentNode.removeChild(oldAddBoxButton);
-  // Il pulsante RIORDINA appartiene al popup LAYOUT: non rimuoverlo
+  // Il pulsante GESTISCI appartiene al popup LAYOUT: non rimuoverlo
   // a ogni rendering, altrimenti il menu rimane senza la seconda voce.
 
   var layoutButton=$("dashboardLayoutButton");
@@ -12845,7 +12845,7 @@ function renderViewSwitcher(){
     };
     layoutMenu.appendChild(addBoxAction);
 
-    var reorderAction=mk("button","","RIORDINA");
+    var reorderAction=mk("button","","GESTISCI");
     reorderAction.id="dashboardReorderButton";
     reorderAction.type="button";
     reorderAction.onclick=function(ev){
@@ -12884,7 +12884,7 @@ function renderViewSwitcher(){
   }
   layoutButton.textContent=dashboardReorderActive?"FINE":"LAYOUT";
   var reorderActionButton=$("dashboardReorderButton");
-  if(reorderActionButton)reorderActionButton.textContent=dashboardReorderActive?"FINE":"RIORDINA";
+  if(reorderActionButton)reorderActionButton.textContent=dashboardReorderActive?"FINE":"GESTISCI";
   var cancelReorderButton=$("dashboardCancelReorderButton");
   if(!cancelReorderButton){
     cancelReorderButton=mk("button","dashboard-cancel-reorder-button","ANNULLA");cancelReorderButton.id="dashboardCancelReorderButton";cancelReorderButton.type="button";
