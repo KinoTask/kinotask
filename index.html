@@ -5494,13 +5494,30 @@ var viewManualUntil = 0;
 var AUTH_PERMISSIONS = [];
 
 function canManageRecurringTasks(){
-  return authUserType === "family" ||
-    AUTH_PERMISSIONS.indexOf("recurring_tasks.manage") !== -1;
+  var role = String(authUserType || "").toLowerCase();
+  if(role === "family" || role === "family_admin" || role === "owner") return true;
+  for(var i=0;i<AUTH_PERMISSIONS.length;i++){
+    var permission = AUTH_PERMISSIONS[i];
+    if(permission === "recurring_tasks.manage") return true;
+    if(permission && typeof permission === "object" &&
+       (permission.key === "recurring_tasks.manage" ||
+        permission.name === "recurring_tasks.manage" ||
+        permission.permission === "recurring_tasks.manage")) return true;
+  }
+  return false;
 }
 
 function updateRecurringConfigButton(){
   var button = $("recurringConfigButton");
-  if(button) setHidden(button, !canManageRecurringTasks());
+  if(!button) return;
+  var allowed = !!authToken && canManageRecurringTasks();
+  if(allowed){
+    button.removeAttribute("hidden");
+    button.style.removeProperty("display");
+  } else {
+    button.setAttribute("hidden", "hidden");
+    button.style.setProperty("display", "none", "important");
+  }
 }
 
 var agendaData = null, agendaErr = false, agendaSyncedAt = null;
@@ -10085,6 +10102,7 @@ function setView(view, manual){
 
   currentView = viewConfig.id;
   view = currentView;
+  updateRecurringConfigButton();
 
   renderViewSwitcher();
   updateDashboardBoxTitles();
@@ -11754,7 +11772,6 @@ function openUserManagement(){
 
   function renderUserDetails(user){
     setHidden(addButton, true);
-    setHidden(orderButton, true);
     clear(content);
     var top = mk("div", "", "");
     top.style.display = "flex";
@@ -12976,6 +12993,19 @@ function initBoxRefresh() {
 }
 
 function startDashboard(preferredView){
+  var activeProfile = String(authProfile || "anonymous");
+  if(handwrittenNotesActiveProfile !== activeProfile){
+    handwrittenNotesActiveProfile = activeProfile;
+    handwrittenNotesCheckSequence++;
+    handwrittenNotesSaveSyncPending = false;
+    handwrittenNotesUnread = false;
+    if(handwrittenNotesBlinkTimer !== null){
+      window.clearInterval(handwrittenNotesBlinkTimer);
+      handwrittenNotesBlinkTimer = null;
+    }
+    updateHandwrittenNotesUnreadButton();
+  }
+  updateRecurringConfigButton();
   /* La sessione è già stata verificata da restoreAuthSession:
      avvia solo ora il controllo delle note, evitando GET /notes anonime. */
   startHandwrittenNotesUnreadPolling();
@@ -13354,6 +13384,11 @@ var handwrittenNotesBlinkVisible = true;
 var handwrittenNotesPollStarted = false;
 var handwrittenNotesCheckSequence = 0;
 var handwrittenNotesSaveSyncPending = false;
+var handwrittenNotesActiveProfile = null;
+
+function handwrittenNotesStorageKey(key){
+  return key + ":" + String(authProfile || "anonymous");
+}
 
 function handwrittenNoteTimestampMs(value){
   if(!value) return 0;
@@ -13372,12 +13407,12 @@ function latestHandwrittenNoteTimestamp(notes){
 }
 
 function getHandwrittenNotesLastSeen(){
-  try { return Number(localStorage.getItem(handwrittenNotesLastSeenKey) || 0); }
+  try { return Number(localStorage.getItem(handwrittenNotesStorageKey(handwrittenNotesLastSeenKey)) || 0); }
   catch(e){ return 0; }
 }
 
 function setHandwrittenNotesLastSeen(value){
-  try { localStorage.setItem(handwrittenNotesLastSeenKey, String(Math.max(0, Number(value) || 0))); }
+  try { localStorage.setItem(handwrittenNotesStorageKey(handwrittenNotesLastSeenKey), String(Math.max(0, Number(value) || 0))); }
   catch(e){}
 }
 
@@ -13449,25 +13484,25 @@ function handwrittenNotesSignatureMap(notes){
 }
 
 function setHandwrittenNotesSignatureMap(map){
-  try { localStorage.setItem(handwrittenNotesSignatureKey, JSON.stringify(map || {})); } catch(e){}
+  try { localStorage.setItem(handwrittenNotesStorageKey(handwrittenNotesSignatureKey), JSON.stringify(map || {})); } catch(e){}
 }
 
 function getHandwrittenNotesSignatureMap(){
   try {
-    var value = localStorage.getItem(handwrittenNotesSignatureKey);
+    var value = localStorage.getItem(handwrittenNotesStorageKey(handwrittenNotesSignatureKey));
     return value ? JSON.parse(value) : null;
   } catch(e){ return null; }
 }
 
 function getHandwrittenNotesUnreadIds(){
   try {
-    var ids = JSON.parse(localStorage.getItem(handwrittenNotesUnreadIdsKey) || "[]");
+    var ids = JSON.parse(localStorage.getItem(handwrittenNotesStorageKey(handwrittenNotesUnreadIdsKey)) || "[]");
     return Array.isArray(ids) ? ids : [];
   } catch(e){ return []; }
 }
 
 function setHandwrittenNotesUnreadIds(ids){
-  try { localStorage.setItem(handwrittenNotesUnreadIdsKey, JSON.stringify(ids || [])); } catch(e){}
+  try { localStorage.setItem(handwrittenNotesStorageKey(handwrittenNotesUnreadIdsKey), JSON.stringify(ids || [])); } catch(e){}
 }
 
 function isHandwrittenNoteUnread(id){
@@ -13498,12 +13533,12 @@ function checkHandwrittenNotesUnread(markAsRead, callback){
     var currentMap = handwrittenNotesSignatureMap(data.notes);
     var previousMap = getHandwrittenNotesSignatureMap();
     var initialized = false;
-    try { initialized = localStorage.getItem(handwrittenNotesInitializedKey) === "1"; } catch(e){}
+    try { initialized = localStorage.getItem(handwrittenNotesStorageKey(handwrittenNotesInitializedKey)) === "1"; } catch(e){}
     if(markAsRead || !initialized || previousMap === null){
       setHandwrittenNotesSignatureMap(currentMap);
       setHandwrittenNotesUnreadIds([]);
       setHandwrittenNotesLastSeen(latestHandwrittenNoteTimestamp(data.notes));
-      try { localStorage.setItem(handwrittenNotesInitializedKey, "1"); } catch(e){}
+      try { localStorage.setItem(handwrittenNotesStorageKey(handwrittenNotesInitializedKey), "1"); } catch(e){}
     } else {
       var unreadIds = getHandwrittenNotesUnreadIds();
       for(var id in currentMap){
@@ -13594,7 +13629,7 @@ function showHandwrittenNotesList(){
     setHandwrittenNotesLastSeen(Math.max(getHandwrittenNotesLastSeen(), latestSeen));
     if(!getHandwrittenNotesSignatureMap()){
       setHandwrittenNotesSignatureMap(handwrittenNotesSignatureMap(handwrittenNotes));
-      try { localStorage.setItem(handwrittenNotesInitializedKey, "1"); } catch(e){}
+      try { localStorage.setItem(handwrittenNotesStorageKey(handwrittenNotesInitializedKey), "1"); } catch(e){}
     }
     handwrittenNotesUnread = getHandwrittenNotesUnreadIds().length > 0;
     updateHandwrittenNotesUnreadButton();
@@ -13828,6 +13863,8 @@ function openHandwrittenNotesList(){
   setHidden($("handwrittenNotesOverlay"), false);
   setHidden($("notesEditorView"), true);
   setHidden($("notesListView"), false);
+  /* Aprire l'elenco equivale a prendere visione degli appunti disponibili. */
+  checkHandwrittenNotesUnread(true);
   showHandwrittenNotesList();
 }
 
