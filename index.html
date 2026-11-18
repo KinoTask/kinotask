@@ -10885,12 +10885,18 @@ function bindCustomBoxPanelPosition(panel, anchorRect, belowAnchor){
 
 function openAddBoxPanel(anchor){
   var panel=$("dashboardAddBoxPanel");
-  if(!panel)return;
+  /* Il pannello deve esistere anche quando il menu LAYOUT è già stato
+     creato in un rendering precedente o non è accessibile al profilo. */
+  if(!panel){
+    panel=mk("div","dashboard-add-box-panel","");
+    panel.id="dashboardAddBoxPanel";
+    panel.hidden=true;
+    document.body.appendChild(panel);
+  }
   if(panel.parentNode!==document.body)document.body.appendChild(panel);
-  /* Il menu LAYOUT viene nascosto, quindi catturiamo prima la posizione
-     del pulsante che lo apre: il pannello deve comparire sotto quel pulsante. */
+  /* Usa prima il pulsante effettivamente premuto (anche quello dell'hamburger). */
   var layoutAnchor=$("dashboardLayoutButton");
-  var addAnchorRect=layoutAnchor&&layoutAnchor.getBoundingClientRect?layoutAnchor.getBoundingClientRect():(anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null);
+  var addAnchorRect=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():(layoutAnchor&&layoutAnchor.getBoundingClientRect?layoutAnchor.getBoundingClientRect():null);
   setHidden($("dashboardLayoutMenu"),true);
   setHidden(panel,false);
   clear(panel);
