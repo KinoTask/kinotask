@@ -10826,6 +10826,7 @@ function openAddBoxPanel(){
   wrap.appendChild(scope);
   var shareUsers=mk("div","custom-box-share-users","");shareUsers.style.display="none";shareUsers.style.flexDirection="column";shareUsers.style.gap="6px";wrap.appendChild(shareUsers);
   renderCustomBoxUserChoices(shareUsers,[]);
+  setHidden(shareUsers,scope.value!=="selected");
   scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");};
   var assignment=document.createElement("input");assignment.type="checkbox";
   var assignmentLabel=mk("label","","");
@@ -11005,8 +11006,16 @@ function openCustomBoxEditor(def){
 function createCustomBoxElement(def){
   if(!def || !def.element_id) return;
   if($(def.element_id)){
-    var existingHeading=$(def.element_id).querySelector(".section-heading h2");
+    var existingBox=$(def.element_id);
+    var existingHeading=existingBox.querySelector(".section-heading h2");
     if(existingHeading)existingHeading.textContent=def.title || "Attività";
+    if(!existingBox.querySelector(".custom-box-edit")){
+      var existingEdit=mk("button","custom-box-edit","MODIFICA");
+      existingEdit.type="button";existingEdit.title="Modifica nome, condivisione e assegnazione del box";existingEdit.style.marginLeft="auto";existingEdit.style.fontSize="11px";existingEdit.style.padding="4px 7px";
+      existingEdit.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openCustomBoxEditor(def);};
+      var existingHeader=existingBox.querySelector(".section-heading");
+      if(existingHeader)existingHeader.appendChild(existingEdit);
+    }
     loadCustomBoxTasks(def);
     return;
   }
@@ -11018,7 +11027,7 @@ function createCustomBoxElement(def){
   var heading=mk("div","section-heading","");
   heading.appendChild(mk("h2","",def.title || "Attività"));
   var edit=mk("button","custom-box-edit","MODIFICA");
-  edit.type="button";edit.title="Modifica nome, condivisione e assegnazione del box";
+  edit.type="button";edit.title="Modifica nome, condivisione e assegnazione del box";edit.style.marginLeft="auto";edit.style.fontSize="11px";edit.style.padding="4px 7px";
   edit.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openCustomBoxEditor(def);};
   heading.appendChild(edit);
   box.appendChild(heading);
