@@ -11153,10 +11153,9 @@ function createCustomBoxElement(def){
        dal catalogo con una nuova configurazione dopo il cambio vista. */
     existingEdit.onclick=function(ev){
       if(ev){ev.preventDefault();ev.stopPropagation();}
-      if(!customBoxCanManageTasks())return;
       openCustomBoxEditor(def, existingEdit);
     };
-    existingEdit.hidden=!customBoxCanManageTasks();
+    existingEdit.hidden=false;
     var existingAdd=existingBox.querySelector(".custom-box-add");
     if(existingAdd)existingAdd.hidden=!customBoxCanManageTasks();
     loadCustomBoxTasks(def);
@@ -11171,8 +11170,8 @@ function createCustomBoxElement(def){
   heading.appendChild(mk("h2","",def.title || "Attività"));
   var edit=mk("button","custom-box-edit","MODIFICA");
   edit.type="button";edit.title="Modifica nome, condivisione e assegnazione del box";edit.style.marginLeft="auto";edit.style.fontSize="11px";edit.style.padding="4px 7px";
-  edit.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}if(!customBoxCanManageTasks())return;openCustomBoxEditor(def, edit);};
-  edit.hidden=!customBoxCanManageTasks();
+  edit.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openCustomBoxEditor(def, edit);};
+  edit.hidden=false;
   heading.appendChild(edit);
   box.appendChild(heading);
 
