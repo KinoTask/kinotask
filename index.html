@@ -10980,7 +10980,7 @@ function openCustomBoxEditor(def, anchor){
   if(anchorRect){
     var left=Math.max(8,Math.min(anchorRect.left,window.innerWidth-Math.min(380,window.innerWidth-16)-8));
     panel.style.left=left+'px';panel.style.right='auto';
-    panel.style.top=(anchorRect.bottom+6)+'px';
+    panel.style.top=anchorRect.top+'px';
   }
   var wrap=mk('div','','');wrap.style.padding='10px';wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.gap='9px';
   wrap.appendChild(mk('div','','MODIFICA BOX'));
