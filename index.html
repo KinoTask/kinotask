@@ -10571,7 +10571,7 @@ function renderViewMenu(){
     addBoxMenuButton.classList.add("menu-action-button");
     addBoxMenuButton.onclick = function(ev){
       if(ev){ ev.preventDefault(); ev.stopPropagation(); }
-      openAddBoxPanel();
+      openAddBoxPanel(ev.currentTarget);
     };
     panel.appendChild(addBoxMenuButton);
   }
@@ -10831,13 +10831,34 @@ function showArchivedCustomBoxChoice(message, callback){
   yes.focus();
 }
 
-function openAddBoxPanel(){
+function positionCustomBoxPanel(panel, anchorRect){
+  if(!panel)return;
+  panel.style.position='fixed';panel.style.zIndex='10050';
+  panel.style.maxHeight='calc(100vh - 16px)';panel.style.overflowY='auto';
+  var vw=window.innerWidth||document.documentElement.clientWidth;
+  var vh=window.innerHeight||document.documentElement.clientHeight;
+  var r=panel.getBoundingClientRect();
+  var left=anchorRect?anchorRect.right+8:8;
+  if(left+r.width>vw-8)left=anchorRect?anchorRect.left-r.width-8:8;
+  left=Math.max(8,Math.min(left,vw-r.width-8));
+  var top=anchorRect?anchorRect.top:8;
+  if(top+r.height>vh-8)top=Math.max(8,vh-r.height-8);
+  panel.style.left=left+'px';panel.style.right='auto';panel.style.top=top+'px';
+}
+
+function openAddBoxPanel(anchor){
   var panel=$("dashboardAddBoxPanel");
   if(!panel)return;
+  if(panel.parentNode!==document.body)document.body.appendChild(panel);
   setHidden($("dashboardLayoutMenu"),true);
   setHidden(panel,false);
   clear(panel);
-  panel.style.width="360px";
+  panel.style.position="fixed";panel.style.zIndex="10050";
+  panel.style.width="360px";panel.style.maxWidth="calc(100vw - 16px)";
+  panel.style.boxSizing="border-box";panel.style.background="#fff";
+  panel.style.border="1px solid #999";panel.style.borderRadius="5px";
+  panel.style.boxShadow="0 4px 18px rgba(0,0,0,.25)";
+  var addAnchorRect=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
   panel.style.maxWidth="94vw";
   panel.style.boxSizing="border-box";
   var wrap=mk("div","","");
@@ -10874,8 +10895,8 @@ function openAddBoxPanel(){
   var shareUsers=mk("div","custom-box-share-users","");shareUsers.style.display="none";shareUsers.style.flexDirection="column";shareUsers.style.gap="6px";wrap.appendChild(shareUsers);
   renderCustomBoxUserChoices(shareUsers,[]);
   setHidden(shareUsers,scope.value!=="selected");
-  scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");};
-  var assignment=document.createElement("input");assignment.type="checkbox";
+  scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");assignment.disabled=scope.value==="private";if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,addAnchorRect);};
+  var assignment=document.createElement("input");assignment.type="checkbox";assignment.disabled=scope.value==="private";
   var assignmentLabel=mk("label","","");
   assignmentLabel.style.display="flex";assignmentLabel.style.alignItems="center";assignmentLabel.style.gap="7px";
   assignmentLabel.style.marginTop="8px";assignmentLabel.style.paddingTop="10px";assignmentLabel.style.borderTop="1px solid #ccc";
@@ -10888,7 +10909,7 @@ function openAddBoxPanel(){
     create.disabled=true;
     var selectedIds=scope.value==="selected"?customBoxSelectedUserIds(shareUsers):[];
     if(scope.value==="selected"&&!selectedIds.length){alert("Seleziona almeno un utente.");return;}
-    var payload={title:value,view_id:currentView,assignment_enabled:assignment.checked,scope:scope.value,user_ids:selectedIds};
+    var payload={title:value,view_id:currentView,assignment_enabled:scope.value!=="private"&&assignment.checked,scope:scope.value,user_ids:selectedIds};
     usersRequest("POST","/custom-boxes",payload,function(err,data){
       if(err||!data||!data.ok){create.disabled=false;alert(err||(data&&data.error)||"Creazione non riuscita.");return;}
       if(data.needs_confirmation){
@@ -10923,6 +10944,8 @@ function openAddBoxPanel(){
   wrap.appendChild(create);
   var back=mk("button","","INDIETRO");back.type="button";back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};wrap.appendChild(back);
   panel.appendChild(wrap);
+  positionCustomBoxPanel(panel,addAnchorRect);
+  window.addEventListener("resize",function(){if(!panel.hidden)positionCustomBoxPanel(panel,addAnchorRect);});
 
   usersRequest("GET","/views",null,function(err,data){
     if(err||!data||!data.views){available.textContent=err||"Impossibile caricare le viste.";return;}
@@ -10941,6 +10964,7 @@ function openAddBoxPanel(){
       }
       var activeCustom={};
       customData.boxes.forEach(function(box){activeCustom[String(box.box_id)]=true;});
+      positionCustomBoxPanel(panel,addAnchorRect);
       var candidates=(DASHBOARD_BOXES||[]).filter(function(b){
         if(!b || Number(b.can_add_to_layout)!==1 || present[b.id] ||
            String(b.view_type)!==String(view.view_type))return false;
@@ -11043,17 +11067,23 @@ function openCustomBoxEditor(def, anchor){
   var assignmentLabel=mk('label','','');assignmentLabel.style.display='flex';assignmentLabel.style.alignItems='center';assignmentLabel.style.gap='7px';assignmentLabel.style.marginTop='8px';assignmentLabel.style.paddingTop='10px';assignmentLabel.style.borderTop='1px solid #ccc';assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode('Abilita assegnazione delle attività'));wrap.appendChild(assignmentLabel);
   var save=mk('button','','SALVA MODIFICHE');save.type='button';
   var back=mk('button','','INDIETRO');back.type='button';back.onclick=function(){setHidden(panel,true);setHidden($('dashboardLayoutMenu'),false);};
-  function updateUsers(){setHidden(users,scope.value!=='selected');}
+  function updateUsers(){
+    setHidden(users,scope.value!=='selected');
+    assignment.disabled=scope.value==='private';
+    if(assignment.disabled)assignment.checked=false;
+    positionCustomBoxPanel(panel,anchorRect);
+  }
   scope.onchange=updateUsers;
   usersRequest('GET','/custom-boxes',null,function(err,data){
     var found=!err&&data&&Array.isArray(data.boxes)?data.boxes.filter(function(x){return String(x.id)===String(def.numeric_id);})[0]:null;
     var ids=[];if(found&&found.user_ids){try{ids=Array.isArray(found.user_ids)?found.user_ids:JSON.parse(found.user_ids||'[]');}catch(ignore){ids=[];}}
     scope.value=found&&found.share_mode?found.share_mode:(def.custom_owner_user_id===null?'family':'private');
     renderCustomBoxUserChoices(users,ids);updateUsers();
+    positionCustomBoxPanel(panel,anchorRect);
   });
   save.onclick=function(){
     var title=name.value.trim();if(!title){alert('Inserisci il nome del box.');name.focus();return;}
-    var payload={title:title,assignment_enabled:assignment.checked,scope:scope.value,user_ids:scope.value==='selected'?customBoxSelectedUserIds(users):[],view_id:currentView};
+    var payload={title:title,assignment_enabled:scope.value!=='private'&&assignment.checked,scope:scope.value,user_ids:scope.value==='selected'?customBoxSelectedUserIds(users):[],view_id:currentView};
     if(scope.value==='selected'&&!payload.user_ids.length){alert('Seleziona almeno un utente.');return;}
     save.disabled=true;usersRequest('PUT','/custom-boxes/'+def.numeric_id,payload,function(err,data){
       save.disabled=false;if(err||!data||!data.ok){alert(err||(data&&data.error)||'Modifica non riuscita.');return;}
@@ -11061,22 +11091,8 @@ function openCustomBoxEditor(def, anchor){
     });
   };
   wrap.appendChild(save);wrap.appendChild(back);panel.appendChild(wrap);
-  /* Mantieni il pannello vicino al pulsante, ma sempre interamente visibile. */
-  panel.style.maxHeight="calc(100vh - 16px)";
-  panel.style.overflowY="auto";
-  var panelRect=panel.getBoundingClientRect();
-  var viewportHeight=window.innerHeight||document.documentElement.clientHeight;
-  var viewportWidth=window.innerWidth||document.documentElement.clientWidth;
-  var left=anchorRect?anchorRect.right+8:8;
-  if(left+panelRect.width>viewportWidth-8){
-    left=anchorRect?anchorRect.left-panelRect.width-8:8;
-  }
-  left=Math.max(8,Math.min(left,viewportWidth-panelRect.width-8));
-  var top=anchorRect?anchorRect.top:8;
-  if(top+panelRect.height>viewportHeight-8){
-    top=Math.max(8,viewportHeight-panelRect.height-8);
-  }
-  panel.style.left=left+"px";panel.style.right="auto";panel.style.top=top+"px";
+  positionCustomBoxPanel(panel,anchorRect);
+  window.addEventListener('resize',function(){if(!panel.hidden)positionCustomBoxPanel(panel,anchorRect);});
 }
 function createCustomBoxElement(def){
   if(!def || !def.element_id) return;
@@ -12999,7 +13015,7 @@ function renderViewSwitcher(){
     addBoxAction.onclick=function(ev){
       if(ev){ev.preventDefault();ev.stopPropagation();}
       setHidden(layoutMenu,true);
-      openAddBoxPanel();
+      openAddBoxPanel(ev.currentTarget);
     };
     layoutMenu.appendChild(addBoxAction);
 
