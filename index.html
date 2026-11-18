@@ -5495,7 +5495,7 @@ var AUTH_PERMISSIONS = [];
 
 function canManageRecurringTasks(){
   var role = String(authUserType || "").toLowerCase();
-  if(role === "family" || role === "family_admin" || role === "owner") return true;
+  if(role === "family" || role === "family_admin") return true;
   for(var i=0;i<AUTH_PERMISSIONS.length;i++){
     var permission = AUTH_PERMISSIONS[i];
     if(permission === "recurring_tasks.manage") return true;
@@ -12998,6 +12998,7 @@ function startDashboard(preferredView){
     handwrittenNotesActiveProfile = activeProfile;
     handwrittenNotesCheckSequence++;
     handwrittenNotesSaveSyncPending = false;
+    AUTH_PERMISSIONS = [];
     handwrittenNotesUnread = false;
     if(handwrittenNotesBlinkTimer !== null){
       window.clearInterval(handwrittenNotesBlinkTimer);
@@ -13056,7 +13057,13 @@ function startDashboard(preferredView){
 	  renderPersonalTasks();
 	});
 	
-	$("recurringConfigButton").onclick = openRecurringConfig;
+	$("recurringConfigButton").onclick = function(){
+      if(!canManageRecurringTasks()){
+        updateRecurringConfigButton();
+        return;
+      }
+      openRecurringConfig();
+    };
 	$("recurringConfigClose").onclick = closeRecurringConfig;
   $("recurringPermissionsToggle").onclick = function(){
     var panel = $("recurringPermissionsPanel");
