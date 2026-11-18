@@ -10822,9 +10822,11 @@ function openAddBoxPanel(){
   wrap.appendChild(name);
   var scope=document.createElement("select");
   scope.style.width="100%";scope.style.padding="9px";
-  var familyOpt=document.createElement("option");familyOpt.value="family";familyOpt.textContent="Condivisa con la famiglia";
-  var personalOpt=document.createElement("option");personalOpt.value="personal";personalOpt.textContent="Personale";
-  scope.appendChild(familyOpt);scope.appendChild(personalOpt);wrap.appendChild(scope);
+  [['family','Condivisa con tutta la famiglia'],['selected','Condivisa con utenti specifici'],['private','Privata']].forEach(function(item){var opt=document.createElement("option");opt.value=item[0];opt.textContent=item[1];scope.appendChild(opt);});
+  wrap.appendChild(scope);
+  var shareUsers=mk("div","custom-box-share-users","");shareUsers.style.display="none";shareUsers.style.flexDirection="column";shareUsers.style.gap="6px";wrap.appendChild(shareUsers);
+  renderCustomBoxUserChoices(shareUsers,[]);
+  scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");};
   var assignment=document.createElement("input");assignment.type="checkbox";
   var assignmentLabel=mk("label","","");
   assignmentLabel.style.display="flex";assignmentLabel.style.alignItems="center";assignmentLabel.style.gap="7px";
@@ -10835,7 +10837,9 @@ function openAddBoxPanel(){
     var value=name.value.trim();
     if(!value){alert("Inserisci il nome della tasklist.");name.focus();return;}
     create.disabled=true;
-    var payload={title:value,view_id:currentView,assignment_enabled:assignment.checked,scope:scope.value};
+    var selectedIds=scope.value==="selected"?customBoxSelectedUserIds(shareUsers):[];
+    if(scope.value==="selected"&&!selectedIds.length){alert("Seleziona almeno un utente.");return;}
+    var payload={title:value,view_id:currentView,assignment_enabled:assignment.checked,scope:scope.value,user_ids:selectedIds};
     usersRequest("POST","/custom-boxes",payload,function(err,data){
       if(err||!data||!data.ok){create.disabled=false;alert(err||(data&&data.error)||"Creazione non riuscita.");return;}
       if(data.needs_confirmation){
@@ -10860,13 +10864,10 @@ function openAddBoxPanel(){
   };
   function finishCustomBoxCreation(box){
       var box=box;
-      var def={id:box.box_id,element_id:box.element_id,title:box.title,view_type:(findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(currentView);})||{}).view_type||"shared",numeric_id:box.id,box_key:box.box_key,custom_family_id:box.family_id,custom_owner_user_id:box.owner_user_id,assignment_enabled:box.assignment_enabled,can_add_to_layout:1};
+      var def={id:box.box_id,element_id:box.element_id,title:box.title,view_type:(findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(currentView);})||{}).view_type||"shared",numeric_id:box.id,box_key:box.box_key,custom_family_id:box.family_id,custom_owner_user_id:box.owner_user_id,assignment_enabled:box.assignment_enabled,share_mode:box.share_mode,user_ids:box.user_ids||[],can_add_to_layout:1};
       DASHBOARD_BOXES.push(def);
-      createCustomBoxElement(def);
-      var sections=dashboardGetSections()||[];
-      sections.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
       closeViewMenu();
-      dashboardSaveSections(sections,function(){loadCustomBoxTasks(def);},{activateReorder:false});
+      loadAuthorizedConfig(function(configErr){if(configErr){alert("Box creato, ma aggiornamento dashboard non riuscito.");return;}setView(currentView,false);});
   }
   wrap.appendChild(create);
   var back=mk("button","","INDIETRO");back.type="button";back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};wrap.appendChild(back);
@@ -10942,6 +10943,65 @@ function createDashboardBoxElement(def){
   return box;
 }
 
+function renderCustomBoxUserChoices(container, selectedIds, callback){
+  clear(container);
+  container.style.display='none';
+  container.style.flexDirection='column';
+  container.style.gap='6px';
+  usersRequest('GET','/users',null,function(err,data){
+    if(err||!data||!Array.isArray(data.users)){container.textContent=err||'Impossibile caricare gli utenti.';return;}
+    container.style.display='flex';
+    var selected={};(selectedIds||[]).forEach(function(id){selected[String(id)]=true;});
+    data.users.forEach(function(user){
+      var label=mk('label','custom-box-share-user','');
+      label.style.display='flex';label.style.alignItems='center';label.style.gap='7px';
+      var input=document.createElement('input');input.type='checkbox';input.value=String(user.id);input.checked=!!selected[String(user.id)];
+      input.onchange=function(){if(callback)callback();};
+      label.appendChild(input);label.appendChild(document.createTextNode(user.name));container.appendChild(label);
+    });
+  });
+}
+
+function customBoxSelectedUserIds(container){
+  var result=[];var inputs=container.querySelectorAll('input[type=checkbox]');
+  for(var i=0;i<inputs.length;i++)if(inputs[i].checked)result.push(Number(inputs[i].value));
+  return result;
+}
+
+function openCustomBoxEditor(def){
+  var panel=$('dashboardAddBoxPanel');if(!panel)return;
+  setHidden($('dashboardLayoutMenu'),true);setHidden(panel,false);clear(panel);
+  panel.style.width='380px';panel.style.maxWidth='94vw';panel.style.boxSizing='border-box';
+  var wrap=mk('div','','');wrap.style.padding='10px';wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.gap='9px';
+  wrap.appendChild(mk('div','','MODIFICA BOX'));
+  var name=document.createElement('input');name.type='text';name.maxLength=80;name.value=def.title||'';name.placeholder='Nome del box';name.style.padding='9px';name.style.width='100%';name.style.boxSizing='border-box';wrap.appendChild(name);
+  var scope=document.createElement('select');scope.style.padding='9px';scope.style.width='100%';
+  [['private','Privato'],['family','Condiviso con tutta la famiglia'],['selected','Condiviso con utenti specifici']].forEach(function(item){var opt=document.createElement('option');opt.value=item[0];opt.textContent=item[1];scope.appendChild(opt);});
+  wrap.appendChild(scope);
+  var users=mk('div','custom-box-share-users','');wrap.appendChild(users);
+  var assignment=document.createElement('input');assignment.type='checkbox';assignment.checked=!!def.assignment_enabled;
+  var assignmentLabel=mk('label','','');assignmentLabel.style.display='flex';assignmentLabel.style.alignItems='center';assignmentLabel.style.gap='7px';assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode('Abilita assegnazione delle attività'));wrap.appendChild(assignmentLabel);
+  var save=mk('button','','SALVA MODIFICHE');save.type='button';
+  var back=mk('button','','INDIETRO');back.type='button';back.onclick=function(){setHidden(panel,true);setHidden($('dashboardLayoutMenu'),false);};
+  function updateUsers(){setHidden(users,scope.value!=='selected');}
+  scope.onchange=updateUsers;
+  usersRequest('GET','/custom-boxes',null,function(err,data){
+    var found=!err&&data&&Array.isArray(data.boxes)?data.boxes.filter(function(x){return String(x.id)===String(def.numeric_id);})[0]:null;
+    var ids=[];if(found&&found.user_ids){try{ids=Array.isArray(found.user_ids)?found.user_ids:JSON.parse(found.user_ids||'[]');}catch(ignore){ids=[];}}
+    scope.value=found&&found.share_mode?found.share_mode:(def.custom_owner_user_id===null?'family':'private');
+    renderCustomBoxUserChoices(users,ids);updateUsers();
+  });
+  save.onclick=function(){
+    var title=name.value.trim();if(!title){alert('Inserisci il nome del box.');name.focus();return;}
+    var payload={title:title,assignment_enabled:assignment.checked,scope:scope.value,user_ids:scope.value==='selected'?customBoxSelectedUserIds(users):[]};
+    if(scope.value==='selected'&&!payload.user_ids.length){alert('Seleziona almeno un utente.');return;}
+    save.disabled=true;usersRequest('PUT','/custom-boxes/'+def.numeric_id,payload,function(err,data){
+      save.disabled=false;if(err||!data||!data.ok){alert(err||(data&&data.error)||'Modifica non riuscita.');return;}
+      closeViewMenu();loadAuthorizedConfig(function(configErr){if(configErr){alert('Box aggiornato, ma ricarica la dashboard.');return;}setView(currentView,false);});
+    });
+  };
+  wrap.appendChild(save);wrap.appendChild(back);panel.appendChild(wrap);
+}
 function createCustomBoxElement(def){
   if(!def || !def.element_id) return;
   if($(def.element_id)){
@@ -10957,6 +11017,10 @@ function createCustomBoxElement(def){
 
   var heading=mk("div","section-heading","");
   heading.appendChild(mk("h2","",def.title || "Attività"));
+  var edit=mk("button","custom-box-edit","MODIFICA");
+  edit.type="button";edit.title="Modifica nome, condivisione e assegnazione del box";
+  edit.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openCustomBoxEditor(def);};
+  heading.appendChild(edit);
   box.appendChild(heading);
 
   /* Stessa struttura dei box task: campo e pulsante Aggiungi sopra l'elenco. */
