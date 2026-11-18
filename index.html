@@ -11244,32 +11244,56 @@ function customTaskAssignControl(def,task){
   var options=mk("div","todo-assign-options");
   var checks=[];
   var selected=(task.assignee_ids||[]).map(String);
+  var sharedIds=[];
+  if(def.share_mode==="selected"){
+    try{
+      sharedIds=Array.isArray(def.user_ids)?def.user_ids.map(String):JSON.parse(def.user_ids||"[]").map(String);
+    }catch(ignore){sharedIds=[];}
+  }
+  var eligibleUsers=(USERS||[]).filter(function(user){
+    return def.share_mode!=="selected"||sharedIds.indexOf(String(user.id))!==-1;
+  });
   var allLabel=mk("label","todo-assign-option custom-assign-all");
   var all=document.createElement("input");
   all.type="checkbox";
-  all.checked=!!USERS.length&&USERS.every(function(u){return selected.indexOf(String(u.id))!==-1;});
+  all.checked=eligibleUsers.length>0&&eligibleUsers.every(function(u){return selected.indexOf(String(u.id))!==-1;});
   allLabel.appendChild(all);
   allLabel.appendChild(document.createTextNode("Tutti"));
   options.appendChild(allLabel);
   (USERS||[]).forEach(function(user){
-    var label=mk("label","todo-assign-option");
+    var enabled=def.share_mode!=="selected"||sharedIds.indexOf(String(user.id))!==-1;
+    var label=mk("label","todo-assign-option"+(enabled?"":" custom-assign-disabled"));
+    if(!enabled){
+      label.style.color="#999";
+      label.style.opacity="0.55";
+      label.style.cursor="not-allowed";
+      label.title="Utente non abilitato alla condivisione di questo box";
+    }
     var check=document.createElement("input");
     check.type="checkbox";
     check.value=String(user.id);
     check.checked=selected.indexOf(String(user.id))!==-1;
+    check.disabled=!enabled;
     label.appendChild(check);
     label.appendChild(document.createTextNode(user.name));
     options.appendChild(label);
-    checks.push(check);
+    checks.push({input:check,enabled:enabled});
   });
   function syncAll(){
-    var count=0;
-    for(var i=0;i<checks.length;i++)if(checks[i].checked)count++;
-    all.checked=checks.length>0&&count===checks.length;
-    all.indeterminate=count>0&&count<checks.length;
+    var count=0,total=0;
+    for(var i=0;i<checks.length;i++){
+      if(!checks[i].enabled)continue;
+      total++;
+      if(checks[i].input.checked)count++;
+    }
+    all.checked=total>0&&count===total;
+    all.indeterminate=count>0&&count<total;
   }
-  all.onchange=function(){for(var i=0;i<checks.length;i++)checks[i].checked=all.checked;all.indeterminate=false;};
-  checks.forEach(function(check){check.onchange=syncAll;});
+  all.onchange=function(){
+    for(var i=0;i<checks.length;i++)if(checks[i].enabled)checks[i].input.checked=all.checked;
+    all.indeterminate=false;
+  };
+  checks.forEach(function(entry){if(entry.enabled)entry.input.onchange=syncAll;});
   menu.appendChild(options);
   var buttons=mk("div","todo-assign-buttons");
   var save=mk("button","","Salva");
@@ -11279,7 +11303,8 @@ function customTaskAssignControl(def,task){
   btn.onclick=function(){var wasOpen=menu.classList.contains("open");closeAssignMenus();if(!wasOpen)menu.classList.add("open");};
   cancel.onclick=function(){menu.classList.remove("open");};
   save.onclick=function(){
-    var ids=[];for(var i=0;i<checks.length;i++)if(checks[i].checked)ids.push(Number(checks[i].value));
+    var ids=[];
+    for(var i=0;i<checks.length;i++)if(checks[i].input.checked)ids.push(Number(checks[i].input.value));
     save.disabled=true;
     usersRequest("PATCH","/custom-tasks/"+task.id,{assigned_user_ids:ids,view_id:currentView},function(err,data){
       save.disabled=false;
