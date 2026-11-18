@@ -5362,8 +5362,12 @@ body.k #dashboardToolbar #dashboardToolbarActions {
   <div class="panel recurring-config-panel">
     <div class="overlay-head">
       <h2>Configurazione attività ricorrenti</h2>
-      <button type="button" id="recurringConfigClose">Chiudi</button>
+      <div id="recurringConfigHeaderActions" class="recurring-config-header-actions">
+        <button type="button" id="recurringConfigClose">Chiudi</button>
+      </div>
     </div>
+    <button type="button" id="recurringPermissionsToggle" class="recurring-permissions-toggle" hidden>Autorizza utenti</button>
+    <div id="recurringPermissionsPanel" class="recurring-permissions-panel" hidden></div>
     <div class="recurring-config-form" id="recurringConfigForm">
       <label class="recurring-field">
         <span>Titolo attività</span>
@@ -5411,10 +5415,14 @@ body.k #dashboardToolbar #dashboardToolbarActions {
         <label for="recurringYearlyDay">Giorno</label>
         <input type="number" id="recurringYearlyDay" min="1" max="31" value="1">
       </div>
-      <label class="recurring-field">
-        <span>Ora (facoltativa)</span>
-        <input type="time" id="recurringTime">
-      </label>
+      <div class="recurring-field">
+        <label for="recurringTimeMode">Orario</label>
+        <select id="recurringTimeMode">
+          <option value="all_day">Tutto il giorno / nessun orario</option>
+          <option value="specific">A un'ora specifica</option>
+        </select>
+        <input type="time" id="recurringTime" hidden>
+      </div>
       <div class="recurring-field">
         <span>Proprietari / assegnatari</span>
         <div id="recurringOwners" class="recurring-owner-options"></div>
