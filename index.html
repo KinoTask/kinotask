@@ -10937,13 +10937,50 @@ function openAddBoxPanel(anchor){
   var shareUsers=mk("div","custom-box-share-users","");shareUsers.style.display="none";shareUsers.style.flexDirection="column";shareUsers.style.gap="6px";wrap.appendChild(shareUsers);
   renderCustomBoxUserChoices(shareUsers,[],function(){positionCustomBoxPanel(panel,addAnchorRect,true);});
   setHidden(shareUsers,scope.value!=="selected");
-  scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");assignment.disabled=scope.value==="private";if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,addAnchorRect,true);};
+  scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");assignment.disabled=scope.value==="private";if(assignment.disabled)assignment.checked=false;renderCreateGrantRows();positionCustomBoxPanel(panel,addAnchorRect,true);};
+  shareUsers.addEventListener("change",renderCreateGrantRows);
+  renderCreateGrantRows();
   var assignment=document.createElement("input");assignment.type="checkbox";assignment.disabled=scope.value==="private";
   var assignmentLabel=mk("label","","");
   assignmentLabel.style.display="flex";assignmentLabel.style.alignItems="center";assignmentLabel.style.gap="7px";
   assignmentLabel.style.marginTop="8px";assignmentLabel.style.paddingTop="10px";assignmentLabel.style.borderTop="1px solid #ccc";
   assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode("Abilita assegnazione delle attività"));
   wrap.appendChild(assignmentLabel);
+  var createGrantPanel=mk("div","custom-box-create-permissions","");
+  createGrantPanel.style.borderTop="1px solid #ccc";createGrantPanel.style.paddingTop="9px";
+  createGrantPanel.appendChild(mk("div","","AUTORIZZAZIONI PER GLI UTENTI CONDIVISI"));
+  var createGrantRows=mk("div","custom-box-create-permission-rows","");createGrantPanel.appendChild(createGrantRows);
+  createGrantPanel.hidden=true;wrap.appendChild(createGrantPanel);
+  var createGrantCapabilities=[
+    ["can_edit_box","Modificare il box"],
+    ["can_add_tasks","Aggiungere attività"],
+    ["can_edit_tasks","Modificare il testo delle attività"],
+    ["can_manage_assignments","Modificare assegnatari"],
+    ["can_delete_tasks","Eliminare attività"]
+  ];
+  function renderCreateGrantRows(){
+    clear(createGrantRows);
+    var eligible=[];
+    if(scope.value==="family")eligible=(USERS||[]).slice();
+    else if(scope.value==="selected"){
+      var selected=customBoxSelectedUserIds(shareUsers);
+      eligible=(USERS||[]).filter(function(user){return selected.indexOf(Number(user.id))!==-1;});
+    }
+    createGrantPanel.hidden=scope.value==="private"||!eligible.length;
+    eligible.forEach(function(user){
+      var section=mk("div","custom-box-permission-user","");
+      section.style.padding="7px 0";section.style.borderBottom="1px solid #e5e5e5";
+      section.appendChild(mk("div","",user.name));
+      var inputs={};
+      createGrantCapabilities.forEach(function(cap){
+        var label=mk("label","","");label.style.display="flex";label.style.alignItems="center";label.style.gap="6px";label.style.margin="3px 0";
+        var check=document.createElement("input");check.type="checkbox";
+        label.appendChild(check);label.appendChild(document.createTextNode(cap[1]));section.appendChild(label);inputs[cap[0]]=check;
+      });
+      section._permissionInputs=inputs;section._userId=Number(user.id);createGrantRows.appendChild(section);
+    });
+    positionCustomBoxPanel(panel,addAnchorRect,true);
+  }
   var create=mk("button","","CREA TASKLIST");create.type="button";
   create.onclick=function(){
     var value=name.value.trim();
@@ -10966,22 +11003,39 @@ function openAddBoxPanel(anchor){
           usersRequest("POST","/custom-boxes",payload,function(reuseErr,reuseData){
             create.disabled=false;
             if(reuseErr||!reuseData||!reuseData.ok||!reuseData.box){alert(reuseErr||(reuseData&&reuseData.error)||"Riutilizzo del box non riuscito.");return;}
-            finishCustomBoxCreation(reuseData.box);
+            finishCustomBoxCreation(reuseData.box,false);
           });
         });
         return;
       }
       create.disabled=false;
       if(!data.box){alert("Creazione non riuscita.");return;}
-      finishCustomBoxCreation(data.box);
+      finishCustomBoxCreation(data.box,true);
     });
   };
-  function finishCustomBoxCreation(box){
-      var box=box;
+  function collectCreateGrantPayload(){
+    var payload=[];
+    for(var i=0;i<createGrantRows.children.length;i++){
+      var node=createGrantRows.children[i],entry={user_id:node._userId};
+      Object.keys(node._permissionInputs).forEach(function(key){entry[key]=node._permissionInputs[key].checked;});
+      payload.push(entry);
+    }
+    return payload;
+  }
+  function finishCustomBoxCreation(box,saveGrants){
       var def={id:box.box_id,element_id:box.element_id,title:box.title,view_type:(findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(currentView);})||{}).view_type||"shared",numeric_id:box.id,box_key:box.box_key,custom_family_id:box.family_id,custom_owner_user_id:box.owner_user_id,assignment_enabled:box.assignment_enabled,share_mode:box.share_mode,user_ids:box.user_ids||[],can_add_to_layout:1};
-      DASHBOARD_BOXES.push(def);
-      closeViewMenu();
-      loadAuthorizedConfig(function(configErr){if(configErr){alert("Box creato, ma aggiornamento dashboard non riuscito.");return;}setView(currentView,false);});
+      function refresh(){
+        DASHBOARD_BOXES.push(def);
+        closeViewMenu();
+        loadAuthorizedConfig(function(configErr){if(configErr){alert("Box creato, ma aggiornamento dashboard non riuscito.");return;}setView(currentView,false);});
+      }
+      var grants=saveGrants?collectCreateGrantPayload():[];
+      if(saveGrants&&grants.length){
+        usersRequest("PUT","/custom-boxes/"+box.id+"/permissions",{permissions:grants},function(grantErr,grantData){
+          if(grantErr||!grantData||!grantData.ok)alert(grantErr||(grantData&&grantData.error)||"Box creato, ma le autorizzazioni non sono state salvate. Puoi configurarle da MODIFICA.");
+          refresh();
+        });
+      }else refresh();
   }
   wrap.appendChild(create);
   var back=mk("button","","INDIETRO");back.type="button";back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};wrap.appendChild(back);
