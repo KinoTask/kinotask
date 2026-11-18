@@ -11157,6 +11157,8 @@ function createCustomBoxElement(def){
       openCustomBoxEditor(def, existingEdit);
     };
     existingEdit.hidden=!customBoxCanManageTasks();
+    var existingAdd=existingBox.querySelector(".custom-box-add");
+    if(existingAdd)existingAdd.hidden=!customBoxCanManageTasks();
     loadCustomBoxTasks(def);
     return;
   }
