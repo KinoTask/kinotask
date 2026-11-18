@@ -10893,7 +10893,7 @@ function openAddBoxPanel(anchor){
   [['family','Condivisa con tutta la famiglia'],['selected','Condivisa con utenti specifici'],['private','Privata']].forEach(function(item){var opt=document.createElement("option");opt.value=item[0];opt.textContent=item[1];scope.appendChild(opt);});
   wrap.appendChild(scope);
   var shareUsers=mk("div","custom-box-share-users","");shareUsers.style.display="none";shareUsers.style.flexDirection="column";shareUsers.style.gap="6px";wrap.appendChild(shareUsers);
-  renderCustomBoxUserChoices(shareUsers,[]);
+  renderCustomBoxUserChoices(shareUsers,[],function(){positionCustomBoxPanel(panel,addAnchorRect);});
   setHidden(shareUsers,scope.value!=="selected");
   scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");assignment.disabled=scope.value==="private";if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,addAnchorRect);};
   var assignment=document.createElement("input");assignment.type="checkbox";assignment.disabled=scope.value==="private";
@@ -11078,7 +11078,7 @@ function openCustomBoxEditor(def, anchor){
     var found=!err&&data&&Array.isArray(data.boxes)?data.boxes.filter(function(x){return String(x.id)===String(def.numeric_id);})[0]:null;
     var ids=[];if(found&&found.user_ids){try{ids=Array.isArray(found.user_ids)?found.user_ids:JSON.parse(found.user_ids||'[]');}catch(ignore){ids=[];}}
     scope.value=found&&found.share_mode?found.share_mode:(def.custom_owner_user_id===null?'family':'private');
-    renderCustomBoxUserChoices(users,ids);updateUsers();
+    renderCustomBoxUserChoices(users,ids,function(){positionCustomBoxPanel(panel,anchorRect);});updateUsers();
     positionCustomBoxPanel(panel,anchorRect);
   });
   save.onclick=function(){
