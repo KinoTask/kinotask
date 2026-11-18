@@ -11263,7 +11263,7 @@ function loadCustomBoxTasks(def){
   var list=$("customTasks_"+def.numeric_id);
   if(!list)return;
   list.textContent="Caricamento...";
-  usersRequest("GET","/custom-boxes/"+def.numeric_id+"/tasks",null,function(err,data){
+  usersRequest("GET","/custom-boxes/"+def.numeric_id+"/tasks?viewId="+encodeURIComponent(currentView||""),null,function(err,data){
     if(err||!data||!data.ok){
       list.textContent=err||(data&&data.error)||"Errore caricamento";
       return;
