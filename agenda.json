@@ -1,6 +1,6 @@
 {
   "calendar": "Famiglia",
-  "generated_at": "2026-11-18T01:10:02.471049+01:00",
+  "generated_at": "2026-11-18T01:14:19.847449+01:00",
   "period_days": 14,
   "events": [
     {
@@ -16,7 +16,7 @@
       },
       "all_day": false,
       "location": "",
-      "description": "- W: calze antiscivolo",
+      "description": "",
       "htmlLink": "https://www.google.com/calendar/event?eid=cTFyaGRvdnBrOTdiMzFlZ2ZnZmJnbDNoOGpfMjAyNjExMTZUMDczMDAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
     },
     {
@@ -64,7 +64,7 @@
       },
       "all_day": false,
       "location": "",
-      "description": "- I: merenda post piscina\n- I: zaino con tutto",
+      "description": "",
       "htmlLink": "https://www.google.com/calendar/event?eid=MDFndWhxdWY4MHIza2J2b2Jua2I5aHYxcGtfMjAyNjExMTdUMTYxNTAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
     },
     {
@@ -78,7 +78,7 @@
       },
       "all_day": true,
       "location": "",
-      "description": "- W: zaino giallo con maglietta e scarpe \n- W: borraccia (col ghiaccio)\n- I: merenda",
+      "description": "",
       "htmlLink": "https://www.google.com/calendar/event?eid=MzRlYzlka2JvbXBidGpmczlvYTlmMmFwamJfMjAyNjExMTggZmFtaWx5MDI3MjI5Nzk3MDg3MjgwNTUzNzRAZw"
     },
     {
@@ -126,7 +126,7 @@
       },
       "all_day": false,
       "location": "",
-      "description": "- W: calze antiscivolo\n- I: merenda",
+      "description": "",
       "htmlLink": "https://www.google.com/calendar/event?eid=Y2tyajJvOWljcGozZWI5Z2NoaTNjYjlrNzFoajBiYjFjNHI2OGI5bDc0cWo2ZGhtNnBoMzJjMWk2NF8yMDI2MTEyMFQxNjMwMDBaIGZhbWlseTAyNzIyOTc5NzA4NzI4MDU1Mzc0QGc"
     },
     {
@@ -142,7 +142,7 @@
       },
       "all_day": false,
       "location": "",
-      "description": "- W: calze antiscivolo",
+      "description": "",
       "htmlLink": "https://www.google.com/calendar/event?eid=cTFyaGRvdnBrOTdiMzFlZ2ZnZmJnbDNoOGpfMjAyNjExMjNUMDczMDAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
     },
     {
@@ -174,7 +174,7 @@
       },
       "all_day": false,
       "location": "",
-      "description": "- I: merenda post piscina\n- I: zaino con tutto",
+      "description": "",
       "htmlLink": "https://www.google.com/calendar/event?eid=MDFndWhxdWY4MHIza2J2b2Jua2I5aHYxcGtfMjAyNjExMjRUMTYxNTAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
     },
     {
@@ -188,7 +188,7 @@
       },
       "all_day": true,
       "location": "",
-      "description": "- W: zaino giallo con maglietta e scarpe \n- W: borraccia (col ghiaccio)\n- I: merenda",
+      "description": "",
       "htmlLink": "https://www.google.com/calendar/event?eid=MzRlYzlka2JvbXBidGpmczlvYTlmMmFwamJfMjAyNjExMjUgZmFtaWx5MDI3MjI5Nzk3MDg3MjgwNTUzNzRAZw"
     },
     {
@@ -220,7 +220,7 @@
       },
       "all_day": false,
       "location": "",
-      "description": "- W: calze antiscivolo\n- I: merenda",
+      "description": "",
       "htmlLink": "https://www.google.com/calendar/event?eid=Y2tyajJvOWljcGozZWI5Z2NoaTNjYjlrNzFoajBiYjFjNHI2OGI5bDc0cWo2ZGhtNnBoMzJjMWk2NF8yMDI2MTEyN1QxNjMwMDBaIGZhbWlseTAyNzIyOTc5NzA4NzI4MDU1Mzc0QGc"
     }
   ]
