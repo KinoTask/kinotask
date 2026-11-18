@@ -11051,37 +11051,42 @@ function openAddBoxPanel(anchor){
     /* Per i box custom usiamo anche l'elenco live dell'API dedicata:
        /config è il catalogo generale, mentre /custom-boxes esclude gli
        elementi archiviati. Un box custom compare solo se presente in entrambi. */
+    function appendAvailableBox(def){
+      var button=mk("button","","+ "+(def.title||def.id));button.type="button";
+      button.onclick=function(){
+        var next=dashboardGetSections()||[];
+        next.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
+        dashboardSaveSections(next,function(){
+          closeViewMenu();
+          if(def.numeric_id && def.box_key)loadCustomBoxTasks(def);
+        },{activateReorder:false});
+      };
+      available.appendChild(button);
+    }
+    /* I box standard vengono caricati senza dipendere dall'API dei custom.
+       "both" significa disponibile sia nelle viste condivise sia personali. */
+    var standardCandidates=(DASHBOARD_BOXES||[]).filter(function(b){
+      if(!b || b.custom_family_id || Number(b.can_add_to_layout)!==1 || present[b.id])return false;
+      return String(b.view_type)==="both" || String(b.view_type)===String(view.view_type);
+    });
+    standardCandidates.forEach(appendAvailableBox);
+    positionCustomBoxPanel(panel,addAnchorRect,true);
     usersRequest("GET","/custom-boxes",null,function(customErr,customData){
-      if(customErr||!customData||!customData.ok||!Array.isArray(customData.boxes)){
-        available.textContent=customErr||"Impossibile verificare i box custom disponibili.";
-        return;
+      if(!customErr && customData && customData.ok && Array.isArray(customData.boxes)){
+        var activeCustom={};
+        customData.boxes.forEach(function(box){activeCustom[String(box.box_id)]=true;});
+        var customCandidates=(DASHBOARD_BOXES||[]).filter(function(b){
+          return b && b.custom_family_id && Number(b.can_add_to_layout)===1 &&
+            !present[b.id] && Number(b.available_to_user)===1 &&
+            !!activeCustom[String(b.id)];
+        });
+        customCandidates.forEach(appendAvailableBox);
+      }else if(customErr || !customData || !customData.ok){
+        var warning=mk("div","","Impossibile caricare i box custom: "+(customErr||(customData&&customData.error)||"errore"));
+        warning.style.fontSize="12px";warning.style.opacity=".75";
+        available.appendChild(warning);
       }
-      var activeCustom={};
-      customData.boxes.forEach(function(box){activeCustom[String(box.box_id)]=true;});
-      positionCustomBoxPanel(panel,addAnchorRect);
-      var candidates=(DASHBOARD_BOXES||[]).filter(function(b){
-        if(!b || Number(b.can_add_to_layout)!==1 || present[b.id])return false;
-        if(b.custom_family_id){
-          return Number(b.available_to_user)===1 && !!activeCustom[String(b.id)];
-        }
-        return String(b.view_type)===String(view.view_type);
-      });
-      if(!candidates.length){available.textContent="Nessun altro box disponibile.";return;}
-      candidates.forEach(function(def){
-        var button=mk("button","","+ "+(def.title||def.id));button.type="button";
-        button.onclick=function(){
-          var next=dashboardGetSections()||[];
-          next.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
-          /* Aggiungere un box salva il layout ma non deve attivare il riordino. */
-          dashboardSaveSections(next,function(){
-            closeViewMenu();
-            if(def.numeric_id && def.box_key)loadCustomBoxTasks(def);
-          },{activateReorder:false});
-        };
-        available.appendChild(button);
-      });
-      /* Il contenuto può essere cresciuto dopo il caricamento asincrono:
-         ricalcola la posizione con l'altezza effettiva, non quella iniziale. */
+      if(!available.children.length)available.textContent="Nessun altro box disponibile.";
       positionCustomBoxPanel(panel,addAnchorRect,true);
     });
   });
