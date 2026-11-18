@@ -11110,6 +11110,12 @@ function openCustomBoxEditor(def, anchor){
   var users=mk('div','custom-box-share-users','');wrap.appendChild(users);
   var assignment=document.createElement('input');assignment.type='checkbox';assignment.checked=!!def.assignment_enabled;
   var assignmentLabel=mk('label','','');assignmentLabel.style.display='flex';assignmentLabel.style.alignItems='center';assignmentLabel.style.gap='7px';assignmentLabel.style.marginTop='8px';assignmentLabel.style.paddingTop='10px';assignmentLabel.style.borderTop='1px solid #ccc';assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode('Abilita assegnazione delle attività'));wrap.appendChild(assignmentLabel);
+  var grantPanel=mk('div','custom-box-permissions-panel','');
+  grantPanel.style.borderTop='1px solid #ccc';grantPanel.style.paddingTop='9px';
+  grantPanel.appendChild(mk('div','','AUTORIZZAZIONI PER GLI UTENTI CONDIVISI'));
+  var grantRows=mk('div','custom-box-permission-rows','');grantPanel.appendChild(grantRows);
+  var grantSave=mk('button','','SALVA AUTORIZZAZIONI');grantSave.type='button';
+  grantPanel.appendChild(grantSave);grantPanel.hidden=true;wrap.appendChild(grantPanel);
   var save=mk('button','','SALVA MODIFICHE');save.type='button';
   var back=mk('button','','INDIETRO');back.type='button';back.onclick=function(){setHidden(panel,true);setHidden($('dashboardLayoutMenu'),false);};
   function updateUsers(){
@@ -11125,7 +11131,48 @@ function openCustomBoxEditor(def, anchor){
     scope.value=found&&found.share_mode?found.share_mode:(def.custom_owner_user_id===null?'family':'private');
     renderCustomBoxUserChoices(users,ids,function(){positionCustomBoxPanel(panel,anchorRect);});updateUsers();
     positionCustomBoxPanel(panel,anchorRect);
-  });
+     usersRequest('GET','/custom-boxes/'+def.numeric_id+'/permissions',null,function(permissionErr,permissionData){
+      if(permissionErr||!permissionData||!permissionData.ok)return;
+      clear(grantRows);
+      var capabilityLabels=[
+        ['can_edit_box','Modificare il box'],
+        ['can_add_tasks','Aggiungere attività'],
+        ['can_edit_tasks','Modificare il testo delle attività'],
+        ['can_manage_assignments','Modificare assegnatari'],
+        ['can_delete_tasks','Eliminare attività']
+      ];
+      (permissionData.users||[]).forEach(function(user){
+        if(String(user.id)===String(def.custom_owner_user_id))return;
+        var existing=(permissionData.permissions||[]).filter(function(x){return Number(x.user_id)===Number(user.id);})[0]||{};
+        var section=mk('div','custom-box-permission-user','');
+        section.style.padding='7px 0';section.style.borderBottom='1px solid #e5e5e5';
+        section.appendChild(mk('div','',''+user.name));
+        var inputs={};
+        capabilityLabels.forEach(function(cap){
+          var label=mk('label','','');label.style.display='flex';label.style.alignItems='center';label.style.gap='6px';label.style.margin='3px 0';
+          var check=document.createElement('input');check.type='checkbox';check.checked=Number(existing[cap[0]])===1;
+          label.appendChild(check);label.appendChild(document.createTextNode(cap[1]));section.appendChild(label);inputs[cap[0]]=check;
+        });
+        section._permissionInputs=inputs;section._userId=Number(user.id);grantRows.appendChild(section);
+      });
+      grantPanel.hidden=false;
+      grantSave.onclick=function(){
+        var payload=[];
+        for(var i=0;i<grantRows.children.length;i++){
+          var node=grantRows.children[i],entry={user_id:node._userId};
+          Object.keys(node._permissionInputs).forEach(function(key){entry[key]=node._permissionInputs[key].checked;});
+          payload.push(entry);
+        }
+        grantSave.disabled=true;
+        usersRequest('PUT','/custom-boxes/'+def.numeric_id+'/permissions',{permissions:payload},function(saveErr,saveData){
+          grantSave.disabled=false;
+          if(saveErr||!saveData||!saveData.ok){alert(saveErr||(saveData&&saveData.error)||'Salvataggio autorizzazioni non riuscito.');return;}
+          alert('Autorizzazioni salvate.');
+        });
+      };
+      positionCustomBoxPanel(panel,anchorRect);
+    });
+ });
   save.onclick=function(){
     var title=name.value.trim();if(!title){alert('Inserisci il nome del box.');name.focus();return;}
     var payload={title:title,assignment_enabled:scope.value!=='private'&&assignment.checked,scope:scope.value,user_ids:scope.value==='selected'?customBoxSelectedUserIds(users):[],view_id:currentView};
@@ -11152,9 +11199,10 @@ function openCustomBoxEditor(def, anchor){
   positionCustomBoxPanel(panel,anchorRect);
   bindCustomBoxPanelPosition(panel,anchorRect);
 }
-function customBoxCanManageTasks(){
-  var view=findItem(DASHBOARD_VIEWS||[],function(v){return String(v.id)===String(currentView);});
-  return !!view && view.view_type==="shared";
+function customBoxCanManageTasks(def){
+  return !!(def && def.customPermissions &&
+    (def.customPermissions.can_add_tasks || def.customPermissions.can_edit_tasks ||
+     def.customPermissions.can_manage_assignments || def.customPermissions.can_delete_tasks));
 }
 
 function createCustomBoxElement(def){
@@ -11180,9 +11228,9 @@ function createCustomBoxElement(def){
       if(ev){ev.preventDefault();ev.stopPropagation();}
       openCustomBoxEditor(def, existingEdit);
     };
-    existingEdit.hidden=false;
+    existingEdit.hidden=true;
     var existingAdd=existingBox.querySelector(".custom-box-add");
-    if(existingAdd)existingAdd.hidden=!customBoxCanManageTasks();
+    if(existingAdd)existingAdd.hidden=true;
     loadCustomBoxTasks(def);
     return;
   }
@@ -11196,14 +11244,14 @@ function createCustomBoxElement(def){
   var edit=mk("button","custom-box-edit","MODIFICA");
   edit.type="button";edit.title="Modifica nome, condivisione e assegnazione del box";edit.style.marginLeft="auto";edit.style.fontSize="11px";edit.style.padding="4px 7px";
   edit.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openCustomBoxEditor(def, edit);};
-  edit.hidden=false;
+  edit.hidden=true;
   heading.appendChild(edit);
   box.appendChild(heading);
 
   /* Stessa struttura dei box task: campo e pulsante Aggiungi sopra l'elenco. */
   var addRow=mk("div","add-ctl","");
   addRow.className="add-ctl custom-box-add";
-  addRow.hidden=!customBoxCanManageTasks();
+  addRow.hidden=true;
   var input=mk("input");
   input.type="text";
   input.maxLength=500;
@@ -11333,6 +11381,15 @@ function loadCustomBoxTasks(def){
     // Usa il valore aggiornato restituito dall'API, non il flag eventualmente
     // obsoleto nella definizione del box già caricata in memoria.
     def.assignment_enabled = data.assignment_enabled === true;
+    var permissions=data.permissions||{};
+    def.customPermissions=permissions;
+    var boxElement=$(def.element_id);
+    if(boxElement){
+      var editButton=boxElement.querySelector(".custom-box-edit");
+      var addRow=boxElement.querySelector(".custom-box-add");
+      if(editButton)editButton.hidden=!permissions.can_edit_box;
+      if(addRow)addRow.hidden=!permissions.can_add_tasks;
+    }
     clear(list);
     (data.tasks||[]).forEach(function(task){
       var item={
@@ -11340,8 +11397,10 @@ function loadCustomBoxTasks(def){
         done:!!task.done,
         assignees:Array.isArray(task.assignee_ids)?task.assignee_ids:[]
       };
-      var canManage=customBoxCanManageTasks();
-      var assignment=canManage && data.assignment_enabled ? customTaskAssignControl(def,task) : null;
+      var permissions=data.permissions||{};
+      def.customPermissions=permissions;
+      var canDelete=!!permissions.can_delete_tasks;
+      var assignment=!!permissions.can_manage_assignments && data.assignment_enabled ? customTaskAssignControl(def,task) : null;
       var row=itemRow(item,false,
         function(){
           var next=!item.done;
@@ -11351,6 +11410,7 @@ function loadCustomBoxTasks(def){
           });
         },
         function(){
+          if(!canDelete)return;
           if(!confirm("Eliminare questa attività?"))return;
           usersRequest("DELETE","/custom-tasks/"+task.id+"?viewId="+encodeURIComponent(currentView||""),null,function(e,result){
             if(e||!result||!result.ok){alert(e||(result&&result.error)||"Eliminazione non riuscita.");}
@@ -11360,12 +11420,8 @@ function loadCustomBoxTasks(def){
         assignment ? assignment.btn : null,
         "recurring-task-owners"
       );
-      if(!canManage){
-        var check=row.querySelector(".todo-check");
-        if(check)check.disabled=true;
-        var actions=row.querySelector(".todo-actions");
-        if(actions)actions.hidden=true;
-      }
+      var deleteButton=row.querySelector(".todo-delete");
+      if(deleteButton)deleteButton.hidden=!canDelete;
       var wrap=mk("div","todo-wrap");
       wrap.appendChild(row);
       if(assignment)wrap.appendChild(assignment.menu);
