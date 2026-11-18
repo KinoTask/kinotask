@@ -9567,6 +9567,10 @@ function buildLayout(view, previewSections){
     b=def?$(def.element_id):null;
     /* I box custom sono generati dal catalogo DB, non devono esistere
        come markup statico nell'HTML. */
+    if(!b && def && def.numeric_id && def.box_key){
+      createCustomBoxElement(def);
+      b=$(def.element_id);
+    }
     if(!b && def){
       createDashboardBoxElement(def);
       b=$(def.element_id);
