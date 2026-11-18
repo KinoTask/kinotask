@@ -10843,9 +10843,18 @@ function positionCustomBoxPanel(panel, anchorRect, belowAnchor){
   var left=anchorRect?(belowAnchor?anchorRect.right-r.width:anchorRect.right+8):8;
   if(!belowAnchor&&left+r.width>vw-8)left=anchorRect?anchorRect.left-r.width-8:8;
   left=Math.max(8,Math.min(left,vw-r.width-8));
-  var maxTop=Math.max(8,vh-r.height-8);
   var top=anchorRect?(belowAnchor?anchorRect.bottom+6:anchorRect.top):8;
-  top=Math.max(8,Math.min(top,maxTop));
+  var bottomLimit=vh-r.height-8;
+  /* Se il pannello è alto (ad esempio con molti utenti selezionabili),
+     prova prima a mostrarlo sopra il pulsante invece di spingerlo verso
+     il fondo della finestra. Se non entra neppure sopra, parte dall'alto
+     e usa lo scroll interno già previsto da maxHeight/overflowY. */
+  if(anchorRect && top+r.height>vh-8){
+    var aboveTop=anchorRect.top-r.height-6;
+    top=aboveTop>=8?aboveTop:8;
+  }else{
+    top=Math.max(8,Math.min(top,bottomLimit));
+  }
   panel.style.left=left+'px';panel.style.right='auto';panel.style.top=top+'px';
 }
 function bindCustomBoxPanelPosition(panel, anchorRect, belowAnchor){
@@ -11222,7 +11231,7 @@ function customTaskAssignControl(def,task){
   btn.title="Assegna attività";
   btn.setAttribute("aria-label","Assegna attività");
 
-  var menu=mk("div","todo-assign-menu");
+  var menu=mk("div","todo-assign-menu custom-task-assign-menu");
   menu.appendChild(mk("div","todo-assign-title","Assegna a:"));
   var options=mk("div","todo-assign-options");
   var radios=[];
