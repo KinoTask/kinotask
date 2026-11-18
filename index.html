@@ -10879,27 +10879,38 @@ function openAddBoxPanel(){
     var present={};
     var sections=dashboardGetSections()||[];
     sections.forEach(function(sec){(sec.columns||[]).forEach(function(col){col.forEach(function(item){present[item.box_id]=true;});});});
-    /* Il catalogo arriva da /config (D1): anche i box custom con box_key
-       sono aggiungibili. Non escluderli in base al tipo di record. */
-    var candidates=(DASHBOARD_BOXES||[]).filter(function(b){
-      return b && Number(b.can_add_to_layout) === 1 &&
-        !present[b.id] &&
-        String(b.view_type) === String(view.view_type) &&
-        (!b.custom_family_id || Number(b.available_to_user) === 1);
-    });
-    if(!candidates.length){available.textContent="Nessun altro box disponibile.";return;}
-    candidates.forEach(function(def){
-      var button=mk("button","","+ "+(def.title||def.id));button.type="button";
-      button.onclick=function(){
-        var next=dashboardGetSections()||[];
-        next.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
-        /* Aggiungere un box salva il layout ma non deve attivare il riordino. */
-        dashboardSaveSections(next,function(){
-          closeViewMenu();
-          if(def.numeric_id && def.box_key)loadCustomBoxTasks(def);
-        },{activateReorder:false});
-      };
-      available.appendChild(button);
+    /* Per i box custom usiamo anche l'elenco live dell'API dedicata:
+       /config è il catalogo generale, mentre /custom-boxes esclude gli
+       elementi archiviati. Un box custom compare solo se presente in entrambi. */
+    usersRequest("GET","/custom-boxes",null,function(customErr,customData){
+      if(customErr||!customData||!customData.ok||!Array.isArray(customData.boxes)){
+        available.textContent=customErr||"Impossibile verificare i box custom disponibili.";
+        return;
+      }
+      var activeCustom={};
+      customData.boxes.forEach(function(box){activeCustom[String(box.box_id)]=true;});
+      var candidates=(DASHBOARD_BOXES||[]).filter(function(b){
+        if(!b || Number(b.can_add_to_layout)!==1 || present[b.id] ||
+           String(b.view_type)!==String(view.view_type))return false;
+        if(b.custom_family_id){
+          return Number(b.available_to_user)===1 && !!activeCustom[String(b.id)];
+        }
+        return true;
+      });
+      if(!candidates.length){available.textContent="Nessun altro box disponibile.";return;}
+      candidates.forEach(function(def){
+        var button=mk("button","","+ "+(def.title||def.id));button.type="button";
+        button.onclick=function(){
+          var next=dashboardGetSections()||[];
+          next.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
+          /* Aggiungere un box salva il layout ma non deve attivare il riordino. */
+          dashboardSaveSections(next,function(){
+            closeViewMenu();
+            if(def.numeric_id && def.box_key)loadCustomBoxTasks(def);
+          },{activateReorder:false});
+        };
+        available.appendChild(button);
+      });
     });
   });
 }
