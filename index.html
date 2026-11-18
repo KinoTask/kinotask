@@ -10831,6 +10831,7 @@ function openAddBoxPanel(){
   var assignment=document.createElement("input");assignment.type="checkbox";
   var assignmentLabel=mk("label","","");
   assignmentLabel.style.display="flex";assignmentLabel.style.alignItems="center";assignmentLabel.style.gap="7px";
+  assignmentLabel.style.marginTop="8px";assignmentLabel.style.paddingTop="10px";assignmentLabel.style.borderTop="1px solid #ccc";
   assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode("Abilita assegnazione delle attività"));
   wrap.appendChild(assignmentLabel);
   var create=mk("button","","CREA TASKLIST");create.type="button";
@@ -10981,7 +10982,7 @@ function openCustomBoxEditor(def){
   wrap.appendChild(scope);
   var users=mk('div','custom-box-share-users','');wrap.appendChild(users);
   var assignment=document.createElement('input');assignment.type='checkbox';assignment.checked=!!def.assignment_enabled;
-  var assignmentLabel=mk('label','','');assignmentLabel.style.display='flex';assignmentLabel.style.alignItems='center';assignmentLabel.style.gap='7px';assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode('Abilita assegnazione delle attività'));wrap.appendChild(assignmentLabel);
+  var assignmentLabel=mk('label','','');assignmentLabel.style.display='flex';assignmentLabel.style.alignItems='center';assignmentLabel.style.gap='7px';assignmentLabel.style.marginTop='8px';assignmentLabel.style.paddingTop='10px';assignmentLabel.style.borderTop='1px solid #ccc';assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode('Abilita assegnazione delle attività'));wrap.appendChild(assignmentLabel);
   var save=mk('button','','SALVA MODIFICHE');save.type='button';
   var back=mk('button','','INDIETRO');back.type='button';back.onclick=function(){setHidden(panel,true);setHidden($('dashboardLayoutMenu'),false);};
   function updateUsers(){setHidden(users,scope.value!=='selected');}
@@ -11009,13 +11010,23 @@ function createCustomBoxElement(def){
     var existingBox=$(def.element_id);
     var existingHeading=existingBox.querySelector(".section-heading h2");
     if(existingHeading)existingHeading.textContent=def.title || "Attività";
-    if(!existingBox.querySelector(".custom-box-edit")){
-      var existingEdit=mk("button","custom-box-edit","MODIFICA");
-      existingEdit.type="button";existingEdit.title="Modifica nome, condivisione e assegnazione del box";existingEdit.style.marginLeft="auto";existingEdit.style.fontSize="11px";existingEdit.style.padding="4px 7px";
-      existingEdit.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openCustomBoxEditor(def);};
+    var existingEdit=existingBox.querySelector(".custom-box-edit");
+    if(!existingEdit){
+      existingEdit=mk("button","custom-box-edit","MODIFICA");
       var existingHeader=existingBox.querySelector(".section-heading");
       if(existingHeader)existingHeader.appendChild(existingEdit);
     }
+    existingEdit.type="button";
+    existingEdit.title="Modifica nome, condivisione e assegnazione del box";
+    existingEdit.style.marginLeft="auto";
+    existingEdit.style.fontSize="11px";
+    existingEdit.style.padding="4px 7px";
+    /* Aggiorna sempre il riferimento: il box può essere stato ricreato
+       dal catalogo con una nuova configurazione dopo il cambio vista. */
+    existingEdit.onclick=function(ev){
+      if(ev){ev.preventDefault();ev.stopPropagation();}
+      openCustomBoxEditor(def);
+    };
     loadCustomBoxTasks(def);
     return;
   }
