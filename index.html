@@ -662,6 +662,40 @@ body.k #recurringTasksBox .recurring-config-button {
   max-width:680px;
   margin:0 auto;
 }
+.recurring-config-header-actions {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.recurring-config-header-actions button {
+  margin:0;
+  padding:6px 9px;
+  font-size:.85em;
+}
+.recurring-config-header-actions #recurringConfigClose {
+  flex:0 0 auto;
+}
+.recurring-permissions-toggle { margin:8px 0; }
+.recurring-permissions-panel {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin:4px 0 12px;
+  padding:8px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+.recurring-permission-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:5px 0;
+  border-bottom:1px solid #ddd;
+}
+.recurring-permission-row button { flex:0 0 auto; margin:0; }
 .recurring-config-form {
   display:flex;
   flex-direction:column;
@@ -7006,11 +7040,59 @@ function renderRecurringDefinitions() {
   }
 }
 
+function renderRecurringPermissions(users) {
+  var panel = $("recurringPermissionsPanel");
+  clear(panel);
+  if(!users || !users.length){
+    panel.appendChild(mk("div", "small", "Nessun utente disponibile."));
+    return;
+  }
+  users.forEach(function(user){
+    var row = mk("div", "recurring-permission-row");
+    var name = mk("span", "", user.name || "Utente");
+    var granted = Array.isArray(user.permissions) &&
+      user.permissions.indexOf("recurring_tasks.manage") !== -1;
+    var button = mk("button", "", granted ? "Revoca" : "Concedi");
+    button.type = "button";
+    button.onclick = function(){
+      button.disabled = true;
+      usersRequest("PUT", "/users/" + user.id, {
+        recurring_tasks_manage: !granted
+      }, function(err, data){
+        if(err || !data || !data.ok){
+          button.disabled = false;
+          alert(err || (data && data.error) || "Aggiornamento permesso non riuscito.");
+          return;
+        }
+        openRecurringPermissions();
+      });
+    };
+    row.appendChild(name);
+    row.appendChild(button);
+    panel.appendChild(row);
+  });
+}
+
+function openRecurringPermissions() {
+  if(authUserType !== "family") return;
+  var panel = $("recurringPermissionsPanel");
+  setText(panel, "Caricamento utenti...");
+  usersRequest("GET", "/users", null, function(err, data){
+    if(err || !data || !data.ok || !Array.isArray(data.users)){
+      setText(panel, err || "Impossibile caricare gli utenti.");
+      return;
+    }
+    renderRecurringPermissions(data.users);
+  });
+}
+
 function openRecurringConfig() {
   if(!canManageRecurringTasks()) return;
   buildRecurringOwners();
   resetRecurringForm();
   setText($("recurringConfigStatus"), "");
+  setHidden($("recurringPermissionsPanel"), true);
+  setHidden($("recurringPermissionsToggle"), authUserType !== "family");
   setHidden($("recurringConfigOverlay"), false);
   loadRecurringTasks(true);
   renderRecurringDefinitions();
@@ -12901,6 +12983,12 @@ function startDashboard(preferredView){
 	
 	$("recurringConfigButton").onclick = openRecurringConfig;
 	$("recurringConfigClose").onclick = closeRecurringConfig;
+  $("recurringPermissionsToggle").onclick = function(){
+    var panel = $("recurringPermissionsPanel");
+    var show = panel.hidden;
+    setHidden(panel, !show);
+    if(show) openRecurringPermissions();
+  };
 	$("recurringCancelEditButton").onclick = resetRecurringForm;
 	$("recurringType").onchange = updateRecurringFields;
 	$("recurringSaveButton").onclick = saveRecurringDefinition;
