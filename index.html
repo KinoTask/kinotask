@@ -9923,6 +9923,29 @@ function dashboardPointerUp(ev){
 function dashboardRemoveBoxFromLayout(boxEl){
   var boxId=dashboardBoxId(boxEl);
   if(!boxId)return;
+  var customId=boxEl.getAttribute("data-custom-box-id");
+  if(customId){
+    if(!confirm("Archiviare questo box? Non sarà più disponibile tra i box aggiungibili. Le attività resteranno nello storico e potranno essere ripristinate creando un box con lo stesso nome."))return;
+    usersRequest("DELETE","/custom-boxes/"+encodeURIComponent(customId),null,function(err,data){
+      if(err||!data||!data.ok){alert(err||(data&&data.error)||"Archiviazione non riuscita.");return;}
+      var sections=dashboardCloneSections(dashboardGetSections()||[]);
+      sections.forEach(function(section){
+        (section.columns||[]).forEach(function(column){
+          for(var i=column.length-1;i>=0;i--){
+            if(String(column[i].box_id)===String(boxId))column.splice(i,1);
+          }
+        });
+      });
+      var def=findItem(DASHBOARD_BOXES||[],function(item){return String(item.id)===String(boxId);});
+      if(def){
+        DASHBOARD_BOXES=DASHBOARD_BOXES.filter(function(item){return String(item.id)!==String(boxId);});
+        var oldElement=$(def.element_id);
+        if(oldElement&&oldElement.parentNode)oldElement.parentNode.removeChild(oldElement);
+      }
+      dashboardSaveSections(dashboardCleanupSections(sections));
+    });
+    return;
+  }
   if(!confirm("Rimuovere questa box dalla vista?"))return;
   var sections=dashboardCloneSections(dashboardGetSections()||[]);
   var loc=dashboardFindItemLocation(sections,boxId);
@@ -10812,10 +10835,31 @@ function openAddBoxPanel(){
     var value=name.value.trim();
     if(!value){alert("Inserisci il nome della tasklist.");name.focus();return;}
     create.disabled=true;
-    usersRequest("POST","/custom-boxes",{title:value,view_id:currentView,assignment_enabled:assignment.checked,scope:scope.value},function(err,data){
+    var payload={title:value,view_id:currentView,assignment_enabled:assignment.checked,scope:scope.value};
+    usersRequest("POST","/custom-boxes",payload,function(err,data){
+      if(err||!data||!data.ok){create.disabled=false;alert(err||(data&&data.error)||"Creazione non riuscita.");return;}
+      if(data.needs_confirmation){
+        var count=Number(data.archived&&data.archived.task_count||0);
+        var message="Nello storico è già presente un box \""+(data.archived.title||value)+"\"";
+        message+=count ? " con "+count+" attività." : ".";
+        message+="\\n\\nVuoi ripristinare il vecchio box con tutte le sue attività?\\n\\nSì: recupera anche le attività.\\nNo: riutilizza il box vuoto ed elimina le vecchie attività.";
+        var restore=confirm(message);
+        payload.reuse_archived=true;
+        payload.restore_tasks=restore;
+        usersRequest("POST","/custom-boxes",payload,function(reuseErr,reuseData){
+          create.disabled=false;
+          if(reuseErr||!reuseData||!reuseData.ok||!reuseData.box){alert(reuseErr||(reuseData&&reuseData.error)||"Riutilizzo del box non riuscito.");return;}
+          finishCustomBoxCreation(reuseData.box);
+        });
+        return;
+      }
       create.disabled=false;
-      if(err||!data||!data.ok||!data.box){alert(err||(data&&data.error)||"Creazione non riuscita.");return;}
-      var box=data.box;
+      if(!data.box){alert("Creazione non riuscita.");return;}
+      finishCustomBoxCreation(data.box);
+    });
+  };
+  function finishCustomBoxCreation(box){
+      var box=box;
       var def={id:box.box_id,element_id:box.element_id,title:box.title,view_type:(findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(currentView);})||{}).view_type||"shared",numeric_id:box.id,box_key:box.box_key,custom_family_id:box.family_id,custom_owner_user_id:box.owner_user_id,assignment_enabled:box.assignment_enabled,can_add_to_layout:1};
       DASHBOARD_BOXES.push(def);
       createCustomBoxElement(def);
@@ -10823,8 +10867,7 @@ function openAddBoxPanel(){
       sections.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
       closeViewMenu();
       dashboardSaveSections(sections,function(){loadCustomBoxTasks(def);},{activateReorder:false});
-    });
-  };
+  }
   wrap.appendChild(create);
   var back=mk("button","","INDIETRO");back.type="button";back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};wrap.appendChild(back);
   panel.appendChild(wrap);
@@ -10891,6 +10934,8 @@ function createDashboardBoxElement(def){
 function createCustomBoxElement(def){
   if(!def || !def.element_id) return;
   if($(def.element_id)){
+    var existingHeading=$(def.element_id).querySelector(".section-heading h2");
+    if(existingHeading)existingHeading.textContent=def.title || "Attività";
     loadCustomBoxTasks(def);
     return;
   }
