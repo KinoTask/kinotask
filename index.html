@@ -6459,6 +6459,10 @@ function loadTodo(){
 
 function todoChange(action, index, text){
   if(!todoConnected || todoBusy){ return false; }
+  if(action === "delete"){
+    var todoToDelete = todoItems[index];
+    if(!todoToDelete || !confirm("Eliminare questa attività?")) return false;
+  }
 
   var data = {action: action};
   
@@ -6741,6 +6745,11 @@ function taskPost(data, personal){
 }
 
 function taskAct(action, index, personal){
+  if(action === "delete"){
+    var taskDate = taskKey(personal ? personalGlobalTaskSel : taskSel);
+    var taskList = taskDays[taskDate] || [];
+    if(!taskList[index] || !confirm("Eliminare questa attività?")) return false;
+  }
   taskPost({action: action, date: taskKey(personal ? personalGlobalTaskSel : taskSel), index: index}, personal);
 }
 
