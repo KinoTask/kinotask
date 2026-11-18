@@ -10831,7 +10831,7 @@ function showArchivedCustomBoxChoice(message, callback){
   yes.focus();
 }
 
-function positionCustomBoxPanel(panel, anchorRect){
+function positionCustomBoxPanel(panel, anchorRect, belowAnchor){
   if(!panel)return;
   panel.style.position='fixed';panel.style.zIndex='10050';
   panel.style.maxHeight='calc(100vh - 16px)';
@@ -10840,21 +10840,21 @@ function positionCustomBoxPanel(panel, anchorRect){
   var vw=window.innerWidth||document.documentElement.clientWidth;
   var vh=window.innerHeight||document.documentElement.clientHeight;
   var r=panel.getBoundingClientRect();
-  var left=anchorRect?anchorRect.right+8:8;
-  if(left+r.width>vw-8)left=anchorRect?anchorRect.left-r.width-8:8;
+  var left=anchorRect?(belowAnchor?anchorRect.right-r.width:anchorRect.right+8):8;
+  if(!belowAnchor&&left+r.width>vw-8)left=anchorRect?anchorRect.left-r.width-8:8;
   left=Math.max(8,Math.min(left,vw-r.width-8));
   var maxTop=Math.max(8,vh-r.height-8);
-  var top=anchorRect?anchorRect.top:8;
+  var top=anchorRect?(belowAnchor?anchorRect.bottom+6:anchorRect.top):8;
   top=Math.max(8,Math.min(top,maxTop));
   panel.style.left=left+'px';panel.style.right='auto';panel.style.top=top+'px';
 }
-function bindCustomBoxPanelPosition(panel, anchorRect){
+function bindCustomBoxPanelPosition(panel, anchorRect, belowAnchor){
   if(panel._customBoxPositionHandler){
     window.removeEventListener('resize',panel._customBoxPositionHandler);
     window.removeEventListener('scroll',panel._customBoxPositionHandler,true);
   }
   panel._customBoxPositionHandler=function(){
-    if(!panel.hidden)positionCustomBoxPanel(panel,anchorRect);
+    if(!panel.hidden)positionCustomBoxPanel(panel,anchorRect,belowAnchor);
   };
   window.addEventListener('resize',panel._customBoxPositionHandler);
   window.addEventListener('scroll',panel._customBoxPositionHandler,true);
@@ -10864,7 +10864,10 @@ function openAddBoxPanel(anchor){
   var panel=$("dashboardAddBoxPanel");
   if(!panel)return;
   if(panel.parentNode!==document.body)document.body.appendChild(panel);
-  var addAnchorRect=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
+  /* Il menu LAYOUT viene nascosto, quindi catturiamo prima la posizione
+     del pulsante che lo apre: il pannello deve comparire sotto quel pulsante. */
+  var layoutAnchor=$("dashboardLayoutButton");
+  var addAnchorRect=layoutAnchor&&layoutAnchor.getBoundingClientRect?layoutAnchor.getBoundingClientRect():(anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null);
   setHidden($("dashboardLayoutMenu"),true);
   setHidden(panel,false);
   clear(panel);
@@ -10907,9 +10910,9 @@ function openAddBoxPanel(anchor){
   [['family','Condivisa con tutta la famiglia'],['selected','Condivisa con utenti specifici'],['private','Privata']].forEach(function(item){var opt=document.createElement("option");opt.value=item[0];opt.textContent=item[1];scope.appendChild(opt);});
   wrap.appendChild(scope);
   var shareUsers=mk("div","custom-box-share-users","");shareUsers.style.display="none";shareUsers.style.flexDirection="column";shareUsers.style.gap="6px";wrap.appendChild(shareUsers);
-  renderCustomBoxUserChoices(shareUsers,[],function(){positionCustomBoxPanel(panel,addAnchorRect);});
+  renderCustomBoxUserChoices(shareUsers,[],function(){positionCustomBoxPanel(panel,addAnchorRect,true);});
   setHidden(shareUsers,scope.value!=="selected");
-  scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");assignment.disabled=scope.value==="private";if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,addAnchorRect);};
+  scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");assignment.disabled=scope.value==="private";if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,addAnchorRect,true);};
   var assignment=document.createElement("input");assignment.type="checkbox";assignment.disabled=scope.value==="private";
   var assignmentLabel=mk("label","","");
   assignmentLabel.style.display="flex";assignmentLabel.style.alignItems="center";assignmentLabel.style.gap="7px";
@@ -10958,8 +10961,8 @@ function openAddBoxPanel(anchor){
   wrap.appendChild(create);
   var back=mk("button","","INDIETRO");back.type="button";back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};wrap.appendChild(back);
   panel.appendChild(wrap);
-  positionCustomBoxPanel(panel,addAnchorRect);
-  bindCustomBoxPanelPosition(panel,addAnchorRect);
+  positionCustomBoxPanel(panel,addAnchorRect,true);
+  bindCustomBoxPanelPosition(panel,addAnchorRect,true);
 
   usersRequest("GET","/views",null,function(err,data){
     if(err||!data||!data.views){available.textContent=err||"Impossibile caricare le viste.";return;}
@@ -11003,7 +11006,7 @@ function openAddBoxPanel(anchor){
       });
       /* Il contenuto può essere cresciuto dopo il caricamento asincrono:
          ricalcola la posizione con l'altezza effettiva, non quella iniziale. */
-      positionCustomBoxPanel(panel,addAnchorRect);
+      positionCustomBoxPanel(panel,addAnchorRect,true);
     });
   });
 }
