@@ -10320,9 +10320,17 @@ function renderViewMenu(){
         /* La vista Condivisa puo essere attiva anche con una sessione personale
            per effetto della pianificazione oraria. In quel caso il profilo
            Famiglia deve comunque poter essere selezionato e autenticato. */
+        var targetIsCurrentUser =
+          targetView &&
+          !targetIsFamily &&
+          Number(targetView.owner_user_id) === Number(authProfile);
+
         if(
           String(id) === String(currentView) &&
-          (!targetIsFamily || authUserType === "family")
+          (
+            (targetIsFamily && authUserType === "family") ||
+            targetIsCurrentUser
+          )
         ){
           closeViewMenu();
           return;
