@@ -5364,7 +5364,7 @@ body.k #dashboardToolbar #dashboardToolbarActions {
       <h2>Configurazione attività ricorrenti</h2>
       <button type="button" id="recurringConfigClose">Chiudi</button>
     </div>
-    <div class="recurring-config-form">
+    <div class="recurring-config-form" id="recurringConfigForm">
       <label class="recurring-field">
         <span>Titolo attività</span>
         <input type="text" id="recurringText" maxlength="200" placeholder="Es. Piscina">
@@ -5524,6 +5524,7 @@ var recurringBusy = false;
 var recurringSel = "oggi";
 var recurringConfigEditingId = null;
 var recurringConfigBusy = false;
+var recurringFormDirty = false;
 
 var todoSyncError = false, todoSyncedAt = null;
 var pollTimer = null;
@@ -6818,6 +6819,7 @@ function renderRecurringTasks() {
       if (subtasks.length) {
         var parent = mk("div", "recurring-task-parent");
         if (item.time) parent.appendChild(mk("span", "recurring-task-time", item.time));
+        else if (item.all_day) parent.appendChild(mk("span", "recurring-task-time", "Tutto il giorno"));
         parent.appendChild(document.createTextNode(item.text));
         if (item.owners && item.owners.length) {
           var parentNames = [];
@@ -6863,6 +6865,7 @@ function renderRecurringTasks() {
         row.appendChild(cell);
         var textCell = mk("span", item.done ? "todo-text done" : "todo-text");
         if (item.time) textCell.appendChild(mk("span", "recurring-task-time", item.time));
+        else if (item.all_day) textCell.appendChild(mk("span", "recurring-task-time", "Tutto il giorno"));
         textCell.appendChild(document.createTextNode(item.text));
         if (item.owners && item.owners.length) {
           var names = [];
@@ -6879,7 +6882,7 @@ function renderRecurringTasks() {
 function recurringDescription(item) {
   var days = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
   var months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
-  var at = item.time ? " alle " + item.time : "";
+  var at = item.time ? " alle " + item.time : (item.all_day ? " · Tutto il giorno" : "");
   if (item.recurrence_type === "weekly") return "Ogni " + days[Number(item.weekday)] + at;
   if (item.recurrence_type === "monthly") return "Ogni mese, giorno " + item.day_of_month + at;
   return "Ogni " + months[Number(item.month_of_year) - 1] + " " + item.day_of_month + at;
@@ -6887,6 +6890,14 @@ function recurringDescription(item) {
 
 function resetRecurringForm() {
   recurringConfigEditingId = null;
+  recurringFormDirty = false;
+  var headerActions = $("recurringConfigHeaderActions");
+  var bottomActions = $("recurringConfigActions");
+  if(headerActions && bottomActions){
+    bottomActions.appendChild($("recurringSaveButton"));
+    bottomActions.appendChild($("recurringCancelEditButton"));
+    setHidden(bottomActions, false);
+  }
   $("recurringText").value = "";
   $("recurringType").value = "weekly";
   $("recurringWeekday").value = "1";
@@ -6894,6 +6905,8 @@ function resetRecurringForm() {
   $("recurringMonth").value = "1";
   $("recurringYearlyDay").value = "1";
   $("recurringTime").value = "";
+  $("recurringTimeMode").value = "all_day";
+  setHidden($("recurringTime"), true);
   $("recurringSaveButton").textContent = "Salva attività";
   renderRecurringSubtasks([]);
   var checks = $("recurringOwners").querySelectorAll("input[type=checkbox]");
@@ -6910,7 +6923,10 @@ function addRecurringSubtask(value, id, owners) {
   if (id !== null && id !== undefined) input.setAttribute("data-subtask-id", String(id));
   var remove = mk("button", "", "×");
   remove.type = "button"; remove.title = "Rimuovi sottoattività";
-  remove.onclick = function() { container.removeChild(row); };
+  remove.onclick = function() {
+    if(recurringConfigEditingId !== null) recurringFormDirty = true;
+    container.removeChild(row);
+  };
   row.appendChild(input); row.appendChild(remove);
   var assign = mk("div", "recurring-subtask-assign");
   assign.appendChild(mk("span", "small", "Assegnatari (vuoto = eredita dal task):"));
@@ -6946,6 +6962,7 @@ function updateRecurringFields() {
   setHidden($("recurringWeeklyFields"), type !== "weekly");
   setHidden($("recurringMonthlyFields"), type !== "monthly");
   setHidden($("recurringYearlyFields"), type !== "yearly");
+  setHidden($("recurringTime"), $("recurringTimeMode").value !== "specific");
 }
 
 function buildRecurringOwners() {
@@ -6977,8 +6994,14 @@ function editRecurringDefinition(id) {
   $("recurringMonth").value = String(item.month_of_year || 1);
   $("recurringYearlyDay").value = String(item.day_of_month || 1);
   $("recurringTime").value = item.time || "";
+  $("recurringTimeMode").value = item.all_day || !item.time ? "all_day" : "specific";
   renderRecurringSubtasks(item.subtasks || []);
   $("recurringSaveButton").textContent = "Aggiorna attività";
+  recurringFormDirty = false;
+  var headerActions = $("recurringConfigHeaderActions");
+  headerActions.insertBefore($("recurringSaveButton"), $("recurringConfigClose"));
+  headerActions.insertBefore($("recurringCancelEditButton"), $("recurringConfigClose"));
+  setHidden($("recurringConfigActions"), true);
   var checks = $("recurringOwners").querySelectorAll("input[type=checkbox]");
   for (var j = 0; j < checks.length; j++) {
     checks[j].checked = (item.owners || []).some(function(ownerId) {
@@ -7099,13 +7122,26 @@ function openRecurringConfig() {
 }
 
 function closeRecurringConfig() {
+  if(recurringConfigEditingId !== null && recurringFormDirty &&
+     !confirm("Hai modifiche non salvate. Chiudendo perderai tutte le modifiche. Vuoi continuare?")){
+    return;
+  }
+  resetRecurringForm();
+  setHidden($("recurringPermissionsPanel"), true);
   setHidden($("recurringConfigOverlay"), true);
+}
+
+function cancelRecurringEdit() {
+  if(recurringFormDirty && !confirm("Annullare le modifiche non salvate?")) return;
+  resetRecurringForm();
+  setText($("recurringConfigStatus"), "");
 }
 
 function saveRecurringDefinition() {
   var text = $("recurringText").value.replace(/^\s+|\s+$/g, "");
   var type = $("recurringType").value;
   var time = $("recurringTime").value;
+  var allDay = $("recurringTimeMode").value !== "specific" || !time;
   if (!text) {
     setText($("recurringConfigStatus"), "Inserisci il titolo.");
     return;
@@ -7119,7 +7155,8 @@ function saveRecurringDefinition() {
     task_id: recurringConfigEditingId,
     text: text,
     recurrence_type: type,
-    time: time || null,
+    time: allDay ? null : time,
+    all_day: allDay,
     weekday: type === "weekly" ? Number($("recurringWeekday").value) : null,
     day_of_month: type === "monthly" ? Number($("recurringDayOfMonth").value) :
       (type === "yearly" ? Number($("recurringYearlyDay").value) : null),
@@ -12989,10 +13026,23 @@ function startDashboard(preferredView){
     setHidden(panel, !show);
     if(show) openRecurringPermissions();
   };
-	$("recurringCancelEditButton").onclick = resetRecurringForm;
+	$("recurringCancelEditButton").onclick = cancelRecurringEdit;
 	$("recurringType").onchange = updateRecurringFields;
+  $("recurringTimeMode").onchange = updateRecurringFields;
 	$("recurringSaveButton").onclick = saveRecurringDefinition;
-  $("recurringSubtaskAddButton").onclick = function() { addRecurringSubtask("", null); };
+  var recurringForm = $("recurringConfigForm");
+  if(recurringForm){
+    recurringForm.oninput = function(){
+      if(recurringConfigEditingId !== null) recurringFormDirty = true;
+    };
+    recurringForm.onchange = function(){
+      if(recurringConfigEditingId !== null) recurringFormDirty = true;
+    };
+  }
+  $("recurringSubtaskAddButton").onclick = function() {
+    if(recurringConfigEditingId !== null) recurringFormDirty = true;
+    addRecurringSubtask("", null);
+  };
 
 	// Aggiunta task giornalieri
 	$("taskAddButton").onclick = function(){
