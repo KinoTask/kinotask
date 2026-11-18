@@ -9937,21 +9937,18 @@ function dashboardRemoveBoxFromLayout(boxEl){
     if(!confirm("Archiviare questo box? Non sarà più disponibile tra i box aggiungibili. Le attività resteranno nello storico e potranno essere ripristinate creando un box con lo stesso nome."))return;
     usersRequest("DELETE","/custom-boxes/"+encodeURIComponent(customId),null,function(err,data){
       if(err||!data||!data.ok){alert(err||(data&&data.error)||"Archiviazione non riuscita.");return;}
-      var sections=dashboardCloneSections(dashboardGetSections()||[]);
-      sections.forEach(function(section){
-        (section.columns||[]).forEach(function(column){
-          for(var i=column.length-1;i>=0;i--){
-            if(String(column[i].box_id)===String(boxId))column.splice(i,1);
-          }
-        });
+      /* L'API archivia già il box e disabilita le sue voci di layout
+         in tutte le viste. Non risalvare qui le sezioni locali: DASHBOARD_VIEWS
+         può contenere ancora l'ID appena archiviato e il Worker lo rifiuterebbe
+         correttamente durante la validazione del layout. Ricarichiamo invece
+         la configurazione aggiornata dal server. */
+      loadAuthorizedConfig(function(configErr){
+        if(configErr){
+          alert("Box archiviato, ma aggiornamento della dashboard non riuscito. Ricarica la pagina.");
+          return;
+        }
+        setView(currentView,false);
       });
-      var def=findItem(DASHBOARD_BOXES||[],function(item){return String(item.id)===String(boxId);});
-      if(def){
-        DASHBOARD_BOXES=DASHBOARD_BOXES.filter(function(item){return String(item.id)!==String(boxId);});
-        var oldElement=$(def.element_id);
-        if(oldElement&&oldElement.parentNode)oldElement.parentNode.removeChild(oldElement);
-      }
-      dashboardSaveSections(dashboardCleanupSections(sections));
     });
     return;
   }
