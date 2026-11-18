@@ -9934,30 +9934,22 @@ function dashboardRemoveBoxFromLayout(boxEl){
   if(!boxId)return;
   var customId=boxEl.getAttribute("data-custom-box-id");
   if(customId){
-    if(!confirm("Archiviare questo box? Non sarà più disponibile tra i box aggiungibili. Le attività resteranno nello storico e potranno essere ripristinate creando un box con lo stesso nome."))return;
-    usersRequest("DELETE","/custom-boxes/"+encodeURIComponent(customId),null,function(err,data){
-      if(err||!data||!data.ok){alert(err||(data&&data.error)||"Archiviazione non riuscita.");return;}
-      /* L'API archivia già il box e disabilita le sue voci di layout
-         in tutte le viste. Non risalvare qui le sezioni locali: DASHBOARD_VIEWS
-         può contenere ancora l'ID appena archiviato e il Worker lo rifiuterebbe
-         correttamente durante la validazione del layout. Ricarichiamo invece
-         la configurazione aggiornata dal server. */
-      loadAuthorizedConfig(function(configErr){
-        if(configErr){
-          alert("Box archiviato, ma aggiornamento della dashboard non riuscito. Ricarica la pagina.");
-          return;
-        }
-        setView(currentView,false);
-      });
-    });
+    if(!confirm("Nascondere questo box soltanto nella vista corrente? Il box e tutte le sue attività resteranno disponibili e potranno essere aggiunti di nuovo da LAYOUT."))return;
+    var customSections=dashboardCloneSections(dashboardGetSections()||[]);
+    var customLoc=dashboardFindItemLocation(customSections,boxId);
+    if(!customLoc)return;
+    customSections[customLoc.section].columns[customLoc.column].splice(customLoc.item,1);
+    dashboardSaveSections(dashboardCleanupSections(customSections),null,{activateReorder:false});
     return;
   }
-  if(!confirm("Rimuovere questa box dalla vista?"))return;
-  var sections=dashboardCloneSections(dashboardGetSections()||[]);
-  var loc=dashboardFindItemLocation(sections,boxId);
-  if(!loc)return;
-  sections[loc.section].columns[loc.column].splice(loc.item,1);
-  dashboardSaveSections(dashboardCleanupSections(sections));
+  if(!confirm("Nascondere questo box da tutte le viste? Le attività resteranno nel database. Potrai aggiungerlo di nuovo da LAYOUT."))return;
+  usersRequest("POST","/boxes/"+encodeURIComponent(boxId)+"/hide",{view_id:currentView},function(err,data){
+    if(err||!data||!data.ok){alert(err||(data&&data.error)||"Nascondimento non riuscito.");return;}
+    loadAuthorizedConfig(function(configErr){
+      if(configErr){alert("Box nascosto, ma aggiornamento dashboard non riuscito. Ricarica la pagina.");return;}
+      setView(currentView,false);
+    });
+  });
 }
 function applyDashboardReorderMode(){
   var host=dashboardLayoutHost();if(!host)return;
@@ -9972,9 +9964,11 @@ function applyDashboardReorderMode(){
       if(!el._dashboardReorderPosition)el._dashboardReorderPosition=el.style.position;
       if(!el.querySelector(".dashboard-box-remove-control")){
         el.style.position="relative";
-        var remove=mk("button","dashboard-box-remove-control","× RIMUOVI");
+        var remove=mk("button","dashboard-box-remove-control","× NASCONDI");
         remove.type="button";
-        remove.title="Rimuovi questa box dalla vista";
+        remove.title=el.getAttribute("data-custom-box-id")
+          ?"Nascondi questo box nella vista corrente"
+          :"Nascondi questo box da tutte le viste";
         remove.style.position="absolute";
         remove.style.top="6px";
         remove.style.right="6px";
@@ -10018,12 +10012,16 @@ function applyDashboardReorderMode(){
 }
 function canManageDashboardLayout(viewPermission){
   if(!viewPermission || Number(viewPermission.can_edit)!==1)return false;
-  if(String(viewPermission.view_type)!=="shared")return true;
-  for(var i=0;i<(AUTH_PERMISSIONS||[]).length;i++){
-    var permission=AUTH_PERMISSIONS[i];
-    if(permission==="users.manage" || (permission && permission.key==="users.manage"))return true;
+  if(String(viewPermission.view_type)==="shared"){
+    for(var i=0;i<(AUTH_PERMISSIONS||[]).length;i++){
+      var permission=AUTH_PERMISSIONS[i];
+      if(permission==="users.manage" || (permission && permission.key==="users.manage"))return true;
+    }
+    return false;
   }
-  return false;
+  return viewPermission.owner_user_id!==null &&
+    viewPermission.owner_user_id!==undefined &&
+    String(viewPermission.owner_user_id)===String(authProfile);
 }
 
 function toggleDashboardReorder(){
@@ -11062,12 +11060,11 @@ function openAddBoxPanel(anchor){
       customData.boxes.forEach(function(box){activeCustom[String(box.box_id)]=true;});
       positionCustomBoxPanel(panel,addAnchorRect);
       var candidates=(DASHBOARD_BOXES||[]).filter(function(b){
-        if(!b || Number(b.can_add_to_layout)!==1 || present[b.id] ||
-           String(b.view_type)!==String(view.view_type))return false;
+        if(!b || Number(b.can_add_to_layout)!==1 || present[b.id])return false;
         if(b.custom_family_id){
           return Number(b.available_to_user)===1 && !!activeCustom[String(b.id)];
         }
-        return true;
+        return String(b.view_type)===String(view.view_type);
       });
       if(!candidates.length){available.textContent="Nessun altro box disponibile.";return;}
       candidates.forEach(function(def){
