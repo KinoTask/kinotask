@@ -11230,67 +11230,56 @@ function customTaskAssignControl(def,task){
   btn.type="button";
   btn.title="Assegna attività";
   btn.setAttribute("aria-label","Assegna attività");
-
   var menu=mk("div","todo-assign-menu custom-task-assign-menu");
   menu.appendChild(mk("div","todo-assign-title","Assegna a:"));
   var options=mk("div","todo-assign-options");
-  var radios=[];
-  var noneLabel=mk("label","todo-assign-option");
-  var none=document.createElement("input");
-  none.type="radio";
-  none.name="customAssignee_"+def.numeric_id+"_"+task.id;
-  none.value="";
-  none.checked=task.assigned_user_id===null || typeof task.assigned_user_id==="undefined";
-  noneLabel.appendChild(none);
-  noneLabel.appendChild(document.createTextNode("Nessuno"));
-  options.appendChild(noneLabel);
-  radios.push(none);
-
+  var checks=[];
+  var selected=(task.assignee_ids||[]).map(String);
+  var allLabel=mk("label","todo-assign-option custom-assign-all");
+  var all=document.createElement("input");
+  all.type="checkbox";
+  all.checked=!!USERS.length&&USERS.every(function(u){return selected.indexOf(String(u.id))!==-1;});
+  allLabel.appendChild(all);
+  allLabel.appendChild(document.createTextNode("Tutti"));
+  options.appendChild(allLabel);
   (USERS||[]).forEach(function(user){
     var label=mk("label","todo-assign-option");
-    var radio=document.createElement("input");
-    radio.type="radio";
-    radio.name="customAssignee_"+def.numeric_id+"_"+task.id;
-    radio.value=String(user.id);
-    radio.checked=String(task.assigned_user_id)===String(user.id);
-    label.appendChild(radio);
+    var check=document.createElement("input");
+    check.type="checkbox";
+    check.value=String(user.id);
+    check.checked=selected.indexOf(String(user.id))!==-1;
+    label.appendChild(check);
     label.appendChild(document.createTextNode(user.name));
     options.appendChild(label);
-    radios.push(radio);
+    checks.push(check);
   });
+  function syncAll(){
+    var count=0;
+    for(var i=0;i<checks.length;i++)if(checks[i].checked)count++;
+    all.checked=checks.length>0&&count===checks.length;
+    all.indeterminate=count>0&&count<checks.length;
+  }
+  all.onchange=function(){for(var i=0;i<checks.length;i++)checks[i].checked=all.checked;all.indeterminate=false;};
+  checks.forEach(function(check){check.onchange=syncAll;});
   menu.appendChild(options);
-
   var buttons=mk("div","todo-assign-buttons");
   var save=mk("button","","Salva");
   var cancel=mk("button","","Annulla");
-  save.type="button";
-  cancel.type="button";
-  buttons.appendChild(save);
-  buttons.appendChild(cancel);
-  menu.appendChild(buttons);
-
-  btn.onclick=function(){
-    var wasOpen=menu.classList.contains("open");
-    closeAssignMenus();
-    if(!wasOpen)menu.classList.add("open");
-  };
+  save.type="button";cancel.type="button";
+  buttons.appendChild(save);buttons.appendChild(cancel);menu.appendChild(buttons);
+  btn.onclick=function(){var wasOpen=menu.classList.contains("open");closeAssignMenus();if(!wasOpen)menu.classList.add("open");};
   cancel.onclick=function(){menu.classList.remove("open");};
   save.onclick=function(){
-    var assigned=null;
-    for(var i=0;i<radios.length;i++){
-      if(radios[i].checked){assigned=radios[i].value?Number(radios[i].value):null;break;}
-    }
+    var ids=[];for(var i=0;i<checks.length;i++)if(checks[i].checked)ids.push(Number(checks[i].value));
     save.disabled=true;
-    usersRequest("PATCH","/custom-tasks/"+task.id,{assigned_user_id:assigned,view_id:currentView},function(err,data){
+    usersRequest("PATCH","/custom-tasks/"+task.id,{assigned_user_ids:ids,view_id:currentView},function(err,data){
       save.disabled=false;
       if(err||!data||!data.ok){alert(err||(data&&data.error)||"Assegnazione non riuscita.");return;}
-      menu.classList.remove("open");
-      loadCustomBoxTasks(def);
+      menu.classList.remove("open");loadCustomBoxTasks(def);
     });
   };
   return {btn:btn,menu:menu};
 }
-
 function loadCustomBoxTasks(def){
   var list=$("customTasks_"+def.numeric_id);
   if(!list)return;
@@ -11308,8 +11297,7 @@ function loadCustomBoxTasks(def){
       var item={
         text:task.description,
         done:!!task.done,
-        assignees:task.assigned_user_id===null || typeof task.assigned_user_id==="undefined"
-          ? [] : [Number(task.assigned_user_id)]
+        assignees:Array.isArray(task.assignee_ids)?task.assignee_ids:[]
       };
       var canManage=customBoxCanManageTasks();
       var assignment=canManage && data.assignment_enabled ? customTaskAssignControl(def,task) : null;
