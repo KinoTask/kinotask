@@ -9881,7 +9881,7 @@ function dashboardSaveSections(sections,onSuccess,options){
   var cancelBtn=$("dashboardCancelReorderButton");if(cancelBtn)cancelBtn.disabled=true;
   usersRequest("GET","/views",null,function(metaErr,meta){
     var v=meta&&meta.views?findItem(meta.views,function(x){return String(x.id)===String(currentView);}):null;
-    var allowed=!!(v&&Number(v.can_edit)===1);
+    var allowed=canManageDashboardLayout(v);
     if(metaErr||!allowed){buildLayout(currentView);if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;alert(metaErr||"Non hai i permessi per modificare questo layout.");return;}
     var payload=sections.map(function(section){return {type:section.type,columns:section.columns.map(function(column){return column.map(function(item){return {box_id:item.box_id,enabled:true,is_public:item.is_public===true||Number(item.is_public)===1};});})};});
     usersRequest("PUT","/views/"+encodeURIComponent(currentView)+"/layout",{sections:payload},function(err,result){
@@ -10016,6 +10016,16 @@ function applyDashboardReorderMode(){
     el.onpointercancel=dashboardReorderActive?function(ev){if(dashboardPointerId===ev.pointerId){clearTimeout(dashboardPointerTimer);dashboardPointerTimer=null;dashboardClearPreview();if(dashboardPointerSource)dashboardPointerSource.style.opacity="1";dashboardPointerId=null;dashboardPointerStart=null;dashboardPointerDragging=false;dashboardPointerSource=null;}}:null;
   }
 }
+function canManageDashboardLayout(viewPermission){
+  if(!viewPermission || Number(viewPermission.can_edit)!==1)return false;
+  if(String(viewPermission.view_type)!=="shared")return true;
+  for(var i=0;i<(AUTH_PERMISSIONS||[]).length;i++){
+    var permission=AUTH_PERMISSIONS[i];
+    if(permission==="users.manage" || (permission && permission.key==="users.manage"))return true;
+  }
+  return false;
+}
+
 function toggleDashboardReorder(){
   if(dashboardReorderActive){
     dashboardReorderActive=false;dashboardReorderOriginalRows=null;applyDashboardReorderMode();
@@ -10024,7 +10034,7 @@ function toggleDashboardReorder(){
   }
   usersRequest("GET","/views",null,function(err,data){
     var v=data&&data.views?findItem(data.views,function(x){return String(x.id)===String(currentView);}):null;
-    var allowed=!!(v&&Number(v.can_edit)===1);
+    var allowed=canManageDashboardLayout(v);
     if(err||!allowed){alert(err||"Non hai i permessi per riordinare questa vista.");return;}
     dashboardReorderOriginalRows=dashboardGetSections();
     dashboardReorderActive=true;applyDashboardReorderMode();
@@ -13160,7 +13170,7 @@ function renderViewSwitcher(){
     var permissionView=findItem(permissionData.views,function(v){
       return String(v.id)===permissionViewId;
     });
-    var canEdit=!!(permissionView && Number(permissionView.can_edit)===1);
+    var canEdit=canManageDashboardLayout(permissionView);
     setHidden(layoutButton,!canEdit);
     if(!canEdit){
       setHidden(layoutMenu,true);
