@@ -11021,16 +11021,17 @@ function customBoxSelectedUserIds(container){
 
 function openCustomBoxEditor(def, anchor){
   var panel=$('dashboardAddBoxPanel');if(!panel)return;
+  /* Il pannello viene staccato dalla toolbar: non deve partecipare al suo
+     layout flex né essere limitato da eventuali stacking context del toolbar. */
+  if(panel.parentNode!==document.body)document.body.appendChild(panel);
   setHidden($('dashboardLayoutMenu'),true);setHidden(panel,false);clear(panel);
   panel.style.position='fixed';
-  panel.style.width='380px';panel.style.maxWidth='94vw';panel.style.boxSizing='border-box';
-  /* Ancora il pannello al pulsante MODIFICA, non alla toolbar generale. */
+  panel.style.zIndex='10050';
+  panel.style.width='380px';panel.style.maxWidth='calc(100vw - 16px)';panel.style.boxSizing='border-box';
+  panel.style.background='#fff';panel.style.border='1px solid #999';
+  panel.style.borderRadius='5px';panel.style.boxShadow='0 4px 18px rgba(0,0,0,.25)';
+  /* Posiziona il pannello accanto al box, senza coprire il pulsante che lo apre. */
   var anchorRect=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
-  if(anchorRect){
-    var left=Math.max(8,Math.min(anchorRect.left,window.innerWidth-Math.min(380,window.innerWidth-16)-8));
-    panel.style.left=left+'px';panel.style.right='auto';
-    panel.style.top=anchorRect.top+'px';
-  }
   var wrap=mk('div','','');wrap.style.padding='10px';wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.gap='9px';
   wrap.appendChild(mk('div','','MODIFICA BOX'));
   var name=document.createElement('input');name.type='text';name.maxLength=80;name.value=def.title||'';name.placeholder='Nome del box';name.style.padding='9px';name.style.width='100%';name.style.boxSizing='border-box';wrap.appendChild(name);
@@ -11066,12 +11067,14 @@ function openCustomBoxEditor(def, anchor){
   var panelRect=panel.getBoundingClientRect();
   var viewportHeight=window.innerHeight||document.documentElement.clientHeight;
   var viewportWidth=window.innerWidth||document.documentElement.clientWidth;
-  var left=anchorRect?anchorRect.left:8;
+  var left=anchorRect?anchorRect.right+8:8;
+  if(left+panelRect.width>viewportWidth-8){
+    left=anchorRect?anchorRect.left-panelRect.width-8:8;
+  }
   left=Math.max(8,Math.min(left,viewportWidth-panelRect.width-8));
-  var top=anchorRect?anchorRect.bottom+8:8;
+  var top=anchorRect?anchorRect.top:8;
   if(top+panelRect.height>viewportHeight-8){
-    var above=anchorRect?anchorRect.top-panelRect.height-8:-1;
-    top=above>=8?above:Math.max(8,viewportHeight-panelRect.height-8);
+    top=Math.max(8,viewportHeight-panelRect.height-8);
   }
   panel.style.left=left+"px";panel.style.right="auto";panel.style.top=top+"px";
 }
