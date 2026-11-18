@@ -9813,11 +9813,11 @@ function applyDashboardReorderMode(){
         remove.style.borderRadius="5px";
         remove.style.background="#fff";
         remove.style.color="#b42318";
-        remove.onclick=function(ev){
+        remove.onclick=(function(box){return function(ev){
           if(ev){ev.preventDefault();ev.stopPropagation();}
-          dashboardRemoveBoxFromLayout(el);
+          dashboardRemoveBoxFromLayout(box);
           return false;
-        };
+        };})(el);
         remove.onpointerdown=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}};
         el.appendChild(remove);
       }
