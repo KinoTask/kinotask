@@ -13128,7 +13128,9 @@ function loadAuthorizedConfig(callback){
       return u && u.id && u.name;
     });
     DASHBOARD_BOXES.forEach(function(box){
-      if(box.numeric_id && box.box_key && Number(box.available_to_user) === 1){
+      // Carica il renderer per tutti i box della famiglia: la visibilità
+      // viene già filtrata dal dashboard-api in base alla vista consultata.
+      if(box.numeric_id && box.box_key && box.custom_family_id){
         createCustomBoxElement(box);
       }
     });
