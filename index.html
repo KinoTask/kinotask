@@ -9931,28 +9931,58 @@ function dashboardPointerUp(ev){
   if(source)source.style.opacity="1";
   dashboardPointerId=null;dashboardPointerStart=null;dashboardPointerDragging=false;dashboardPointerSource=null;
 }
+function showCustomBoxRemovalChoice(callback){
+  var overlay=document.createElement("div");
+  overlay.style.cssText="position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.45);";
+  var panel=document.createElement("div");
+  panel.style.cssText="box-sizing:border-box;width:100%;max-width:390px;padding:18px;background:#fff;border:2px solid #000;border-radius:6px;color:#000;font:16px/1.4 Arial,sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.25);";
+  var message=document.createElement("div");
+  message.style.cssText="white-space:pre-line;font-weight:bold;margin-bottom:18px;";
+  message.textContent="NASCONDERE SOLO IN QUESTA VISTA?\\n\\nIl box sparirà soltanto dalla vista corrente.\\n\\nSÌ: nascondi in questa vista.\\nNO: archivia per tutta la famiglia.\\nANNULLA: non fare nulla.";
+  var actions=document.createElement("div");
+  actions.style.cssText="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;";
+  function addChoice(label,value){
+    var button=document.createElement("button");
+    button.type="button";
+    button.textContent=label;
+    button.style.cssText="margin:0;padding:8px 12px;border:1px solid #000;background:"+(value==="cancel"?"#fff":"#000")+";color:"+(value==="cancel"?"#000":"#fff")+";font: bold 14px Arial,sans-serif;";
+    button.onclick=function(){
+      if(overlay.parentNode)overlay.parentNode.removeChild(overlay);
+      callback(value);
+    };
+    actions.appendChild(button);
+  }
+  addChoice("SÌ","hide");
+  addChoice("NO","archive");
+  addChoice("ANNULLA","cancel");
+  panel.appendChild(message);
+  panel.appendChild(actions);
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+}
 function dashboardRemoveBoxFromLayout(boxEl){
   var boxId=dashboardBoxId(boxEl);
   if(!boxId)return;
   var customId=boxEl.getAttribute("data-custom-box-id");
   if(customId){
-    var hideOnly=confirm("NASCONDERE SOLO IN QUESTA VISTA?\\n\\nOK: il box sparirà soltanto dalla vista corrente.\\nAnnulla: scegli se archiviarlo per tutta la famiglia.");
-    if(hideOnly){
-      usersRequest("POST","/custom-boxes/"+encodeURIComponent(customId)+"/hide",{view_id:currentView},function(err,data){
-        if(err||!data||!data.ok){alert(err||(data&&data.error)||"Nascondimento non riuscito.");return;}
+    showCustomBoxRemovalChoice(function(choice){
+      if(choice==="cancel")return;
+      if(choice==="hide"){
+        usersRequest("POST","/custom-boxes/"+encodeURIComponent(customId)+"/hide",{view_id:currentView},function(err,data){
+          if(err||!data||!data.ok){alert(err||(data&&data.error)||"Nascondimento non riuscito.");return;}
+          loadAuthorizedConfig(function(configErr){
+            if(configErr){alert("Box nascosto, ma aggiornamento dashboard non riuscito. Ricarica la pagina.");return;}
+            setView(currentView,false);
+          });
+        });
+        return;
+      }
+      usersRequest("DELETE","/custom-boxes/"+encodeURIComponent(customId),null,function(err,data){
+        if(err||!data||!data.ok){alert(err||(data&&data.error)||"Archiviazione non riuscita.");return;}
         loadAuthorizedConfig(function(configErr){
-          if(configErr){alert("Box nascosto, ma aggiornamento dashboard non riuscito. Ricarica la pagina.");return;}
+          if(configErr){alert("Box archiviato, ma aggiornamento dashboard non riuscito. Ricarica la pagina.");return;}
           setView(currentView,false);
         });
-      });
-      return;
-    }
-    if(!confirm("ARCHIVIARE QUESTO BOX PER TUTTA LA FAMIGLIA?\\n\\nIl box non sarà più disponibile tra quelli aggiungibili. Tutte le attività resteranno conservate nel database."))return;
-    usersRequest("DELETE","/custom-boxes/"+encodeURIComponent(customId),null,function(err,data){
-      if(err||!data||!data.ok){alert(err||(data&&data.error)||"Archiviazione non riuscita.");return;}
-      loadAuthorizedConfig(function(configErr){
-        if(configErr){alert("Box archiviato, ma aggiornamento dashboard non riuscito. Ricarica la pagina.");return;}
-        setView(currentView,false);
       });
     });
     return;
