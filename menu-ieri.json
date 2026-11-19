@@ -1,28 +1,33 @@
 {
   "available": true,
-  "date": "2026-11-18",
+  "date": "2026-11-19",
   "site": "U003128",
-  "generated_at": "2026-11-19T00:01:02.232036+01:00",
+  "generated_at": "2026-11-20T00:01:02.644022+01:00",
   "plates": [
     {
-      "position": "2334",
-      "dishCode": "P01034",
-      "name": "Lasagne al ragù di soia biologica"
+      "position": "2432",
+      "dishCode": "P101309",
+      "name": "Passato verdura saporito riso e orzo"
     },
     {
-      "position": "2336",
-      "dishCode": "P01887",
-      "name": "Finocchi in insalata"
+      "position": "2433",
+      "dishCode": "P00142",
+      "name": "Formaggio (caciotta biologica)"
     },
     {
-      "position": "2337",
-      "dishCode": "P00959",
+      "position": "2436",
+      "dishCode": "P01851",
+      "name": "Patate arrosto"
+    },
+    {
+      "position": "2437",
+      "dishCode": "P00006",
       "name": "Frutta fresca di stagione"
     },
     {
-      "position": "2339",
-      "dishCode": "P01889",
-      "name": "Pane tipo 0"
+      "position": "2439",
+      "dishCode": "P01890",
+      "name": "Pane di farina integrale biologica "
     }
   ]
 }
