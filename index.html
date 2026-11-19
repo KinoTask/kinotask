@@ -9936,12 +9936,25 @@ function dashboardRemoveBoxFromLayout(boxEl){
   if(!boxId)return;
   var customId=boxEl.getAttribute("data-custom-box-id");
   if(customId){
-    if(!confirm("Nascondere questo box soltanto nella vista corrente? Il box e tutte le sue attività resteranno disponibili e potranno essere aggiunti di nuovo da LAYOUT."))return;
-    var customSections=dashboardCloneSections(dashboardGetSections()||[]);
-    var customLoc=dashboardFindItemLocation(customSections,boxId);
-    if(!customLoc)return;
-    customSections[customLoc.section].columns[customLoc.column].splice(customLoc.item,1);
-    dashboardSaveSections(dashboardCleanupSections(customSections),null,{activateReorder:false});
+    var hideOnly=confirm("NASCONDERE SOLO IN QUESTA VISTA?\\n\\nOK: il box sparirà soltanto dalla vista corrente.\\nAnnulla: scegli se archiviarlo per tutta la famiglia.");
+    if(hideOnly){
+      usersRequest("POST","/custom-boxes/"+encodeURIComponent(customId)+"/hide",{view_id:currentView},function(err,data){
+        if(err||!data||!data.ok){alert(err||(data&&data.error)||"Nascondimento non riuscito.");return;}
+        loadAuthorizedConfig(function(configErr){
+          if(configErr){alert("Box nascosto, ma aggiornamento dashboard non riuscito. Ricarica la pagina.");return;}
+          setView(currentView,false);
+        });
+      });
+      return;
+    }
+    if(!confirm("ARCHIVIARE QUESTO BOX PER TUTTA LA FAMIGLIA?\\n\\nIl box non sarà più disponibile tra quelli aggiungibili. Tutte le attività resteranno conservate nel database."))return;
+    usersRequest("DELETE","/custom-boxes/"+encodeURIComponent(customId),null,function(err,data){
+      if(err||!data||!data.ok){alert(err||(data&&data.error)||"Archiviazione non riuscita.");return;}
+      loadAuthorizedConfig(function(configErr){
+        if(configErr){alert("Box archiviato, ma aggiornamento dashboard non riuscito. Ricarica la pagina.");return;}
+        setView(currentView,false);
+      });
+    });
     return;
   }
   if(!confirm("Nascondere questo box da tutte le viste? Le attività resteranno nel database. Potrai aggiungerlo di nuovo da LAYOUT."))return;
@@ -11181,21 +11194,6 @@ function openCustomBoxEditor(def, anchor){
   var grantRows=mk('div','custom-box-permission-rows','');grantPanel.appendChild(grantRows);
   var grantSave=mk('button','','SALVA AUTORIZZAZIONI');grantSave.type='button';
   grantPanel.appendChild(grantSave);grantPanel.hidden=true;wrap.appendChild(grantPanel);
-  var archive=mk('button','','ARCHIVIA BOX PER TUTTI');archive.type='button';archive.hidden=true;
-  archive.style.borderColor='#b42318';archive.style.color='#b42318';
-  archive.onclick=function(){
-    if(!confirm('Archiviare definitivamente questo box per tutti? Non sarà più disponibile tra i box aggiungibili. Le attività resteranno conservate nel database.'))return;
-    archive.disabled=true;
-    usersRequest('DELETE','/custom-boxes/'+encodeURIComponent(def.numeric_id),null,function(err,data){
-      archive.disabled=false;
-      if(err||!data||!data.ok){alert(err||(data&&data.error)||'Archiviazione non riuscita.');return;}
-      setHidden(panel,true);
-      loadAuthorizedConfig(function(configErr){
-        if(configErr){alert('Box archiviato, ma aggiornamento dashboard non riuscito. Ricarica la pagina.');return;}
-        setView(currentView,false);
-      });
-    });
-  };
   var save=mk('button','','SALVA MODIFICHE');save.type='button';
   var back=mk('button','','INDIETRO');back.type='button';back.onclick=function(){setHidden(panel,true);setHidden($('dashboardLayoutMenu'),false);};
   function updateUsers(){
@@ -11240,7 +11238,6 @@ function openCustomBoxEditor(def, anchor){
         section._permissionInputs=inputs;section._userId=Number(user.id);grantRows.appendChild(section);
       });
       grantPanel.hidden=false;
-      archive.hidden=false;
       grantSave.onclick=function(){
         var payload=[];
         for(var i=0;i<grantRows.children.length;i++){
@@ -11280,7 +11277,7 @@ function openCustomBoxEditor(def, anchor){
     }
     submitBoxUpdate(false);
   };
-  wrap.appendChild(archive);wrap.appendChild(save);wrap.appendChild(back);panel.appendChild(wrap);
+  wrap.appendChild(save);wrap.appendChild(back);panel.appendChild(wrap);
   positionCustomBoxPanel(panel,anchorRect);
   bindCustomBoxPanelPosition(panel,anchorRect);
 }
