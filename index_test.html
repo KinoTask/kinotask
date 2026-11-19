@@ -5103,6 +5103,89 @@ input[type=checkbox] { accent-color:var(--kt-orange)!important; }
 .overlay-head, .overlay .todo { border-color:var(--kt-beige-deep)!important; }
 .sync-label { color:var(--kt-ink-soft)!important; }
 .user-switch-error { color:var(--kt-burgundy)!important; }
+
+/* Correzione palette: prevale anche sulle vecchie regole desktop/Kindle con !important. */
+:root {
+  --kt-ink:#263241;
+  --kt-ink-soft:#465363;
+  --kt-burgundy:#783B4A;
+  --kt-burgundy-dark:#612D3B;
+  --kt-orange:#E6A15B;
+  --kt-ivory:#F7F4EC;
+  --kt-beige:#EAE2D4;
+  --kt-beige-deep:#D8CDBD;
+  --kt-sage:#879B83;
+  --kt-sage-light:#E6EDE2;
+}
+html, body, #handwrittenNotesOverlay { background:var(--kt-ivory)!important; color:var(--kt-ink)!important; }
+body:not(.k) .box, body.k .box, .overlay .panel,
+.login-card, .welcome-feature { background:var(--kt-ivory)!important; border-color:var(--kt-beige-deep)!important; color:var(--kt-ink)!important; }
+h1,h2,h3,p,label,.todo-text,.ev,.agenda-period,.notes-list-row,.notes-status { color:var(--kt-ink)!important; }
+.small,.sync-label,#loggedUser,.link-detail,.recurring-task-owners,.recurring-subtask-owners,
+body:not(.k) h3, body:not(.k) .small, body:not(.k) .agenda-period { color:var(--kt-ink-soft)!important; }
+.box { border-color:var(--kt-ink)!important; }
+.section-heading,.overlay-head,.notes-topbar { border-color:var(--kt-beige-deep)!important; }
+button, body:not(.k) button, body.k .box button:not(.todo-delete):not(.trash-button) {
+  background:var(--kt-beige)!important; color:var(--kt-ink)!important; border-color:var(--kt-beige-deep)!important;
+}
+button.sel, button.active, .seg-button.sel, .seg-button.active,
+.seg.two button.active, body:not(.k) .seg > button.sel, body:not(.k) .seg > button.active,
+.view-switcher-button.sel, .view-switcher-shared .view-switcher-button.sel,
+#viewMenuPanel .user-switch-confirm {
+  background:var(--kt-ink)!important; background-color:var(--kt-ink)!important;
+  color:var(--kt-ivory)!important; border-color:var(--kt-ink)!important;
+}
+.add-ctl button, .shopping-commit-button, .welcome-actions button,
+.login-card button, #viewMenuPanel button.menu-action-button,
+#viewMenuPanel button.user-profile-button.logged-in-personal,
+.view-switcher-personal .view-switcher-button.sel,
+body.k .view-switcher-personal .view-switcher-button.sel {
+  background:var(--kt-burgundy)!important; background-color:var(--kt-burgundy)!important;
+  color:#fff!important; border-color:var(--kt-burgundy)!important;
+}
+#viewMenuPanel button.menu-action-button.menu-logout-button {
+  background:var(--kt-burgundy-dark)!important; color:#fff!important; border-color:var(--kt-burgundy-dark)!important;
+}
+.family-view-button,.user-rename-button,
+#viewMenuPanel button.user-profile-button.logged-in-family,
+.view-switcher-shared .view-switcher-button.sel, body.k .view-switcher-shared .view-switcher-button.sel {
+  background:var(--kt-sage)!important; background-color:var(--kt-sage)!important;
+  color:#fff!important; border-color:var(--kt-sage)!important;
+}
+#viewMenuPanel, #viewMenuToggle, .user-switch-popup, .todo-assign-menu,
+.recurring-permissions-panel, .view-switcher, .seg {
+  background:var(--kt-beige)!important; color:var(--kt-ink)!important; border-color:var(--kt-beige-deep)!important;
+}
+#viewMenuToggle span { background:var(--kt-ink)!important; }
+input[type=checkbox] {
+  accent-color:var(--kt-orange)!important;
+  border-color:var(--kt-orange)!important;
+}
+body:not(.k) input[type=checkbox] {
+  border-color:var(--kt-orange)!important; background:var(--kt-ivory)!important;
+}
+body:not(.k) input[type=checkbox]:checked {
+  background:var(--kt-orange)!important; box-shadow:inset 0 0 0 3px var(--kt-ivory)!important;
+}
+.todo-assign-option input:checked,.recurring-owner-options input:checked,
+.recurring-subtask-assign input:checked { accent-color:var(--kt-sage)!important; }
+.done,.completed,.todo-text.done,.shopping-item.completed,
+.family-shopping-item.completed .family-shopping-item-name,
+#personalTodoList .todo-text.done,.task-assignees,.todo .task-assignees {
+  color:#657B62!important;
+}
+.event-tasks { border-left-color:var(--kt-sage)!important; }
+.shopping-group-title,.notes-list-section-title { border-color:var(--kt-beige-deep)!important; }
+input[type=text],input[type=password],input[type=time],input[type=number],select,textarea,
+.recurring-field input,.recurring-field select,.login-card input {
+  background:var(--kt-ivory)!important; color:var(--kt-ink)!important; border-color:var(--kt-beige-deep)!important;
+}
+#handwrittenCanvas,.notes-text-editor { background:var(--kt-ivory)!important; border-color:var(--kt-beige-deep)!important; }
+#viewMenuPanel button.user-profile-button { background:var(--kt-beige)!important; color:var(--kt-ink)!important; border-color:var(--kt-beige-deep)!important; }
+#viewMenuPanel button.user-profile-button.sel { background:var(--kt-ink)!important; color:var(--kt-ivory)!important; border-color:var(--kt-ink)!important; }
+#viewMenuPanel button.user-profile-button.logged-in-family { background:var(--kt-sage)!important; color:#fff!important; border-color:var(--kt-sage)!important; }
+#viewMenuPanel button.user-profile-button.logged-in-personal { background:var(--kt-burgundy)!important; color:#fff!important; border-color:var(--kt-burgundy)!important; }
+
 </style>
 
 </head>
