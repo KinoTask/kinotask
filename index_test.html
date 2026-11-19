@@ -3386,6 +3386,25 @@ body.k .family-shopping-item > * {
 .todo-actions > .todo-delete {
   margin:0 0 0 4px!important;
 }
+/* To-do e box custom: stessa colonna azioni della lista della spesa.
+   Assegnazione e cestino sono allineati al bordo destro della riga. */
+.todo > .todo-actions {
+  display:table-cell!important;
+  width:76px!important;
+  min-width:76px!important;
+  box-sizing:border-box!important;
+  text-align:right!important;
+  vertical-align:middle!important;
+  white-space:nowrap!important;
+}
+.todo > .todo-actions > .todo-assign,
+.todo > .todo-actions > .todo-delete {
+  vertical-align:middle!important;
+}
+.todo > .todo-actions > .todo-delete {
+  margin:0 0 0 4px!important;
+}
+
 
 /* Kindle: .todo-text comune imposta width:100%; nella riga flex della
    lista condivisa questo spingeva il wrapper del cestino fuori schermo. */
