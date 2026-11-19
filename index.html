@@ -11261,10 +11261,23 @@ function openCustomBoxEditor(def, anchor){
     positionCustomBoxPanel(panel,anchorRect);
   }
   scope.onchange=updateUsers;
+  var loadStatus=mk('div','','Caricamento configurazione del box…');
+  loadStatus.style.fontSize='13px';loadStatus.style.color='#9b2c2c';
+  wrap.appendChild(loadStatus);
+  var editorReady=false;
+  scope.disabled=true;save.disabled=true;
   usersRequest('GET','/custom-boxes',null,function(err,data){
     var found=!err&&data&&Array.isArray(data.boxes)?data.boxes.filter(function(x){return String(x.id)===String(def.numeric_id);})[0]:null;
-    var ids=[];if(found&&found.user_ids){try{ids=Array.isArray(found.user_ids)?found.user_ids:JSON.parse(found.user_ids||'[]');}catch(ignore){ids=[];}}
-    scope.value=found&&found.share_mode?found.share_mode:(def.custom_owner_user_id===null?'family':'private');
+    if(err||!found||['private','family','selected'].indexOf(found.share_mode)===-1){
+      loadStatus.textContent=err?'Impossibile caricare la configurazione del box: '+err:'Configurazione del box non trovata o incompleta. Ricarica la dashboard e riprova.';
+      loadStatus.hidden=false;
+      return;
+    }
+    var ids=[];if(found.user_ids){try{ids=Array.isArray(found.user_ids)?found.user_ids:JSON.parse(found.user_ids||'[]');}catch(ignore){ids=[];}}
+    scope.value=found.share_mode;
+    assignment.checked=!!found.assignment_enabled;
+    scope.disabled=false;
+    editorReady=true;save.disabled=false;loadStatus.hidden=true;
     renderCustomBoxUserChoices(users,ids,function(){positionCustomBoxPanel(panel,anchorRect);});updateUsers();
     positionCustomBoxPanel(panel,anchorRect);
      usersRequest('GET','/custom-boxes/'+def.numeric_id+'/permissions',null,function(permissionErr,permissionData){
@@ -11314,6 +11327,7 @@ function openCustomBoxEditor(def, anchor){
     });
  });
   save.onclick=function(){
+    if(!editorReady){alert('La configurazione del box non è stata caricata. Ricarica la dashboard prima di modificare il box.');return;}
     var title=name.value.trim();if(!title){alert('Inserisci il nome del box.');name.focus();return;}
     var payload={title:title,assignment_enabled:scope.value!=='private'&&assignment.checked,scope:scope.value,user_ids:scope.value==='selected'?customBoxSelectedUserIds(users):[],view_id:currentView};
     if(scope.value==='selected'&&!payload.user_ids.length){alert('Seleziona almeno un utente.');return;}
