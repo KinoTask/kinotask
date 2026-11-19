@@ -11266,7 +11266,7 @@ function openCustomBoxEditor(def, anchor){
   wrap.appendChild(loadStatus);
   var editorReady=false;
   scope.disabled=true;save.disabled=true;
-  usersRequest('GET','/custom-boxes',null,function(err,data){
+  usersRequest('GET','/custom-boxes?viewId='+encodeURIComponent(String(currentView)),null,function(err,data){
     var found=!err&&data&&Array.isArray(data.boxes)?data.boxes.filter(function(x){return String(x.id)===String(def.numeric_id);})[0]:null;
     if(err||!found||['private','family','selected'].indexOf(found.share_mode)===-1){
       loadStatus.textContent=err?'Impossibile caricare la configurazione del box: '+err:'Configurazione del box non trovata o incompleta. Ricarica la dashboard e riprova.';
