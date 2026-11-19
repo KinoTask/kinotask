@@ -11010,7 +11010,7 @@ function openAddBoxPanel(anchor){
       }
       create.disabled=false;
       if(!data.box){alert("Creazione non riuscita.");return;}
-      finishCustomBoxCreation(data.box,true);
+      finishCustomBoxCreation(data.box,!data.reused);
     });
   };
   function collectCreateGrantPayload(){
