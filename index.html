@@ -13227,7 +13227,8 @@ function renderViewSwitcher(){
     addBoxAction.type="button";
     addBoxAction.onclick=function(ev){
       if(ev){ev.preventDefault();ev.stopPropagation();}
-      setHidden(layoutMenu,true);
+      /* openAddBoxPanel acquisisce prima le coordinate del pulsante e poi
+         chiude il menu: non nasconderlo qui, altrimenti il rect vale zero. */
       openAddBoxPanel(ev.currentTarget);
     };
     layoutMenu.appendChild(addBoxAction);
