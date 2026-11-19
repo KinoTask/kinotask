@@ -5959,8 +5959,10 @@ function buildAgenda(box, events, st, redraw, opts){
   var buckets = [], i, j, n;
 
   box.appendChild(agendaNav(st, redraw));
-  box.appendChild(mk("div", "agenda-period",
-    st.today ? shortDayText(today) : shortDayText(monday) + " – " + shortDayText(start + days - 1)));
+  if(!opts || opts.period !== false){
+    box.appendChild(mk("div", "agenda-period",
+      st.today ? shortDayText(today) : shortDayText(monday) + " – " + shortDayText(start + days - 1)));
+  }
 
   for(i = 0; i < days; i++){ buckets.push([]); }
 
@@ -6018,7 +6020,7 @@ function renderAgenda(){
   setTimes($("agendaTimes"), parseIso(agendaData.generated_at || agendaData.updated_at),
            agendaSyncedAt, agendaErr, 3 * 3600000);
   buildAgenda(box, agendaData.events || [], agendaSt, function(){ safe(renderAgenda); },
-              {tasks: isSharedView(currentView), click: true});
+              {tasks: isSharedView(currentView), click: true, period: false});
 }
 
 function renderUserAgenda(){
