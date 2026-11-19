@@ -10931,7 +10931,6 @@ function openAddBoxPanel(anchor){
   setHidden(shareUsers,scope.value!=="selected");
   scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");assignment.disabled=scope.value==="private";if(assignment.disabled)assignment.checked=false;renderCreateGrantRows();positionCustomBoxPanel(panel,addAnchorRect,true);};
   shareUsers.addEventListener("change",renderCreateGrantRows);
-  renderCreateGrantRows();
   var assignment=document.createElement("input");assignment.type="checkbox";assignment.disabled=scope.value==="private";
   var assignmentLabel=mk("label","","");
   assignmentLabel.style.display="flex";assignmentLabel.style.alignItems="center";assignmentLabel.style.gap="7px";
@@ -10943,6 +10942,8 @@ function openAddBoxPanel(anchor){
   createGrantPanel.appendChild(mk("div","","AUTORIZZAZIONI PER GLI UTENTI CONDIVISI"));
   var createGrantRows=mk("div","custom-box-create-permission-rows","");createGrantPanel.appendChild(createGrantRows);
   createGrantPanel.hidden=true;wrap.appendChild(createGrantPanel);
+  /* Inizializza le autorizzazioni solo dopo aver creato il relativo pannello. */
+  renderCreateGrantRows();
   var createGrantCapabilities=[
     ["can_edit_box","Modificare il box"],
     ["can_add_tasks","Aggiungere attività"],
