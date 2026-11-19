@@ -11070,7 +11070,9 @@ function openAddBoxPanel(anchor){
     /* I box standard vengono caricati senza dipendere dall'API dei custom.
        "both" significa disponibile sia nelle viste condivise sia personali. */
     var standardCandidates=(DASHBOARD_BOXES||[]).filter(function(b){
-      if(!b || b.custom_family_id || Number(b.can_add_to_layout)!==1 || present[b.id])return false;
+      /* Appunti è un'azione globale nella toolbar, non un box di layout. */
+      if(!b || b.id==="handwrittenNotes" || b.element_id==="handwrittenNotesBox" ||
+         b.custom_family_id || Number(b.can_add_to_layout)!==1 || present[b.id])return false;
       return String(b.view_type)==="both" || String(b.view_type)===String(view.view_type);
     });
     standardCandidates.forEach(appendAvailableBox);
