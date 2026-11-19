@@ -9933,19 +9933,26 @@ function dashboardPointerUp(ev){
 }
 function showCustomBoxRemovalChoice(callback){
   var overlay=document.createElement("div");
-  overlay.style.cssText="position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.45);";
+  overlay.className="overlay";
   var panel=document.createElement("div");
-  panel.style.cssText="box-sizing:border-box;width:100%;max-width:390px;padding:18px;background:#fff;border:2px solid #000;border-radius:6px;color:#000;font:16px/1.4 Arial,sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.25);";
+  panel.className="panel";
+  panel.style.maxWidth="420px";
+  panel.style.margin="10vh auto";
+  var header=document.createElement("div");
+  header.className="overlay-head";
+  var title=document.createElement("h2");
+  title.textContent="NASCONDERE SOLO IN QUESTA VISTA?";
+  header.appendChild(title);
   var message=document.createElement("div");
-  message.style.cssText="white-space:pre-line;font-weight:bold;margin-bottom:18px;";
-  message.textContent="NASCONDERE SOLO IN QUESTA VISTA?\\n\\nIl box sparirà soltanto dalla vista corrente.\\n\\nSÌ: nascondi in questa vista.\\nNO: archivia per tutta la famiglia.\\nANNULLA: non fare nulla.";
+  message.className="overlay-details";
+  message.style.marginBottom="16px";
+  message.textContent="Il box sparirà soltanto dalla vista corrente.\n\nSÌ: nascondi in questa vista.\nNO: archivia per tutta la famiglia.\nANNULLA: non fare nulla.";
   var actions=document.createElement("div");
-  actions.style.cssText="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;";
+  actions.style.textAlign="right";
   function addChoice(label,value){
     var button=document.createElement("button");
     button.type="button";
     button.textContent=label;
-    button.style.cssText="margin:0;padding:8px 12px;border:1px solid #000;background:"+(value==="cancel"?"#fff":"#000")+";color:"+(value==="cancel"?"#000":"#fff")+";font: bold 14px Arial,sans-serif;";
     button.onclick=function(){
       if(overlay.parentNode)overlay.parentNode.removeChild(overlay);
       callback(value);
@@ -9955,6 +9962,7 @@ function showCustomBoxRemovalChoice(callback){
   addChoice("SÌ","hide");
   addChoice("NO","archive");
   addChoice("ANNULLA","cancel");
+  panel.appendChild(header);
   panel.appendChild(message);
   panel.appendChild(actions);
   overlay.appendChild(panel);
