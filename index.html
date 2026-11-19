@@ -11081,6 +11081,7 @@ function openAddBoxPanel(anchor){
         customData.boxes.forEach(function(box){activeCustom[String(box.box_id)]=true;});
         var customCandidates=(DASHBOARD_BOXES||[]).filter(function(b){
           return b && b.custom_family_id && Number(b.can_add_to_layout)===1 &&
+            (String(b.view_type)==="both" || String(b.view_type)===String(view.view_type)) &&
             !present[b.id] && Number(b.available_to_user)===1 &&
             !!activeCustom[String(b.id)];
         });
