@@ -11222,9 +11222,13 @@ function openCustomBoxEditor(def, anchor){
       (permissionData.users||[]).forEach(function(user){
         if(String(user.id)===String(def.custom_owner_user_id))return;
         var existing=(permissionData.permissions||[]).filter(function(x){return Number(x.user_id)===Number(user.id);})[0]||{};
-        var section=mk('div','custom-box-permission-user','');
+        var section=document.createElement('details');
+        section.className='custom-box-permission-user';
         section.style.padding='7px 0';section.style.borderBottom='1px solid #e5e5e5';
-        section.appendChild(mk('div','',''+user.name));
+        var summary=document.createElement('summary');
+        summary.textContent=user.name;
+        summary.style.cursor='pointer';summary.style.fontWeight='bold';summary.style.padding='3px 0';
+        section.appendChild(summary);
         var inputs={};
         capabilityLabels.forEach(function(cap){
           var label=mk('label','','');label.style.display='flex';label.style.alignItems='center';label.style.gap='6px';label.style.margin='3px 0';
