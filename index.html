@@ -10942,8 +10942,6 @@ function openAddBoxPanel(anchor){
   createGrantPanel.appendChild(mk("div","","AUTORIZZAZIONI PER GLI UTENTI CONDIVISI"));
   var createGrantRows=mk("div","custom-box-create-permission-rows","");createGrantPanel.appendChild(createGrantRows);
   createGrantPanel.hidden=true;wrap.appendChild(createGrantPanel);
-  /* Inizializza le autorizzazioni solo dopo aver creato il relativo pannello. */
-  renderCreateGrantRows();
   var createGrantCapabilities=[
     ["can_edit_box","Modificare il box"],
     ["can_add_tasks","Aggiungere attività"],
@@ -10974,6 +10972,8 @@ function openAddBoxPanel(anchor){
     });
     positionCustomBoxPanel(panel,addAnchorRect,true);
   }
+  /* Ora pannello, capability e funzione sono tutti inizializzati. */
+  renderCreateGrantRows();
   var create=mk("button","","CREA TASKLIST");create.type="button";
   create.onclick=function(){
     var value=name.value.trim();
