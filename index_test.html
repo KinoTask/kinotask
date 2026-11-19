@@ -5218,6 +5218,14 @@ body.k .view-switcher-personal .view-switcher-button.sel {
   border-color:#b3261e!important;
 }
 
+/* La vista personale selezionata resta arancione anche nello stato attivo del menu. */
+#viewMenuPanel button.user-profile-button.sel:not(.logged-in-family) {
+  background:var(--kt-orange)!important;
+  background-color:var(--kt-orange)!important;
+  color:#000!important;
+  border-color:var(--kt-orange)!important;
+}
+
 </style>
 
 </head>
@@ -13683,8 +13691,8 @@ function initBoxRefresh() {
 	button.style.top = "-6px";
 	button.style.right = "0";
 	button.style.margin = "0";
-    button.style.padding = "0 2px";
-    button.style.fontSize = "20px";
+    button.style.padding = "0 1px";
+    button.style.fontSize = "14px";
     button.style.lineHeight = "1";
     button.style.background = "transparent";
     button.style.border = "none";
