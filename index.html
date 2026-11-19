@@ -10959,9 +10959,16 @@ function openAddBoxPanel(anchor){
     }
     createGrantPanel.hidden=scope.value==="private"||!eligible.length;
     eligible.forEach(function(user){
-      var section=mk("div","custom-box-permission-user","");
-      section.style.padding="7px 0";section.style.borderBottom="1px solid #e5e5e5";
-      section.appendChild(mk("div","",user.name));
+      var section=document.createElement("details");
+      section.className="custom-box-permission-user";
+      section.style.padding="7px 0";
+      section.style.borderBottom="1px solid #e5e5e5";
+      var summary=document.createElement("summary");
+      summary.textContent=user.name;
+      summary.style.cursor="pointer";
+      summary.style.fontWeight="bold";
+      summary.style.padding="3px 0";
+      section.appendChild(summary);
       var inputs={};
       createGrantCapabilities.forEach(function(cap){
         var label=mk("label","","");label.style.display="flex";label.style.alignItems="center";label.style.gap="6px";label.style.margin="3px 0";
@@ -11049,7 +11056,9 @@ function openAddBoxPanel(anchor){
     function appendAvailableBox(def){
       var button=mk("button","","+ "+(def.title||def.id));button.type="button";
       button.onclick=function(){
-        var next=dashboardGetSections()||[];
+        /* Elimina le eventuali colonne vuote ereditate dal layout prima
+           di aggiungere la nuova sezione: il backend non accetta colonne vuote. */
+        var next=dashboardCleanupSections(dashboardGetSections()||[]);
         next.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
         dashboardSaveSections(next,function(){
           closeViewMenu();
@@ -11119,7 +11128,7 @@ function renderCustomBoxUserChoices(container, selectedIds, callback){
   container.style.display='none';
   container.style.flexDirection='column';
   container.style.gap='6px';
-  usersRequest('GET','/users',null,function(err,data){
+  usersRequest('GET','/family-users',null,function(err,data){
     if(err||!data||!Array.isArray(data.users)){container.textContent=err||'Impossibile caricare gli utenti.';return;}
     container.style.display='flex';
     var selected={};(selectedIds||[]).forEach(function(id){selected[String(id)]=true;});
