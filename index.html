@@ -10578,18 +10578,6 @@ function renderViewMenu(){
 		}
   }
 
-  // AGGIUNGI BOX: accessibile dal menu hamburger per la vista attualmente selezionata.
-  if(authToken){
-    var addBoxMenuButton = mk("button", "", "+ AGGIUNGI BOX");
-    addBoxMenuButton.type = "button";
-    addBoxMenuButton.classList.add("menu-action-button");
-    addBoxMenuButton.onclick = function(ev){
-      if(ev){ ev.preventDefault(); ev.stopPropagation(); }
-      openAddBoxPanel(ev.currentTarget);
-    };
-    panel.appendChild(addBoxMenuButton);
-  }
-
   // La vecchia voce IMPOSTAZIONI (riorganizzazione layout) è stata rimossa.
 
   // COLLEGAMENTO ALEXA: solo dal profilo famiglia.
@@ -13271,16 +13259,18 @@ function renderViewSwitcher(){
     addBoxAction.style.color="#222";
     addBoxAction.style.cursor="pointer";
 
-    layoutButton.onclick=function(ev){
-      if(ev){ev.preventDefault();ev.stopPropagation();}
-      if(dashboardReorderActive){
-        layoutMenu.hidden=true;
-        toggleDashboardReorder();
-      }else{
-        layoutMenu.hidden=!layoutMenu.hidden;
-      }
-    };
   }
+  /* Il pulsante può essere ricreato anche quando il menu esiste già:
+     ricollega sempre il click, non soltanto alla prima creazione. */
+  layoutButton.onclick=function(ev){
+    if(ev){ev.preventDefault();ev.stopPropagation();}
+    if(dashboardReorderActive){
+      layoutMenu.hidden=true;
+      toggleDashboardReorder();
+    }else{
+      layoutMenu.hidden=!layoutMenu.hidden;
+    }
+  };
   layoutButton.textContent=dashboardReorderActive?"FINE":"LAYOUT";
   var reorderActionButton=$("dashboardReorderButton");
   if(reorderActionButton)reorderActionButton.textContent=dashboardReorderActive?"FINE":"GESTISCI";
