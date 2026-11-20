@@ -9740,6 +9740,18 @@ function buildLayout(view, previewSections){
 
   function appendBox(item,parent){
     var def=findItem(DASHBOARD_BOXES||[],function(x){return String(x.id)===String(item.box_id);});
+    /* Il layout restituisce anche element_id: usalo come chiave di recupero
+       quando box_id proviene da una vecchia associazione o da un ID renderer. */
+    if(!def && item.element_id){
+      def=findItem(DASHBOARD_BOXES||[],function(x){
+        return String(x.element_id||"")===String(item.element_id);
+      });
+    }
+    if(!def){
+      def=findItem(DASHBOARD_BOXES||[],function(x){
+        return String(x.element_id||"")===String(item.box_id);
+      });
+    }
     b=def?$(def.element_id):null;
     /* I box custom sono generati dal catalogo DB, non devono esistere
        come markup statico nell'HTML. */
