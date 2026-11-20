@@ -11526,8 +11526,16 @@ function customTaskAssignControl(def,task){
 function loadCustomBoxTasks(def){
   var list=$("customTasks_"+def.numeric_id);
   if(!list)return;
+  /* I renderer dei box custom vengono inizializzati anche durante il
+     caricamento del catalogo, prima che setView() abbia scelto la vista.
+     Non chiamare l'API con viewId vuoto: il Worker non può determinare
+     quali task mostrare e risponde 404 per i box non accessibili al profilo. */
+  if(!currentView){
+    list.textContent="Caricamento vista...";
+    return;
+  }
   list.textContent="Caricamento...";
-  usersRequest("GET","/custom-boxes/"+def.numeric_id+"/tasks?viewId="+encodeURIComponent(currentView||""),null,function(err,data){
+  usersRequest("GET","/custom-boxes/"+def.numeric_id+"/tasks?viewId="+encodeURIComponent(String(currentView)),null,function(err,data){
     if(err||!data||!data.ok){
       list.textContent=err||(data&&data.error)||"Errore caricamento";
       return;
