@@ -1,33 +1,33 @@
 {
   "available": true,
-  "date": "2026-11-19",
+  "date": "2026-11-20",
   "site": "U003128",
-  "generated_at": "2026-11-20T00:01:02.644022+01:00",
+  "generated_at": "2026-11-21T00:01:01.958933+01:00",
   "plates": [
     {
-      "position": "2432",
-      "dishCode": "P101309",
-      "name": "Passato verdura saporito riso e orzo"
+      "position": "2532",
+      "dishCode": "P10095",
+      "name": "Risotto alla parmigiana"
     },
     {
-      "position": "2433",
-      "dishCode": "P00142",
-      "name": "Formaggio (caciotta biologica)"
+      "position": "2533",
+      "dishCode": "P101307",
+      "name": "Limanda gratinata"
     },
     {
-      "position": "2436",
-      "dishCode": "P01851",
-      "name": "Patate arrosto"
+      "position": "2536",
+      "dishCode": "P101304",
+      "name": "Carote e rape rosse julienne"
     },
     {
-      "position": "2437",
-      "dishCode": "P00006",
-      "name": "Frutta fresca di stagione"
+      "position": "2538",
+      "dishCode": "P01035",
+      "name": "Tortino biologico alla carota"
     },
     {
-      "position": "2439",
-      "dishCode": "P01890",
-      "name": "Pane di farina integrale biologica "
+      "position": "2539",
+      "dishCode": "P01889",
+      "name": "Pane tipo 0"
     }
   ]
 }
