@@ -5581,6 +5581,7 @@ var sunTimesTimer = null;
 
 var shoppingSyncedAt = null;
 var shoppingRefreshTimer = null;
+var routesRefreshTimer = null;
 
 /* ==================================================
    2. UTILITÀ
@@ -6582,7 +6583,7 @@ function schedulePoll(){
       if(!taskBusy){ loadTasks(true); }
     }
     schedulePoll();
-  }, 30000);
+  }, 60000);
 }
 
 /* personal to-do */
@@ -6616,7 +6617,7 @@ function personalTodoConnect() {
     renderPersonalTodo();
 
     if (!personalTodoPollTimer) {
-      personalTodoPollTimer = setInterval(personalTodoPoll, 30000);
+      personalTodoPollTimer = setInterval(personalTodoPoll, 60000);
     }
   });
 }
@@ -13862,7 +13863,12 @@ function startDashboard(preferredView){
 		if(viewHasBox(currentView, "familyShopping")){
 		  safe(loadFamilyShoppingList);
 		}
+	  }, 60000);
+	}
 
+	/* Gli spostamenti mantengono il refresh originale ogni 5 minuti. */
+	if(!routesRefreshTimer){
+	  routesRefreshTimer = setInterval(function(){
 		if(viewHasBox(currentView, "personalRoutes")){
 		  safe(function(){
 			loadRoutes(currentView);
@@ -14279,7 +14285,7 @@ function startHandwrittenNotesUnreadPolling(){
   handwrittenNotesPollStarted = true;
   window.setInterval(function(){
     if(!handwrittenNotesPageOpen) checkHandwrittenNotesUnread(false);
-  }, 15000);
+  }, 60000);
 }
 
 function defaultHandwrittenNoteTitle(){
