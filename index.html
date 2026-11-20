@@ -10165,7 +10165,21 @@ function loadConfiguredViewBoxes(viewConfig){
       var id = String(item.box_id || "");
       if(!id || loaded[id]) continue;
       var def = findItem(boxes, function(box){ return String(box.id) === id; });
+      /* Nel layout v2 alcune righe storiche possono conservare come box_id
+         l'element_id del renderer. Per i box custom risolvi anche tramite
+         element_id, così il renderer non viene saltato silenziosamente. */
+      if(!def){
+        def = findItem(boxes, function(box){
+          return String(box.element_id || "") === id;
+        });
+      }
       var renderer = dashboardBoxRenderer(id, def);
+      if(!def && item.element_id){
+        def = findItem(boxes, function(box){
+          return String(box.element_id || "") === String(item.element_id);
+        });
+        renderer = dashboardBoxRenderer(id, def);
+      }
       if(typeof renderer !== "function") continue;
       loaded[id] = true;
       try { renderer(); }
