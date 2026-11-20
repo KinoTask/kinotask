@@ -10185,13 +10185,26 @@ function loadConfiguredViewBoxes(viewConfig){
           return String(box.element_id || "") === id;
         });
       }
-      var renderer = dashboardBoxRenderer(id, def);
       if(!def && item.element_id){
         def = findItem(boxes, function(box){
           return String(box.element_id || "") === String(item.element_id);
         });
-        renderer = dashboardBoxRenderer(id, def);
       }
+      if(def && def.numeric_id && def.box_key){
+        /* I custom box devono avere il proprio contenitore DOM prima del
+           fetch. Non affidare il caricamento al renderer generico: se il
+           catalogo ha già creato il box nello stash, il renderer può essere
+           saltato da un ID legacy pur essendo presente nel layout attivo. */
+        try {
+          if(!$(def.element_id)) createCustomBoxElement(def);
+          loadCustomBoxTasks(def);
+          loaded[id] = true;
+        } catch(e) {
+          showErr("Errore caricamento box custom " + id + ": " + (e && e.message ? e.message : String(e)));
+        }
+        continue;
+      }
+      var renderer = dashboardBoxRenderer(id, def);
       if(typeof renderer !== "function") continue;
       loaded[id] = true;
       try { renderer(); }
