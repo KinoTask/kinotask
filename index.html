@@ -13177,7 +13177,7 @@ function loadAuthorizedConfig(callback){
     });
 
     DASHBOARD_BOXES = data.boxes.filter(function(box){
-      return box && box.id && box.element_id && box.view_type;
+      return box && box.id && box.view_type;
     });
     updateDashboardBoxTitles();
 
@@ -13477,15 +13477,20 @@ function updateDashboardBoxTitles(){
 
     for(var i = 0; i < DASHBOARD_BOXES.length; i++){
         var box = DASHBOARD_BOXES[i];
-        var container = document.getElementById(box.element_id);
-
-        if(!container){
-            continue;
-        }
-
-        var title = container.querySelector(
+        /* I titoli sono identificati dal box logico, non dall'ID DOM.
+           Cerca prima l'intestazione per box_id, senza dipendere da element_id. */
+        var title = document.querySelector(
             '[data-box-title="' + box.id + '"]'
         );
+
+        if(!title && box.element_id){
+            var container = document.getElementById(box.element_id);
+            if(container){
+                title = container.querySelector(
+                    '[data-box-title="' + box.id + '"]'
+                );
+            }
+        }
 
         if(!title){
             continue;
