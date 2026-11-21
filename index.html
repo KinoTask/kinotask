@@ -10284,6 +10284,9 @@ function setView(view, manual){
   }
 
   loadConfiguredViewBoxes(viewConfig);
+  /* Il layout può aver creato o spostato box dinamici: riallinea i titoli
+     dopo che tutti i contenitori della vista sono effettivamente nel DOM. */
+  updateDashboardBoxTitles();
 
   closeViewMenu();
   scheduleAlign();
@@ -13185,9 +13188,8 @@ function loadAuthorizedConfig(callback){
     });
 
     DASHBOARD_BOXES = data.boxes.filter(function(box){
-      return box && (box.id || box.box_key || box.element_id);
+      return box && (box.id || box.box_key || box.element_key || box.element_id);
     });
-    updateDashboardBoxTitles();
 
     AUTH_PERMISSIONS = Array.isArray(data.permissions)
       ? data.permissions
@@ -13197,6 +13199,7 @@ function loadAuthorizedConfig(callback){
     USERS = data.users.filter(function(u){
       return u && u.id && u.name;
     });
+    updateDashboardBoxTitles();
     DASHBOARD_BOXES.forEach(function(box){
       // Carica il renderer per tutti i box della famiglia: la visibilità
       // viene già filtrata dal dashboard-api in base alla vista consultata.
