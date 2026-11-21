@@ -6343,7 +6343,7 @@ function renderPersonalGlobalTasks(){
     var assigned = false;
 
     for(var j = 0; j < assignees.length; j++){
-      if(Number(assignees[j]) === Number(currentUser.id)){
+      if(String(assignees[j]) === String(currentUser.id)){
         assigned = true;
         break;
       }
