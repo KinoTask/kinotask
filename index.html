@@ -10652,7 +10652,7 @@ function renderViewMenu(){
 		  var profile = sortedProfiles[i];
 
 		  addButton(
-			profile.user_id,
+			profile.view_id,
 			profile.name.charAt(0).toUpperCase() +
 			profile.name.slice(1).toLowerCase()
 		  );
@@ -13957,9 +13957,12 @@ function loadAuthProfiles(callback){
     }
 
 	AUTH_PROFILES = data.profiles.filter(function(p){
-      var id = p ? String(p.user_id || "") : "";
+      var userId = p ? String(p.user_id || "") : "";
+      var viewId = p ? String(p.view_id || "") : "";
+      var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       return p &&
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id) &&
+        uuidPattern.test(userId) &&
+        uuidPattern.test(viewId) &&
         typeof p.name === "string";
     });
 
