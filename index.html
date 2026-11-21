@@ -10212,7 +10212,7 @@ function loadConfiguredViewBoxes(viewConfig){
         }
         continue;
       }
-      var rendererId = def ? String(def.box_key || def.element_id || def.id || id) : id;
+      var rendererId = def ? String(def.element_key || def.box_key || def.element_id || def.id || id) : id;
       var renderer = dashboardBoxRenderer(rendererId, def);
       if(typeof renderer !== "function") continue;
       loaded[id] = true;
@@ -13487,7 +13487,7 @@ function updateDashboardBoxTitles(){
         var box = DASHBOARD_BOXES[i];
         /* I titoli sono identificati dal box logico, non dall'ID DOM.
            Cerca prima l'intestazione per box_id, senza dipendere da element_id. */
-        var titleKeys = [box.id, box.box_key, box.element_id].filter(function(value, index, all){
+        var titleKeys = [box.id, box.box_key, box.element_key, box.element_id].filter(function(value, index, all){
             return value && all.indexOf(value) === index;
         });
         var title = null;
@@ -13569,7 +13569,7 @@ function initBoxRefresh() {
   for(var catalogIndex = 0; catalogIndex < catalog.length; catalogIndex++){
     var catalogBox = catalog[catalogIndex];
     if(!catalogBox || !catalogBox.element_id) continue;
-    var loader = dashboardBoxRenderer(String(catalogBox.id), catalogBox);
+    var loader = dashboardBoxRenderer(String(catalogBox.element_key || catalogBox.box_key || catalogBox.element_id || catalogBox.id), catalogBox);
     if(typeof loader === "function"){
       boxes.push({id:catalogBox.element_id,load:loader});
     }
