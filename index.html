@@ -6813,9 +6813,12 @@ function loadRecurringTasks(silent) {
   }
   api("GET", recurringUrl, null, function(err, data) {
     if (err || !data || !data.days || !Array.isArray(data.definitions)) {
-      if (!silent) setText($("recurringTaskStatus"), "Attività ricorrenti non disponibili: " + (err || "risposta non valida"));
-      setText($("recurringTasksTimes"), "sync error");
-      return;
+      var message = "Attività ricorrenti non disponibili: " + (err || "risposta non valida");
+       recurringReady = false;
+       setText($("recurringTaskList"), message);
+       setText($("recurringTaskStatus"), "");
+       setText($("recurringTasksTimes"), "sync error");
+       return;
     }
     recurringTasksDays = data.days;
     recurringDefinitions = data.definitions;
