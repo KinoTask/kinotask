@@ -10212,7 +10212,7 @@ function loadConfiguredViewBoxes(viewConfig){
         }
         continue;
       }
-      var rendererId = def ? String(def.box_key || def.id || id) : id;
+      var rendererId = def ? String(def.box_key || def.element_id || def.id || id) : id;
       var renderer = dashboardBoxRenderer(rendererId, def);
       if(typeof renderer !== "function") continue;
       loaded[id] = true;
