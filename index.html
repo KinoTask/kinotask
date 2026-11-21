@@ -10180,7 +10180,11 @@ function loadConfiguredViewBoxes(viewConfig){
       var item = items[i] || {};
       var id = String(item.box_id || "");
       if(!id || loaded[id]) continue;
-      var def = findItem(boxes, function(box){ return String(box.id) === id; });
+      var def = findItem(boxes, function(box){
+        return String(box.id || "") === id ||
+          String(box.box_key || "") === id ||
+          String(box.element_id || "") === id;
+      });
       /* Nel layout v2 alcune righe storiche possono conservare come box_id
          l'element_id del renderer. Per i box custom risolvi anche tramite
          element_id, così il renderer non viene saltato silenziosamente. */
@@ -10208,7 +10212,8 @@ function loadConfiguredViewBoxes(viewConfig){
         }
         continue;
       }
-      var renderer = dashboardBoxRenderer(id, def);
+      var rendererId = def ? String(def.box_key || def.id || id) : id;
+      var renderer = dashboardBoxRenderer(rendererId, def);
       if(typeof renderer !== "function") continue;
       loaded[id] = true;
       try { renderer(); }
@@ -13180,7 +13185,7 @@ function loadAuthorizedConfig(callback){
     });
 
     DASHBOARD_BOXES = data.boxes.filter(function(box){
-      return box && box.id && box.view_type;
+      return box && (box.id || box.box_key || box.element_id);
     });
     updateDashboardBoxTitles();
 
@@ -13482,16 +13487,19 @@ function updateDashboardBoxTitles(){
         var box = DASHBOARD_BOXES[i];
         /* I titoli sono identificati dal box logico, non dall'ID DOM.
            Cerca prima l'intestazione per box_id, senza dipendere da element_id. */
-        var title = document.querySelector(
-            '[data-box-title="' + box.id + '"]'
-        );
-
+        var titleKeys = [box.id, box.box_key, box.element_id].filter(function(value, index, all){
+            return value && all.indexOf(value) === index;
+        });
+        var title = null;
+        for(var tk = 0; tk < titleKeys.length && !title; tk++){
+            title = document.querySelector('[data-box-title="' + titleKeys[tk] + '"]');
+        }
         if(!title && box.element_id){
             var container = document.getElementById(box.element_id);
             if(container){
-                title = container.querySelector(
-                    '[data-box-title="' + box.id + '"]'
-                );
+                for(var tk2 = 0; tk2 < titleKeys.length && !title; tk2++){
+                    title = container.querySelector('[data-box-title="' + titleKeys[tk2] + '"]');
+                }
             }
         }
 
