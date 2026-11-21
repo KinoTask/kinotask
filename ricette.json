@@ -1,44 +1,44 @@
 {
-  "generated_at": "2026-11-21T00:01:01.958933+01:00",
+  "generated_at": "2026-11-22T00:01:02.381849+01:00",
   "site": "U003128",
   "siteType": "02",
   "menus": {
-    "2026-11-20": {
-      "P10095": {
-        "dishCode": "P10095",
-        "name": "Risotto alla parmigiana",
+    "2026-11-23": {
+      "P102032": {
+        "dishCode": "P102032",
+        "name": "Gnocchi al pomodoro ",
         "alternative": 40,
         "label": "Ricetta Infanzia",
         "photo": "band",
         "ingredients": [
           {
-            "name": "RISO",
-            "quantity": "50",
+            "name": "GNOCCHI",
+            "quantity": "130",
+            "unit": "Gr"
+          },
+          {
+            "name": "POLPA DI POMODORO",
+            "quantity": "33",
+            "unit": "Gr"
+          },
+          {
+            "name": "CAROTE",
+            "quantity": "3,3",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "3,6",
             "unit": "Gr"
           },
           {
             "name": "PARMIGIANO REGGIANO",
-            "quantity": "9",
-            "unit": "Gr"
-          },
-          {
-            "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "2,1",
-            "unit": "Gr"
-          },
-          {
-            "name": "ESTRATTO PER BRODO VEGETALE",
-            "quantity": "2,1",
-            "unit": "Gr"
-          },
-          {
-            "name": "BURRO",
-            "quantity": "1,8",
+            "quantity": "3",
             "unit": "Gr"
           },
           {
             "name": "CIPOLLE",
-            "quantity": "1,1",
+            "quantity": "2,8",
             "unit": "Gr"
           },
           {
@@ -48,55 +48,85 @@
           }
         ]
       },
-      "P101307": {
-        "dishCode": "P101307",
-        "name": "Limanda gratinata",
+      "P100571": {
+        "dishCode": "P100571",
+        "name": "Burger con legumi con maionese 100% vegetale biologica",
         "alternative": 40,
         "label": "Ricetta Infanzia",
         "photo": "band",
         "ingredients": [
           {
-            "name": "LIMANDA",
-            "quantity": "70",
+            "name": "PATATE",
+            "quantity": "11,95",
+            "unit": "Gr"
+          },
+          {
+            "name": "ASIAGO E/O CACIOTTA BIOLOGICA",
+            "quantity": "6,72",
+            "unit": "Gr"
+          },
+          {
+            "name": "LENTICCHIE SECCHE DECORTICATE",
+            "quantity": "7,13",
             "unit": "Gr"
           },
           {
             "name": "PANE GRATTUGIATO",
-            "quantity": "5,3",
+            "quantity": "4,98",
             "unit": "Gr"
           },
-          {
-            "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "3,5",
-            "unit": "Gr"
-          },
-          {
-            "name": "SALE IODATO",
-            "quantity": "0,2",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P101304": {
-        "dishCode": "P101304",
-        "name": "Carote e rape rosse julienne",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
           {
             "name": "CAROTE",
-            "quantity": "19,5",
+            "quantity": "3,32",
             "unit": "Gr"
           },
           {
-            "name": "RAPA ROSSA",
-            "quantity": "15",
+            "name": "CIPOLLE",
+            "quantity": "2,32",
+            "unit": "Gr"
+          },
+          {
+            "name": "PARMIGIANO REGGIANO",
+            "quantity": "2,16",
             "unit": "Gr"
           },
           {
             "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "3,4",
+            "quantity": "1,99",
+            "unit": "Gr"
+          },
+          {
+            "name": "UOVA BIOLOGICHE",
+            "quantity": "1,49",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALE IODATO",
+            "quantity": "0,2",
+            "unit": "Gr"
+          },
+          {
+            "name": "MAIONESE 100% VEGETALE BIOLOGICA",
+            "quantity": "10",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P01887": {
+        "dishCode": "P01887",
+        "name": "Finocchi in insalata",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "FINOCCHI",
+            "quantity": "32",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "3,6",
             "unit": "Gr"
           },
           {
@@ -106,16 +136,16 @@
           }
         ]
       },
-      "P01035": {
-        "dishCode": "P01035",
-        "name": "Tortino biologico alla carota",
+      "P00005": {
+        "dishCode": "P00005",
+        "name": "Frutta fresca di stagione",
         "alternative": 40,
         "label": "Ricetta Infanzia",
         "photo": "band",
         "ingredients": [
           {
-            "name": "TORTINO BIOLOGICO ALLA CAROTA",
-            "quantity": "45",
+            "name": "PERA",
+            "quantity": "145",
             "unit": "Gr"
           }
         ]
