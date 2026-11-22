@@ -11072,6 +11072,20 @@ function openAddBoxPanel(anchor){
   name.type="text";name.placeholder="Nome della tasklist";name.maxLength=80;
   name.style.width="100%";name.style.boxSizing="border-box";name.style.padding="9px";
   wrap.appendChild(name);
+  var boxKind=document.createElement("select");
+  boxKind.style.width="100%";boxKind.style.padding="9px";
+  [["tasklist","Tasklist personalizzata"],["weekly_dates","Calendario date settimanali"]].forEach(function(item){var opt=document.createElement("option");opt.value=item[0];opt.textContent=item[1];boxKind.appendChild(opt);});
+  wrap.appendChild(boxKind);
+  var weekdaysPanel=mk("div","custom-weekly-days","");
+  weekdaysPanel.style.display="none";weekdaysPanel.style.flexWrap="wrap";weekdaysPanel.style.gap="8px";
+  var weekdayChecks=[];
+  ["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"].forEach(function(day,index){
+    var label=mk("label","","");label.style.display="flex";label.style.alignItems="center";label.style.gap="4px";
+    var check=document.createElement("input");check.type="checkbox";check.value=String((index+1)%7);weekdayChecks.push(check);
+    label.appendChild(check);label.appendChild(document.createTextNode(day));weekdaysPanel.appendChild(label);
+  });
+  wrap.appendChild(weekdaysPanel);
+  boxKind.onchange=function(){weekdaysPanel.style.display=boxKind.value==="weekly_dates"?"flex":"none";assignmentLabel.hidden=boxKind.value==="weekly_dates";positionCustomBoxPanel(panel,addAnchorRect,true);};
   var scope=document.createElement("select");
   scope.style.width="100%";scope.style.padding="9px";
   [['family','Condivisa con tutta la famiglia'],['selected','Condivisa con utenti specifici'],['private','Privata']].forEach(function(item){var opt=document.createElement("option");opt.value=item[0];opt.textContent=item[1];scope.appendChild(opt);});
@@ -11131,14 +11145,16 @@ function openAddBoxPanel(anchor){
   }
   /* Ora pannello, capability e funzione sono tutti inizializzati. */
   renderCreateGrantRows();
-  var create=mk("button","","CREA TASKLIST");create.type="button";
+  var create=mk("button","","CREA BOX");create.type="button";
   create.onclick=function(){
     var value=name.value.trim();
     if(!value){alert("Inserisci il nome della tasklist.");name.focus();return;}
     create.disabled=true;
     var selectedIds=scope.value==="selected"?customBoxSelectedUserIds(shareUsers):[];
     if(scope.value==="selected"&&!selectedIds.length){alert("Seleziona almeno un utente.");return;}
-    var payload={title:value,view_id:currentView,assignment_enabled:scope.value!=="private"&&assignment.checked,scope:scope.value,user_ids:selectedIds};
+    var selectedWeekdays=weekdayChecks.filter(function(check){return check.checked;}).map(function(check){return Number(check.value);});
+    if(boxKind.value==="weekly_dates"&&!selectedWeekdays.length){alert("Seleziona almeno un giorno della settimana.");create.disabled=false;return;}
+    var payload={title:value,view_id:currentView,box_kind:boxKind.value,weekdays:selectedWeekdays,assignment_enabled:boxKind.value!=="weekly_dates"&&scope.value!=="private"&&assignment.checked,scope:scope.value,user_ids:selectedIds};
     usersRequest("POST","/custom-boxes",payload,function(err,data){
       if(err||!data||!data.ok){create.disabled=false;alert(err||(data&&data.error)||"Creazione non riuscita.");return;}
       if(data.needs_confirmation){
@@ -11160,7 +11176,12 @@ function openAddBoxPanel(anchor){
       }
       create.disabled=false;
       if(!data.box){alert("Creazione non riuscita.");return;}
-      finishCustomBoxCreation(data.box,!data.reused);
+      if(boxKind.value==="weekly_dates"){
+        usersRequest("PUT","/custom-boxes/"+data.box.id+"/weekly-dates",{weekdays:payload.weekdays},function(ruleErr,ruleData){
+          if(ruleErr||!ruleData||!ruleData.ok){alert(ruleErr||(ruleData&&ruleData.error)||"Box creato, ma regola settimanale non salvata.");}
+          finishCustomBoxCreation(data.box,!data.reused);
+        });
+      }else finishCustomBoxCreation(data.box,!data.reused);
     });
   };
   function collectCreateGrantPayload(){
@@ -11173,7 +11194,7 @@ function openAddBoxPanel(anchor){
     return payload;
   }
   function finishCustomBoxCreation(box,saveGrants){
-      var def={id:box.box_id,element_id:box.element_id,title:box.title,view_type:(findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(currentView);})||{}).view_type||"shared",custom_box_id:box.id,box_key:box.box_key,custom_family_id:box.family_id,custom_owner_user_id:box.owner_user_id,assignment_enabled:box.assignment_enabled,share_mode:box.share_mode,user_ids:box.user_ids||[],can_add_to_layout:1};
+      var def={id:box.box_id,element_id:box.element_id,title:box.title,box_kind:box.box_kind||payload.box_kind||"tasklist",view_type:(findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(currentView);})||{}).view_type||"shared",custom_box_id:box.id,box_key:box.box_key,custom_family_id:box.family_id,custom_owner_user_id:box.owner_user_id,assignment_enabled:box.assignment_enabled,share_mode:box.share_mode,user_ids:box.user_ids||[],can_add_to_layout:1};
       function refresh(){
         DASHBOARD_BOXES.push(def);
         closeViewMenu();
@@ -11526,7 +11547,72 @@ function createCustomBoxElement(def){
 
   var stash=$("stash");
   if(stash)stash.appendChild(box);
-  loadCustomBoxTasks(def);
+  if(def.box_kind==="weekly_dates")loadWeeklyDateCalendar(def);else loadCustomBoxTasks(def);
+}
+
+
+function loadWeeklyDateCalendar(def){
+  var host=$("customTasks_"+def.custom_box_id);if(!host)return;
+  if(!currentView){host.textContent="Caricamento vista...";return;}
+  var offset=0,canEdit=false,weekdays=[],entries=[];
+  function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+  function monday(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-(x.getDay()+6)%7);return x;}
+  function shift(d,n){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x;}
+  function label(d){return d.toLocaleDateString("it-IT",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});}
+  function load(){
+    var today=monday(new Date()),start=shift(today,(offset-2)*7),end=shift(start,34);
+    host.textContent="Caricamento calendario...";
+    usersRequest("GET","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView)+"&from="+iso(start)+"&to="+iso(end),null,function(err,data){
+      if(err||!data||!data.ok){host.textContent=err||(data&&data.error)||"Errore caricamento calendario";return;}
+      weekdays=data.weekdays||[];entries=data.entries||[];canEdit=!!(data.permissions&&data.permissions.can_edit_box);render(start,end);
+    });
+  }
+  function render(start,end){
+    clear(host);
+    var nav=mk("div","weekly-date-nav","");
+    nav.style.display="flex";nav.style.gap="4px";nav.style.justifyContent="space-between";nav.style.margin="5px 0 10px";
+    [-2,-1,0,1,2].forEach(function(n){
+      var b=mk("button","",n===0?"OGGI":(n<0?"−"+Math.abs(n):"+"+n));b.type="button";b.style.flex="1";b.style.padding="7px 2px";b.disabled=n===0;
+      b.onclick=function(){offset+=n;load();};nav.appendChild(b);
+    });
+    host.appendChild(nav);
+    var rule=mk("div","small","Ricorrenza: "+(weekdays.length?weekdays.map(function(d){return ["dom","lun","mar","mer","gio","ven","sab"][d];}).join(", "):"nessun giorno configurato"));
+    host.appendChild(rule);
+    var map={};entries.forEach(function(e){map[e.source_date]=e;});
+    var rows=[];
+    for(var d=new Date(start);d<=end;d=shift(d,1)){
+      var key=iso(d),dow=d.getDay(),ex=map[key];
+      if(ex&&ex.entry_type==="excluded")continue;
+      if(ex&&ex.entry_type==="override"){rows.push({source:key,date:ex.entry_date,entry:ex});continue;}
+      if(ex&&ex.entry_type==="extra"){rows.push({source:key,date:ex.entry_date,entry:ex});continue;}
+      if(weekdays.indexOf(dow)!==-1)rows.push({source:key,date:key,entry:ex||null});
+    }
+    entries.forEach(function(e){if(e.entry_type==="extra"&&!rows.some(function(r){return r.source===e.source_date;}))rows.push({source:e.source_date,date:e.entry_date,entry:e});});
+    rows.sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
+    rows.forEach(function(row){
+      var d=new Date(row.date+"T12:00:00"),entry=row.entry||{},line=mk("div","weekly-date-row","");
+      line.style.display="flex";line.style.alignItems="center";line.style.gap="8px";line.style.padding="7px 2px";line.style.borderBottom="1px solid #ddd";
+      var check=document.createElement("input");check.type="checkbox";check.checked=!!entry.done;check.disabled=!canEdit;
+      check.onchange=function(){usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates",{date:row.date,done:check.checked},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Salvataggio non riuscito");load();}else load();});};
+      line.appendChild(check);
+      var dateText=mk("span","","");dateText.style.flex="1";dateText.textContent=label(d);line.appendChild(dateText);
+      if(entry.completed_by_name){var who=mk("span","small",String(entry.completed_by_name).toUpperCase());line.appendChild(who);}
+      if(canEdit){
+        var edit=mk("button","","✎");edit.type="button";edit.title="Sposta questa data";
+        edit.onclick=function(){var next=prompt("Nuova data (AAAA-MM-GG)",row.date);if(!next)return;if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(next)){alert("Formato data non valido");return;}usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_date:next,entry_type:"override"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
+        line.appendChild(edit);
+        var exclude=mk("button","","×");exclude.type="button";exclude.title="Escludi questa data";
+        exclude.onclick=function(){if(!confirm("Escludere questa data?"))return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_type:"excluded"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
+        line.appendChild(exclude);
+      }
+      host.appendChild(line);
+    });
+    if(canEdit){
+      var add=mk("button","","+ AGGIUNGI DATA");add.type="button";add.style.marginTop="9px";
+      add.onclick=function(){var value=prompt("Data aggiuntiva (AAAA-MM-GG)");if(!value)return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Data non aggiunta");load();});};host.appendChild(add);
+    }
+  }
+  load();
 }
 
 function customTaskAssignControl(def,task){
