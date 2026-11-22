@@ -5079,6 +5079,14 @@ body.k #dashboardToolbar #dashboardToolbarActions {
   align-items:center!important;
   min-height:30px!important;
 }
+/* Su Kindle il layout è fisso: non mostrare né lasciare raggiungibili i comandi. */
+body.k #dashboardToolbar #dashboardLayoutButton,
+body.k #dashboardToolbar #dashboardLayoutMenu,
+body.k #dashboardToolbar #dashboardAddBoxPanel,
+body.k #dashboardToolbar #dashboardReorderButton,
+body.k #dashboardToolbar #dashboardCancelReorderButton {
+  display:none!important;
+}
 </style>
 
 <style>#dashboardToolbar #dashboardReorderButton{background:#edf4ff;border:1px solid #9bbce5;color:#174a7e;white-space:nowrap;}#dashboardToolbar #dashboardReorderButton[hidden]{display:none!important;}.dashboard-layout-row{width:100%;box-sizing:border-box;}.dashboard-layout-row>.col{margin:0!important;}@media(max-width:800px){#dashboardToolbar #dashboardReorderButton{padding:5px 6px;font-size:11px;}}</style>
@@ -10054,6 +10062,7 @@ function dashboardClearPreview(){
   dashboardBuildLayoutWithFlip(null);
 }
 function dashboardSaveSections(sections,onSuccess,options){
+  if(IS_KINDLE)return;
   options=options||{};
   var activateReorder=options.activateReorder!==false;
   var btn=$("dashboardReorderButton");if(btn){btn.disabled=true;btn.textContent="SALVATAGGIO…";}
@@ -10078,6 +10087,7 @@ function dashboardSaveSections(sections,onSuccess,options){
   });
 }
 function dashboardPointerMove(ev){
+  if(IS_KINDLE)return;
   if(dashboardPointerId===null||ev.pointerId!==dashboardPointerId)return;
   dashboardPointerX=ev.clientX;dashboardPointerY=ev.clientY;
   if(!dashboardPointerDragging){
@@ -10095,6 +10105,7 @@ function dashboardPointerMove(ev){
   }
 }
 function dashboardPointerUp(ev){
+  if(IS_KINDLE)return;
   if(dashboardPointerId===null||ev.pointerId!==dashboardPointerId)return;
   clearTimeout(dashboardPointerTimer);dashboardPointerTimer=null;
   var source=dashboardPointerSource,target=(dashboardPreviewRows&&dashboardPreviewSource===source)?dashboardPreviewTarget:dashboardFindBoxAt(ev.clientX,ev.clientY),dragging=dashboardPointerDragging;
@@ -10192,6 +10203,7 @@ function dashboardRemoveBoxFromLayout(boxEl){
   });
 }
 function applyDashboardReorderMode(){
+  if(IS_KINDLE){dashboardReorderActive=false;dashboardReorderOriginalRows=null;return;}
   var host=dashboardLayoutHost();if(!host)return;
   var boxes=host.querySelectorAll(".dashboard-layout-row .box");
   for(var i=0;i<boxes.length;i++){
@@ -10263,6 +10275,7 @@ function canManageDashboardLayout(viewPermission){
 }
 
 function toggleDashboardReorder(){
+  if(IS_KINDLE)return;
   if(dashboardReorderActive){
     dashboardReorderActive=false;dashboardReorderOriginalRows=null;applyDashboardReorderMode();
     var b=$("dashboardReorderButton");if(b)b.textContent="GESTISCI";var lb=$("dashboardLayoutButton");if(lb)lb.textContent="LAYOUT";var lb=$("dashboardLayoutButton");if(lb)lb.textContent="LAYOUT";
@@ -11166,6 +11179,7 @@ function bindCustomBoxPanelPosition(panel, anchorRect, belowAnchor){
 }
 
 function openAddBoxPanel(anchor){
+  if(IS_KINDLE)return;
   var panel=$("dashboardAddBoxPanel");
   /* Il pannello deve esistere anche quando il menu LAYOUT è già stato
      creato in un rendering precedente o non è accessibile al profilo. */
@@ -11781,7 +11795,7 @@ function loadWeeklyDateCalendar(def){
   var host=$("customTasks_"+def.custom_box_id);if(!host)return;
   if(!currentView){host.textContent="Caricamento vista...";return;}
   var offset=0,showOverdue=false,includeOverdue=true,canEdit=false,canAssign=false,weekdays=[],entries=[];
-  function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+  function iso(d){var month=String(d.getMonth()+1),day=String(d.getDate());return d.getFullYear()+"-"+(month.length<2?"0":"")+month+"-"+(day.length<2?"0":"")+day;}
   function monday(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-(x.getDay()+6)%7);return x;}
   function shift(d,n){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x;}
   function label(d){return d.toLocaleDateString("it-IT",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});}
@@ -11950,7 +11964,10 @@ function loadWeeklyDateCalendar(def){
         if(!value)return;
         if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)||iso(new Date(value+"T12:00:00"))!==value){alert("Inserisci una data valida nel formato AAAA-MM-GG.");return;}
         if(value<iso(start)||value>iso(end)){alert("La data deve rientrare nel periodo degli arretrati visualizzato (massimo 3 mesi, fino a 15 giorni fa).");return;}
-        var existing=entries.find(function(e){return e.source_date===value;});
+        var existing=null;
+        for(var entryIndex=0;entryIndex<entries.length;entryIndex++){
+          if(entries[entryIndex].source_date===value){existing=entries[entryIndex];break;}
+        }
         var day=new Date(value+"T12:00:00").getDay();
         if(existing||weekdays.indexOf(day)!==-1){alert("Per questa data esiste già un'attività nel calendario.");return;}
         addOverdue.disabled=true;
@@ -13805,6 +13822,33 @@ function renderViewSwitcher(){
       };
     })(view.id);
     buttons.appendChild(button);
+  }
+
+  // Kindle: conserva il cambio vista, ma non crea alcun controllo di layout.
+  if(IS_KINDLE){
+    dashboardReorderActive=false;
+    dashboardReorderOriginalRows=null;
+    var layoutControlIds=["dashboardLayoutButton","dashboardLayoutMenu","dashboardAddBoxPanel","dashboardReorderButton","dashboardCancelReorderButton"];
+    for(var li=0;li<layoutControlIds.length;li++){
+      var layoutControl=$(layoutControlIds[li]);
+      if(layoutControl&&layoutControl.parentNode)layoutControl.parentNode.removeChild(layoutControl);
+    }
+    var kindleOrderButton=mk("button","view-switcher-order-button","");
+    var kindleOrderArrow=mk("span","","↔");
+    kindleOrderArrow.style.display="block";
+    kindleOrderArrow.style.lineHeight="1";
+    kindleOrderArrow.style.transform="translateY(-2px)";
+    kindleOrderButton.appendChild(kindleOrderArrow);
+    kindleOrderButton.type="button";
+    kindleOrderButton.title="Ordina le tue viste";
+    kindleOrderButton.setAttribute("aria-label","Ordina le tue viste");
+    kindleOrderButton.onclick=function(ev){
+      if(ev){ev.preventDefault();ev.stopPropagation();}
+      if($("viewOrderPopup"))closeViewOrder();else openViewOrder();
+    };
+    buttons.appendChild(kindleOrderButton);
+    setHidden(bar,false);
+    return;
   }
 
   // Un unico pulsante LAYOUT apre le due azioni di gestione della vista.
