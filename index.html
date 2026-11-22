@@ -642,6 +642,47 @@ input[type=checkbox] {
 .weekly-date-mark { flex:0 0 auto; min-width:76px; margin:0; padding:5px 6px; font-size:.68em; }
 .weekly-date-mark:active { background:#000; color:#fff; }
 body.k .weekly-date-mark { min-width:68px; padding:5px 3px; }
+body.k .weekly-date-nav {
+  flex-wrap:wrap!important;
+  align-items:stretch;
+}
+body.k .weekly-date-nav > button {
+  flex:1 1 28%!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:34px!important;
+  white-space:normal;
+}
+body.k .weekly-date-nav > .weekly-date-overdue-button {
+  flex:1 1 100%!important;
+}
+body.k .weekly-date-row {
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:5px!important;
+}
+body.k .weekly-date-main {
+  flex:1 1 calc(100% - 32px);
+  min-width:0;
+}
+body.k .weekly-date-who {
+  flex:1 1 100%;
+  text-align:left;
+}
+body.k .weekly-date-completed-by {
+  max-width:100%;
+  min-width:0;
+  width:100%;
+}
+body.k .weekly-date-actions {
+  flex:1 1 100%!important;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  margin-left:0;
+}
+body.k .weekly-date-mark {
+  min-width:68px;
+}
 
 /* Attività ricorrenti */
 #recurringTasksBox .recurring-config-button {
@@ -1329,9 +1370,11 @@ body.k .recurring-config-panel {
 /* Contenitore e colonne */
 
 body.k .wrap {
-  /* Silk riserva già lo spazio della scrollbar: lascia soltanto 2px
-     aggiuntivi sul lato destro per evitare una seconda fascia vuota. */
-  padding-right:2px;
+  /* Usa tutto lo spazio disponibile: Silk riserva già il margine della scrollbar. */
+  padding-right:0!important;
+}
+body.k .dashboard-layout-columns > .dashboard-layout-column:last-child > .box {
+  margin-right:0!important;
 }
 
 body.k .col {
@@ -10362,18 +10405,20 @@ function applyDashboardReorderMode(){
   }
 }
 function canManageDashboardLayout(viewPermission){
-  if(!viewPermission || Number(viewPermission.can_edit)!==1)return false;
-  if(String(viewPermission.view_type)==="shared"){
-    for(var i=0;i<(AUTH_PERMISSIONS||[]).length;i++){
-      var permission=AUTH_PERMISSIONS[i];
-      if(permission==="users.manage" || (permission && permission.key==="users.manage"))return true;
+  if(!viewPermission)return false;
+  var isFamilyAdmin=false;
+  for(var i=0;i<(AUTH_PERMISSIONS||[]).length;i++){
+    var permission=AUTH_PERMISSIONS[i];
+    if(permission==="users.manage" || (permission && permission.key==="users.manage")){
+      isFamilyAdmin=true;break;
     }
-    return false;
   }
-  /* Il Worker autorizza il layout in base a auth_profile_views.can_edit.
-     Non restringere ulteriormente al solo owner_user_id: una vista personale
-     può essere associata al profilo tramite users.view_id e avere owner nullo. */
-  return true;
+  if(String(viewPermission.view_type)==="shared"){
+    return Number(viewPermission.can_edit)===1 && isFamilyAdmin;
+  }
+  /* L'amministratore può gestire anche il layout delle viste personali:
+     il Worker applica lo stesso criterio anche al comando di nascondimento. */
+  return Number(viewPermission.can_edit)===1 || isFamilyAdmin;
 }
 
 function toggleDashboardReorder(){
@@ -11915,7 +11960,13 @@ function loadWeeklyDateCalendar(def){
     host.textContent="Caricamento calendario...";
     usersRequest("GET","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView)+"&from="+iso(start)+"&to="+iso(end),null,function(err,data){
       if(err||!data||!data.ok){host.textContent=err||(data&&data.error)||"Errore caricamento calendario";return;}
-      weekdays=data.weekdays||[];entries=data.entries||[];includeOverdue=data.include_overdue!==false;canEdit=!!(data.permissions&&data.permissions.can_edit_box);canAssign=!!(data.permissions&&data.permissions.can_manage_assignments);
+      weekdays=data.weekdays||[];
+      if(typeof weekdays==="string"){try{weekdays=JSON.parse(weekdays||"[]");}catch(ignore){weekdays=[];}}
+      weekdays=Array.isArray(weekdays)?weekdays.map(Number):[];
+      entries=Array.isArray(data.entries)?data.entries:[];
+      includeOverdue=data.include_overdue!==false;
+      canEdit=!!(data.permissions&&data.permissions.can_edit_box);
+      canAssign=!!(data.permissions&&data.permissions.can_manage_assignments);
       var box=$(def.element_id),editButton=box&&box.querySelector(".custom-box-edit");if(editButton)editButton.hidden=!canEdit;
       render(start,end);
     });
@@ -11962,15 +12013,26 @@ function loadWeeklyDateCalendar(def){
     for(var d=new Date(start);d<=end;d=shift(d,1)){
       var key=iso(d),dow=d.getDay(),ex=map[key];
       if(ex&&ex.entry_type==="excluded")continue;
-      if(ex&&ex.entry_type==="override"){if(!showOverdue||!ex.done)rows.push({source:key,date:ex.entry_date,entry:ex});continue;}
-      if(ex&&ex.entry_type==="extra"){if(!showOverdue||!ex.done)rows.push({source:key,date:ex.entry_date,entry:ex});continue;}
+      if(ex&&ex.entry_type==="override"){if(!showOverdue||!ex.done)rows.push({source:key,date:ex.entry_date||key,entry:ex});continue;}
+      if(ex&&ex.entry_type==="extra"){if(!showOverdue||!ex.done)rows.push({source:key,date:ex.entry_date||key,entry:ex});continue;}
       if(weekdays.indexOf(dow)!==-1&&(!showOverdue||!(ex&&ex.done)))rows.push({source:key,date:key,entry:ex||null});
     }
-    entries.forEach(function(e){if((e.entry_type==="extra"||e.entry_type==="override")&&e.entry_date>=iso(start)&&e.entry_date<=iso(end)&&!rows.some(function(r){return r.source===e.source_date;})&&(!showOverdue||!e.done))rows.push({source:e.source_date,date:e.entry_date,entry:e});});
+    entries.forEach(function(e){
+      var entryDate=e.entry_date||e.source_date;
+      if((e.entry_type==="extra"||e.entry_type==="override")&&entryDate>=iso(start)&&entryDate<=iso(end)&&!rows.some(function(r){return r.source===e.source_date;})&&(!showOverdue||!e.done))
+        rows.push({source:e.source_date,date:entryDate,entry:e});
+    });
     rows=rows.filter(function(r){return r.date>=iso(start)&&r.date<=iso(end)&&(!showOverdue||!r.entry||!r.entry.done);});
     rows.sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
     rows.forEach(function(row){
-      var d=new Date(row.date+"T12:00:00"),entry=row.entry||{},line=mk("div","weekly-date-row","");
+      var dateValue=String(row.date||row.source||"");
+      var d=new Date(dateValue+"T12:00:00");
+      if(isNaN(d.getTime())){
+        dateValue=String(row.source||"");
+        d=new Date(dateValue+"T12:00:00");
+      }
+      if(isNaN(d.getTime()))return;
+      var entry=row.entry||{},line=mk("div","weekly-date-row","");
       line.className="weekly-date-row";
       line.style.display="flex";line.style.flexWrap="wrap";line.style.alignItems="center";line.style.gap="8px";line.style.padding="7px 2px";line.style.borderBottom="1px solid #ddd";
       if(entry.done)line.classList.add("is-done");
