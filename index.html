@@ -11667,7 +11667,7 @@ function loadWeeklyDateCalendar(def){
         var whoSelect=document.createElement("select");whoSelect.className="weekly-date-completed-by";whoSelect.title="Seleziona chi ha svolto";
         var placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="Chi ha svolto?";whoSelect.appendChild(placeholder);
         (USERS||[]).forEach(function(user){var option=document.createElement("option");option.value=String(user.id);option.textContent=String(user.name).toUpperCase();if(String(entry.completed_by_user_id||"")===String(user.id))option.selected=true;whoSelect.appendChild(option);});
-        whoSelect.onchange=function(){usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,completed_by_user_id:whoSelect.value||null},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Aggiornamento autore non riuscito");load();}else load();});};
+        whoSelect.onchange=function(){usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,done:true,completed_by_user_id:whoSelect.value},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Aggiornamento autore non riuscito");load();}else load();});};
         whoWrap.appendChild(whoSelect);
       }
       line.appendChild(whoWrap);
