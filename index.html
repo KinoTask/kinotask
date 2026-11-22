@@ -577,6 +577,11 @@ input[type=checkbox] {
 }
 
 
+/* Il calendario settimanale non deve mai esporre il composer delle tasklist,
+   anche se una risposta asincrona di un vecchio renderer arriva in ritardo. */
+[data-custom-box-kind="weekly_dates"] .custom-box-add {
+  display:none!important;
+}
 /* Calendario date: righe e gerarchia visiva coerenti con gli eventi agenda. */
 .weekly-date-row { margin:4px 0; padding:6px 0; }
 .weekly-date-main { display:flex; flex:1 1 auto; min-width:0; flex-direction:column; line-height:1.2; }
