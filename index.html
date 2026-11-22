@@ -12016,24 +12016,16 @@ function customTaskAssignControl(def,task){
   allLabel.appendChild(all);
   allLabel.appendChild(document.createTextNode("Tutti"));
   options.appendChild(allLabel);
-  (USERS||[]).forEach(function(user){
-    var enabled=def.share_mode!=="selected"||sharedIds.indexOf(String(user.id))!==-1;
-    var label=mk("label","todo-assign-option"+(enabled?"":" custom-assign-disabled"));
-    if(!enabled){
-      label.style.color="#999";
-      label.style.opacity="0.55";
-      label.style.cursor="not-allowed";
-      label.title="Utente non abilitato alla condivisione di questo box";
-    }
+  eligibleUsers.forEach(function(user){
+    var label=mk("label","todo-assign-option");
     var check=document.createElement("input");
     check.type="checkbox";
     check.value=String(user.id);
     check.checked=selected.indexOf(String(user.id))!==-1;
-    check.disabled=!enabled;
     label.appendChild(check);
     label.appendChild(document.createTextNode(user.name));
     options.appendChild(label);
-    checks.push({input:check,enabled:enabled});
+    checks.push({input:check,enabled:true});
   });
   function syncAll(){
     var count=0,total=0;
