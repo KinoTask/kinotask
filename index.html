@@ -9994,15 +9994,17 @@ function dashboardClearFlipAnimation(){
    Non usa requestAnimationFrame, così resta compatibile anche con browser datati. */
 function dashboardBuildLayoutWithFlip(sections){
   var host=dashboardLayoutHost(),before={},boxes=[],i,el,id,rect;
-  dashboardClearFlipAnimation();
   if(host){
     boxes=host.querySelectorAll(".dashboard-layout-row .box");
     for(i=0;i<boxes.length;i++){
       el=boxes[i];id=el.id;if(!id)continue;
+      /* Legge la posizione visiva corrente anche se una FLIP precedente è
+         ancora in corso: il movimento successivo parte senza scatti. */
       rect=el.getBoundingClientRect();
       before[id]={left:rect.left,top:rect.top};
     }
   }
+  dashboardClearFlipAnimation();
   buildLayout(currentView,sections);
   if(!host)return;
   boxes=host.querySelectorAll(".dashboard-layout-row .box");
