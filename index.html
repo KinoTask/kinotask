@@ -591,7 +591,7 @@ input[type=checkbox] {
 .weekly-date-mark { min-width:76px; margin:0; padding:5px 6px; font-size:.68em; }
 .weekly-date-controls > button:not(.weekly-date-mark), .weekly-date-notes > button { display:inline-flex; align-items:center; justify-content:center; width:28px; min-width:28px; height:27px; margin:0; padding:2px; }
 .weekly-date-icon { font-size:16px; line-height:1; }
-.weekly-date-notes { display:flex; position:relative; align-items:center; }
+.weekly-date-actions { display:flex; flex:0 0 auto; align-items:center; gap:5px; margin-left:4px; white-space:nowrap; }\n.weekly-date-assignment { display:flex; position:relative; align-items:center; }\n.weekly-date-assignment > button { display:inline-flex; align-items:center; justify-content:center; width:32px; min-width:32px; height:30px; margin:0; padding:2px; font-size:17px; }\n.weekly-date-assignment .todo-assign-menu { position:absolute; top:100%; left:0; z-index:10; width:190px; margin:4px 0 0; }\n.weekly-date-notes { display:flex; position:relative; align-items:center; }\n.weekly-date-notes > button { width:32px; min-width:32px; height:30px; margin:0; padding:2px; font-size:17px; }
 .weekly-date-notes > button.has-notes { font-weight:bold; border-width:2px; }
 .weekly-date-note-panel { position:absolute; z-index:8; top:100%; right:0; padding:5px; background:#fff; border:1px solid #888; border-radius:4px; }
 .weekly-done-menu { position:absolute; z-index:9; top:100%; right:0; left:auto; width:160px; margin:4px 0 0; padding:6px; }
@@ -11594,7 +11594,7 @@ function loadWeeklyDateCalendar(def){
   function shift(d,n){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x;}
   function label(d){return d.toLocaleDateString("it-IT",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});}
   function load(){
-    var today=monday(new Date()),start=shift(today,(offset-2)*7),end=shift(start,34);
+    var today=monday(new Date()),start=shift(today,offset*7),end=shift(start,6);
     host.textContent="Caricamento calendario...";
     usersRequest("GET","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView)+"&from="+iso(start)+"&to="+iso(end),null,function(err,data){
       if(err||!data||!data.ok){host.textContent=err||(data&&data.error)||"Errore caricamento calendario";return;}
@@ -11658,12 +11658,12 @@ function loadWeeklyDateCalendar(def){
       var mark=mk("button","weekly-date-mark",entry.done?"SVOLTO":"SEGNA SVOLTO");mark.type="button";mark.title=entry.done?"Annulla completamento":"Segna la data come completata";
       mark.onclick=function(){check.checked=!check.checked;check.onchange();};line.appendChild(mark);
       if(canEdit||canAssign){
-        var actionWrap=mk("div","weekly-date-actions","");
+        var actionWrap=mk("div","weekly-date-actions","");actionWrap.style.display="flex";actionWrap.style.flex="0 0 auto";actionWrap.style.alignItems="center";actionWrap.style.gap="5px";actionWrap.style.whiteSpace="nowrap";
         if(canAssign){
         var assigned=[];try{assigned=JSON.parse(entry.assigned_user_ids||"[]").map(String);}catch(ignore){assigned=[];}
-        var assignWrap=mk("div","weekly-date-assignment","");
-        var assignButton=mk("button","todo-assign","👥");assignButton.type="button";assignButton.title="Assegna la data";
-        var assignMenu=mk("div","todo-assign-menu","");
+        var assignWrap=mk("div","weekly-date-assignment","");assignWrap.style.display="flex";assignWrap.style.position="relative";assignWrap.style.alignItems="center";
+        var assignButton=mk("button","todo-assign","👥");assignButton.type="button";assignButton.title="Assegna la data";assignButton.style.width="32px";assignButton.style.minWidth="32px";assignButton.style.height="30px";assignButton.style.padding="2px";assignButton.style.margin="0";assignButton.style.fontSize="17px";
+        var assignMenu=mk("div","todo-assign-menu","");assignMenu.style.position="absolute";assignMenu.style.top="100%";assignMenu.style.left="0";assignMenu.style.zIndex="10";assignMenu.style.width="190px";assignMenu.style.margin="4px 0 0";
         assignMenu.appendChild(mk("div","todo-assign-title","Assegna a:"));
         var assignOptions=mk("div","todo-assign-options",""),assignChecks=[];
         (USERS||[]).forEach(function(user){
