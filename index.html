@@ -5567,6 +5567,7 @@ var recurringTasksDays = {};
 var recurringDefinitions = [];
 var recurringReady = false;
 var recurringBusy = false;
+var recurringLoading = false;
 var recurringSel = "oggi";
 var recurringConfigEditingId = null;
 var recurringConfigBusy = false;
@@ -6803,7 +6804,8 @@ function recurringDateKey(sel) {
 }
 
 function loadRecurringTasks(silent) {
-  if (!authToken) return;
+  if (!authToken || recurringLoading) return;
+  recurringLoading = true;
   if (!silent) setText($("recurringTaskStatus"), "Caricamento...");
   var date = recurringDateKey(recurringSel);
   var recurringUrl = "?list=recurring-tasks&date=" + encodeURIComponent(date);
@@ -6812,6 +6814,7 @@ function loadRecurringTasks(silent) {
     recurringUrl += "&view=" + encodeURIComponent(currentView);
   }
   api("GET", recurringUrl, null, function(err, data) {
+    recurringLoading = false;
     if (err || !data || !data.days || !Array.isArray(data.definitions)) {
       var message = "Attività ricorrenti non disponibili: " + (err || "risposta non valida");
       if (!silent) setText($("recurringTaskStatus"), message);
@@ -7570,6 +7573,7 @@ function renderRoutes(){
    ================================================== */
 
 var familyShoppingBusy = false;
+var familyShoppingLoading = false;
 
 function familyShoppingRequest(method, path, payload, done) {
   var x = new XMLHttpRequest();
@@ -7589,6 +7593,7 @@ function familyShoppingRequest(method, path, payload, done) {
 }
 
 function loadFamilyShoppingList() {
+  if (familyShoppingLoading) return;
   var list = $("familyShoppingList");
   if (!list) return;
   if (!authToken || !currentView) {
@@ -7596,11 +7601,13 @@ function loadFamilyShoppingList() {
     return;
   }
 
+  familyShoppingLoading = true;
   familyShoppingRequest(
     "GET",
     "/shopping?view_id=" + encodeURIComponent(currentView),
     null,
     function(ok, data) {
+      familyShoppingLoading = false;
       list = $("familyShoppingList");
       if (!list) return;
       if (!ok) {
@@ -10292,6 +10299,17 @@ function setView(view, manual){
   }
 
   loadConfiguredViewBoxes(viewConfig);
+
+  /* Fallback esplicito per i due box alimentati da Worker dedicati.
+     Il layout D1 può risolvere il contenitore DOM anche quando una vecchia
+     associazione non viene riconosciuta dal renderer generico. */
+  var activeHost = personal ? $("personalView") : $("dashboardContent");
+  function isMountedInActiveView(el){
+    while(el && el !== activeHost) el = el.parentNode;
+    return el === activeHost;
+  }
+  if(isMountedInActiveView($("familyShoppingBox"))) safe(loadFamilyShoppingList, "loadFamilyShoppingList");
+  if(isMountedInActiveView($("recurringTasksBox"))) safe(loadRecurringTasks, "loadRecurringTasks");
 
   closeViewMenu();
   scheduleAlign();
