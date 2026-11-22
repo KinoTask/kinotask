@@ -11700,7 +11700,7 @@ function loadWeeklyDateCalendar(def){
       var who=mk("span","weekly-date-who",entry.done?(String(entry.completed_by_name||"Completato").toUpperCase()):"DA FARE");line.appendChild(who);
       var mark=mk("button","weekly-date-mark",entry.done?"SVOLTO":"SEGNA SVOLTO");mark.type="button";mark.title=entry.done?"Annulla completamento":"Segna la data come completata";
       mark.onclick=function(){check.checked=!check.checked;check.onchange();};line.appendChild(mark);
-      if(canEdit){
+      if(canEdit||canAssign){
         if(canAssign){
         var assigned=[];try{assigned=JSON.parse(entry.assigned_user_ids||"[]").map(String);}catch(ignore){assigned=[];}
         var assignWrap=mk("div","weekly-date-assignment","");assignWrap.style.flex="1 0 100%";
@@ -11729,12 +11729,14 @@ function loadWeeklyDateCalendar(def){
         };
         assignWrap.appendChild(assignButton);assignWrap.appendChild(assignMenu);line.appendChild(assignWrap);
         }
+        if(canEdit){
         var note=mk("div","weekly-date-notes","");note.style.flex="1 0 100%";
         var noteInput=document.createElement("textarea");noteInput.rows=2;noteInput.maxLength=2000;noteInput.placeholder="Annotazioni...";noteInput.value=entry.notes||"";
         noteInput.style.width="100%";noteInput.style.boxSizing="border-box";noteInput.style.margin="3px 0 7px";
         var noteSave=mk("button","","SALVA ANNOTAZIONE");noteSave.type="button";noteSave.style.margin="0 0 7px";
         noteSave.onclick=function(){noteSave.disabled=true;usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,notes:noteInput.value},function(e,r){noteSave.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Annotazione non salvata");return;}load();});};
         note.appendChild(noteInput);note.appendChild(noteSave);line.appendChild(note);
+        }
       }
       if(canEdit){
         var edit=mk("button","","✎");edit.type="button";edit.title="Sposta questa data";
