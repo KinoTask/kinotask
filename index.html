@@ -11727,7 +11727,10 @@ function loadWeeklyDateCalendar(def){
             assignSave.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Assegnazione non salvata");return;}load();
           });
         };
-        assignWrap.appendChild(assignButton);assignWrap.appendChild(assignMenu);line.appendChild(assignWrap);
+        assignWrap.appendChild(assignButton);
+        var assignedNames=(USERS||[]).filter(function(user){return assigned.indexOf(String(user.id))!==-1;}).map(function(user){return user.name;});
+        if(assignedNames.length){var assignedLabel=mk("span","weekly-date-who",assignedNames.join(", "));assignedLabel.style.textAlign="left";assignWrap.appendChild(assignedLabel);}
+        assignWrap.appendChild(assignMenu);line.appendChild(assignWrap);
         }
         if(canEdit){
         var note=mk("div","weekly-date-notes","");note.style.flex="1 0 100%";
