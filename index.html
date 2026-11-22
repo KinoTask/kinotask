@@ -10162,7 +10162,7 @@ function dashboardRemoveBoxFromLayout(boxEl){
     });
     return;
   }
-  if(!confirm("Nascondere questo box da tutte le viste? Le attività resteranno nel database. Potrai aggiungerlo di nuovo da LAYOUT."))return;
+  if(!confirm("Nascondere questo box soltanto dalla vista corrente? Le altre viste non verranno modificate. Potrai aggiungerlo di nuovo da LAYOUT."))return;
   usersRequest("POST","/boxes/"+encodeURIComponent(boxId)+"/hide",{view_id:currentView},function(err,data){
     if(err||!data||!data.ok){alert(err||(data&&data.error)||"Nascondimento non riuscito.");return;}
     loadAuthorizedConfig(function(configErr){
@@ -10186,9 +10186,7 @@ function applyDashboardReorderMode(){
         el.style.position="relative";
         var remove=mk("button","dashboard-box-remove-control","× NASCONDI");
         remove.type="button";
-        remove.title=el.getAttribute("data-custom-box-id")
-          ?"Nascondi questo box nella vista corrente"
-          :"Nascondi questo box da tutte le viste";
+        remove.title="Nascondi questo box nella vista corrente";
         remove.style.position="absolute";
         remove.style.top="6px";
         remove.style.right="6px";
