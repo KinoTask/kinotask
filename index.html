@@ -11264,8 +11264,9 @@ function openAddBoxPanel(anchor){
   var defaultVisible=(scope.value==="family")?[]:[String((USERS||[]).filter(function(u){return u&&u.id&&String(u.name).toLowerCase()===String(authUserName||"").toLowerCase();})[0]?.id||"")].filter(Boolean);
   renderCustomBoxUserChoices(visibleUsers,defaultVisible,function(){positionCustomBoxPanel(panel,addAnchorRect,true);});
   visibilityScope.value=scope.value==="family"?"family":"selected";
+  visibilityScope.disabled=scope.value==="family";
   setHidden(visibleUsers,visibilityScope.value!=="selected");
-  scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");assignment.disabled=scope.value==="private";if(assignment.disabled)assignment.checked=false;renderCreateGrantRows();positionCustomBoxPanel(panel,addAnchorRect,true);};
+  scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");if(scope.value==="family"){visibilityScope.value="family";visibilityScope.disabled=true;}else{visibilityScope.disabled=false;}setHidden(visibleUsers,visibilityScope.value!=="selected");assignment.disabled=scope.value==="private";if(assignment.disabled)assignment.checked=false;renderCreateGrantRows();positionCustomBoxPanel(panel,addAnchorRect,true);};
   visibilityScope.onchange=function(){setHidden(visibleUsers,visibilityScope.value!=="selected");positionCustomBoxPanel(panel,addAnchorRect,true);};
   shareUsers.addEventListener("change",renderCreateGrantRows);
   var assignment=document.createElement("input");assignment.type="checkbox";assignment.disabled=scope.value==="private";
@@ -11543,6 +11544,7 @@ function openCustomBoxEditor(def, anchor){
   var back=mk('button','','INDIETRO');back.type='button';back.onclick=function(){setHidden(panel,true);setHidden($('dashboardLayoutMenu'),false);};
   function updateUsers(){
     setHidden(users,scope.value!=='selected');
+    if(scope.value==='family'){visibilityScope.value='family';visibilityScope.disabled=true;}else{visibilityScope.disabled=false;}
     setHidden(visibleUsers,visibilityScope.value!=='selected');
     assignment.disabled=scope.value==='private'||boxKind.value==='weekly_dates';
     if(assignment.disabled)assignment.checked=false;
