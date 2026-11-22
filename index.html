@@ -11643,22 +11643,14 @@ function loadWeeklyDateCalendar(def){
     if(includeOverdue){
       var overdueButton=mk("button","weekly-date-overdue-button"+(showOverdue?" sel":""),"ARRETRATI");
       overdueButton.type="button";
-      overdueButton.style.flex="1 1 0";
-      overdueButton.style.width="auto";
-      overdueButton.style.minWidth="0";
-      overdueButton.style.height="38px";
-      overdueButton.style.minHeight="38px";
-      overdueButton.style.margin="0";
-      overdueButton.style.padding="7px 3px";
-      overdueButton.style.fontSize=".78em";
       overdueButton.onclick=function(){showOverdue=!showOverdue;load();};
       nav.appendChild(overdueButton);
     }
-    if(!showOverdue)[-2,-1,0,1,2].forEach(function(n){
+    [-2,-1,0,1,2].forEach(function(n){
       var label=n===0?"QUESTA SETTIMANA":(n<0?"−"+Math.abs(n):"+"+n);
-      var button=mk("button","seg-button"+(n===offset?" sel":""),label);button.type="button";
+      var button=mk("button","seg-button"+(!showOverdue&&n===offset?" sel":""),label);button.type="button";
       button.setAttribute("aria-label",n===0?(offset===0?"Settimana corrente":"Torna a oggi"):(n<0?"Settimana precedente di "+Math.abs(n):"Settimana successiva di "+n));
-      button.onclick=function(){if(n===0){if(offset!==0){offset=0;load();}return;}offset=n;load();};
+      button.onclick=function(){showOverdue=false;if(n===0){if(offset!==0){offset=0;load();}else load();return;}offset=n;load();};
       nav.appendChild(button);
     });
     host.appendChild(nav);
