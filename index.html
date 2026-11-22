@@ -5556,6 +5556,7 @@ var personalTodoItems = [];
 var personalTodoConnected = false;
 var personalTodoBusy = false;
 var personalTodoPollTimer = null;
+var personalTodoRequestedView = null;
 var menuInitialized = false, scheduleViewTimer = null;
 
 var taskSel = "oggi", personalGlobalTaskSel = "oggi";
@@ -6589,7 +6590,9 @@ function schedulePoll(){
 
 function personalTodoConnect() {
   if (!authToken || !viewHasBox(currentView, "personalTodo")) return;
+  if (String(personalTodoRequestedView) === String(currentView)) return;
 
+  personalTodoRequestedView = currentView;
   personalTodoBusy = true;
   setText($("personalTodoStatus"), "Connessione in corso...");
 
@@ -6598,6 +6601,7 @@ function personalTodoConnect() {
 
     if (err || !data || !Array.isArray(data.items)) {
       personalTodoConnected = false;
+      personalTodoRequestedView = null;
       setTimes($("personalTodoSyncLabel"), null, personalTodoSyncedAt, true, 0, false);
       setText(
         $("personalTodoStatus"),
@@ -10306,6 +10310,9 @@ function setView(view, manual){
   }
   if(isMountedInActiveView($("familyShoppingBox"))) safe(loadFamilyShoppingList, "loadFamilyShoppingList");
   if(isMountedInActiveView($("recurringTasksBox"))) safe(loadRecurringTasks, "loadRecurringTasks");
+  /* Fallback anche per la To-do personale: alcune associazioni D1 legacy
+     montano il box ma non risolvono la chiave del renderer. */
+  if(isMountedInActiveView($("personalTodoBox"))) safe(personalTodoConnect, "personalTodoConnect");
 
   closeViewMenu();
   scheduleAlign();
