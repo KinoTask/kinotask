@@ -1329,7 +1329,9 @@ body.k .recurring-config-panel {
 /* Contenitore e colonne */
 
 body.k .wrap {
-  padding-right:14px;
+  /* Silk riserva già lo spazio della scrollbar: lascia soltanto 2px
+     aggiuntivi sul lato destro per evitare una seconda fascia vuota. */
+  padding-right:2px;
 }
 
 body.k .col {
