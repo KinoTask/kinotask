@@ -4932,74 +4932,41 @@ html body #head {
 }
 
 
-/* Kindle/Silk: barra principale a float, non flex.
-   Evita che hamburger e appunti si sovrappongano allo switch utente
-   nei browser Kindle che calcolano male le larghezze flex. */
+/* Kindle: barra compatta come sugli altri dispositivi, senza float né altezza vuota. */
 body.k #dashboardToolbar {
-  display:block!important;
-  width:calc(100% - 6px)!important;
-  min-height:36px!important;
-  overflow:hidden!important;
-  white-space:normal!important;
-}
-body.k #dashboardToolbar:after {
-  content:""!important;
-  display:table!important;
-  clear:both!important;
-}
-body.k #dashboardToolbar #viewMenu {
-  display:block!important;
-  position:relative!important;
-  float:left!important;
-  left:auto!important;
-  top:auto!important;
-  width:30px!important;
-  min-width:30px!important;
-  height:34px!important;
-  margin:1px 4px 1px 0!important;
-  z-index:1001!important;
-}
-body.k #dashboardToolbar #viewMenuToggle {
-  display:block!important;
-  position:relative!important;
-  width:30px!important;
-  min-width:30px!important;
-  height:30px!important;
-  margin:0!important;
-}
-body.k #dashboardToolbar #toolbarNotesButton {
-  display:block!important;
-  position:relative!important;
-  float:left!important;
-  width:36px!important;
-  min-width:36px!important;
-  height:36px!important;
-  margin:0 5px 0 0!important;
-}
-body.k #dashboardToolbar #viewSwitcher {
-  display:block!important;
-  position:relative!important;
-  float:none!important;
-  overflow:hidden!important;
-  width:auto!important;
-  min-width:0!important;
-  max-width:none!important;
-  margin:0!important;
-}
-body.k #dashboardToolbar #viewSwitcherButtons {
-  display:block!important;
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
-  width:auto!important;
-  max-width:none!important;
-  min-width:0!important;
-  padding:1px 0!important;
+  display:flex!important; align-items:center!important; gap:4px!important;
+  width:calc(100% - 6px)!important; min-height:0!important; height:auto!important;
+  margin-bottom:3px!important; padding:0!important; overflow:visible!important;
   white-space:nowrap!important;
 }
+body.k #dashboardToolbar #viewMenu {
+  display:block!important; position:relative!important; float:none!important;
+  flex:0 0 30px!important; width:30px!important; min-width:30px!important;
+  height:30px!important; margin:0!important;
+}
+body.k #dashboardToolbar #viewMenuToggle {
+  display:block!important; width:30px!important; min-width:30px!important;
+  height:30px!important; margin:0!important;
+}
+body.k #dashboardToolbar #toolbarNotesButton {
+  display:inline-flex!important; position:relative!important; float:none!important;
+  flex:0 0 36px!important; width:36px!important; min-width:36px!important;
+  height:30px!important; margin:0!important;
+}
+body.k #dashboardToolbar #viewSwitcher {
+  display:block!important; position:relative!important; float:none!important;
+  flex:1 1 auto!important; min-width:0!important; max-width:none!important;
+  height:auto!important; min-height:0!important; margin:0!important;
+  padding:0!important; overflow:hidden!important;
+}
+body.k #dashboardToolbar #viewSwitcherButtons {
+  display:block!important; overflow-x:auto!important; overflow-y:hidden!important;
+  width:auto!important; max-width:none!important; min-width:0!important;
+  height:auto!important; min-height:0!important; margin:0!important;
+  padding:0!important; white-space:nowrap!important;
+}
 body.k #dashboardToolbar #viewSwitcherButtons .view-switcher-button {
-  display:inline-block!important;
-  vertical-align:middle!important;
-  float:none!important;
+  display:inline-block!important; vertical-align:middle!important; float:none!important;
 }
 
 /* Utente connesso e comandi layout nella barra principale */
@@ -5120,7 +5087,7 @@ body.k #dashboardToolbar #dashboardCancelReorderButton {
 </style>
 
 <style>#dashboardToolbar #dashboardReorderButton{background:#edf4ff;border:1px solid #9bbce5;color:#174a7e;white-space:nowrap;}#dashboardToolbar #dashboardReorderButton[hidden]{display:none!important;}.dashboard-layout-row{width:100%;box-sizing:border-box;}.dashboard-layout-row>.col{margin:0!important;}@media(max-width:800px){#dashboardToolbar #dashboardReorderButton{padding:5px 6px;font-size:11px;}}</style>
-<style>.dashboard-layout-columns{align-items:stretch;}.dashboard-layout-column>.box{display:block!important;flex:none!important;margin:0 0 4px!important;}@media(max-width:800px){.dashboard-layout-columns{display:flex!important;flex-direction:column!important;}.dashboard-layout-column{display:block!important;width:100%!important;padding:0!important;}.dashboard-layout-column>.box{display:block!important;flex:none!important;margin:0!important;}}/* Badge utente: questa regola ha la stessa specificita' del reset
+<style>.dashboard-layout-columns{align-items:stretch;}.dashboard-layout-column>.box{display:block!important;flex:none!important;margin:0 0 4px!important;}@media screen and (max-width:600px) and (orientation:portrait){body:not(.k) .dashboard-layout-columns{display:block!important;}.dashboard-layout-columns>.dashboard-layout-column{display:block!important;width:100%!important;max-width:100%!important;flex:none!important;padding:0!important;}.dashboard-layout-column>.box{display:block!important;flex:none!important;margin:0 0 4px!important;}}/* Badge utente: questa regola ha la stessa specificita' del reset
    precedente e prevale anche sulle dichiarazioni !important. */
 #dashboardToolbar #dashboardToolbarAccount #loggedUser {
   display:inline-block!important;
@@ -9921,15 +9888,7 @@ function buildLayout(view, previewSections){
     parent.appendChild(b);
   }
 
-  /* Silk può esporre una viewport CSS ampia anche sul Kindle.
-     Non affidarsi alle media query: generare direttamente una sola colonna
-     piatta, senza .row/.col Bootstrap né flex a percentuale. */
-  var kindleLayout=!!IS_KINDLE;
-  if(kindleLayout){
-    var kindleHost=mk("div","dashboard-layout-kindle");
-    kindleHost.style.display="block";kindleHost.style.width="100%";kindleHost.style.maxWidth="100%";
-    kindleHost.style.minWidth="0";kindleHost.style.boxSizing="border-box";
-    sections.forEach(function(section){
+  sections.forEach(function(section){
       (section.columns||[]).forEach(function(items){
         (items||[]).forEach(function(item){appendBox(item,kindleHost);});
       });
@@ -9954,8 +9913,7 @@ function buildLayout(view, previewSections){
     (section.columns||[]).forEach(function(items){
       if(!items||!items.length)return;
       var col=mk("div","col dashboard-layout-column");
-      var kindleLayout=!!(document.body&&document.body.classList&&document.body.classList.contains("k"));
-      var columnWidth=(kindleLayout||visibleColumnCount<=1)?"100%":"50%";
+      var columnWidth=visibleColumnCount<=1?"100%":"50%";
       col.style.width=columnWidth;col.style.flex="0 0 "+columnWidth;col.style.cssFloat="none";col.style.float="none";
       col.style.display="block";
       col.style.minWidth="0";col.style.boxSizing="border-box";col.style.padding="0 2px";
@@ -9963,9 +9921,6 @@ function buildLayout(view, previewSections){
       /* Nessun box intermedio cresce: l'allineamento finale è gestito da alignBoxes(). */
       row.appendChild(col);
     });
-    if(document.body&&document.body.classList&&document.body.classList.contains("k")){
-      row.style.display="block";row.style.flexDirection="column";
-    }
     host.appendChild(row);
   });
   applyDashboardReorderMode();
