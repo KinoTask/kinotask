@@ -11365,7 +11365,7 @@ function openCustomBoxEditor(def, anchor){
   var back=mk('button','','INDIETRO');back.type='button';back.onclick=function(){setHidden(panel,true);setHidden($('dashboardLayoutMenu'),false);};
   function updateUsers(){
     setHidden(users,scope.value!=='selected');
-    assignment.disabled=scope.value==='private';
+    assignment.disabled=scope.value==='private'||boxKind.value==='weekly_dates';
     if(assignment.disabled)assignment.checked=false;
     positionCustomBoxPanel(panel,anchorRect);
   }
@@ -11399,7 +11399,8 @@ function openCustomBoxEditor(def, anchor){
     editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';
     scope.disabled=false;
     if(boxKind.value==='weekly_dates'){
-      usersRequest('GET','/custom-boxes/'+def.custom_box_id+'/weekly-dates?viewId='+encodeURIComponent(currentView)+'&from=2026-01-01&to=2026-12-31',null,function(ruleErr,ruleData){
+      var ruleYear=(new Date()).getFullYear();
+      usersRequest('GET','/custom-boxes/'+def.custom_box_id+'/weekly-dates?viewId='+encodeURIComponent(currentView)+'&from='+ruleYear+'-01-01&to='+ruleYear+'-12-31',null,function(ruleErr,ruleData){
         if(!ruleErr&&ruleData&&ruleData.ok)editWeekdayChecks.forEach(function(c){c.checked=(ruleData.weekdays||[]).indexOf(Number(c.value))!==-1;});
       });
     }
