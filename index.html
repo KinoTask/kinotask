@@ -11166,50 +11166,142 @@ function openAddBoxPanel(anchor){
       var inputs={};
       createGrantCapabilities.forEach(function(cap){
         var label=mk("label","","");label.style.display="flex";label.style.alignItems="center";label.style.gap="6px";label.style.margin="3px 0";
-        var dateText=mk("span","weekly-date-label","");dateText.textContent=d.toLocaleDateString("it-IT",{weekday:"long"});
-      var dateNumber=mk("strong","weekly-date-number",d.toLocaleDateString("it-IT",{day:"2-digit",month:"short"}));
-      var dateBlock=mk("span","weekly-date-main","");dateBlock.appendChild(dateText);dateBlock.appendChild(dateNumber);line.appendChild(dateBlock);
-      var controls=mk("div","weekly-date-controls","");
-      var mark=mk("button","weekly-date-mark",entry.done?"SVOLTO":"SEGNA SVOLTO");mark.type="button";mark.title=entry.done?"Modifica chi ha completato":"Scegli chi ha completato";
-      var doneMenu=mk("div","todo-assign-menu weekly-done-menu","");doneMenu.appendChild(mk("div","todo-assign-title",entry.done?"Completato da:":"Chi ha svolto?"));
-      (USERS||[]).filter(function(user){return user.enabled===undefined||user.enabled===true||Number(user.enabled)===1;}).forEach(function(user){
-        var choose=mk("button","weekly-done-option",user.name);choose.type="button";
-        choose.onclick=function(){mark.disabled=true;usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,done:true,completed_by_user_id:String(user.id)},function(e,r){mark.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Completamento non salvato");return;}load();});};
-        doneMenu.appendChild(choose);
+        var check=document.createElement("input");check.type="checkbox";
+        label.appendChild(check);label.appendChild(document.createTextNode(cap[1]));section.appendChild(label);inputs[cap[0]]=check;
       });
-      if(entry.done){var undo=mk("button","weekly-done-option","Annulla completamento");undo.type="button";undo.onclick=function(){usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,done:false},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Modifica non salvata");return;}load();});};doneMenu.appendChild(undo);}
-      mark.onclick=function(){closeAssignMenus();doneMenu.classList.toggle("open");};
-      if(entry.done&&entry.completed_by_name)mark.textContent="SVOLTO: "+String(entry.completed_by_name).toUpperCase();
-      var completionWrap=mk("div","weekly-date-completion","");
-      completionWrap.appendChild(mark);completionWrap.appendChild(doneMenu);controls.appendChild(completionWrap);
-      if(canEdit){
-        var noteWrap=mk("div","weekly-date-notes","");
-        var noteButton=mk("button","weekly-note-button"+(entry.notes?" has-notes":""),"✎");noteButton.type="button";noteButton.title=entry.notes?"Apri annotazione":"Aggiungi annotazione";noteButton.setAttribute("aria-label",noteButton.title);
-        var notePanel=mk("div","weekly-date-note-panel","");notePanel.style.display="none";notePanel.style.width="220px";
-        var noteInput=document.createElement("textarea");noteInput.rows=2;noteInput.maxLength=2000;noteInput.placeholder="Scrivi un'annotazione...";noteInput.value=entry.notes||"";
-        noteInput.style.width="100%";noteInput.style.boxSizing="border-box";noteInput.style.margin="6px 0 4px";
-        var noteSave=mk("button","","SALVA");noteSave.type="button";noteSave.style.margin="0 0 7px";
-        noteButton.onclick=function(){notePanel.style.display=notePanel.style.display==="none"?"block":"none";};
-        noteSave.onclick=function(){noteSave.disabled=true;usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,notes:noteInput.value},function(e,r){noteSave.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Annotazione non salvata");return;}load();});};
-        notePanel.appendChild(noteInput);notePanel.appendChild(noteSave);noteWrap.appendChild(noteButton);noteWrap.appendChild(notePanel);controls.appendChild(noteWrap);
-        var edit=mk("button","weekly-date-icon","↔");edit.type="button";edit.title="Sposta questa data";
-        edit.onclick=function(){var next=prompt("Nuova data (AAAA-MM-GG)",row.date);if(!next)return;if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(next)){alert("Formato data non valido");return;}usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_date:next,entry_type:"override"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
-        controls.appendChild(edit);
-        var exclude=mk("button","weekly-date-icon","🗑");exclude.type="button";exclude.title="Escludi questa data";
-        exclude.onclick=function(){if(!confirm("Escludere questa data?"))return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_type:"excluded"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
-        controls.appendChild(exclude);
-      }
-      line.appendChild(controls);
-      host.appendChild(line);
+      section._permissionInputs=inputs;section._userId=String(user.id);createGrantRows.appendChild(section);
     });
-    if(canEdit){
-      var add=mk("button","","+ AGGIUNGI DATA");add.type="button";add.style.marginTop="9px";
-      add.onclick=function(){var value=prompt("Data aggiuntiva (AAAA-MM-GG)");if(!value)return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Data non aggiunta");load();});};host.appendChild(add);
-    }
+    positionCustomBoxPanel(panel,addAnchorRect,true);
   }
-  load();
+  /* Ora pannello, capability e funzione sono tutti inizializzati. */
+  renderCreateGrantRows();
+  var create=mk("button","","CREA BOX");create.type="button";
+  create.onclick=function(){
+    var value=name.value.trim();
+    if(!value){alert("Inserisci il nome della tasklist.");name.focus();return;}
+    create.disabled=true;
+    var selectedIds=scope.value==="selected"?customBoxSelectedUserIds(shareUsers):[];
+    if(scope.value==="selected"&&!selectedIds.length){alert("Seleziona almeno un utente.");return;}
+    var selectedWeekdays=weekdayChecks.filter(function(check){return check.checked;}).map(function(check){return Number(check.value);});
+    if(boxKind.value==="weekly_dates"&&!selectedWeekdays.length){alert("Seleziona almeno un giorno della settimana.");create.disabled=false;return;}
+    var payload={title:value,view_id:currentView,box_kind:boxKind.value,weekdays:selectedWeekdays,assignment_enabled:boxKind.value!=="weekly_dates"&&scope.value!=="private"&&assignment.checked,scope:scope.value,user_ids:selectedIds};
+    usersRequest("POST","/custom-boxes",payload,function(err,data){
+      if(err||!data||!data.ok){create.disabled=false;alert(err||(data&&data.error)||"Creazione non riuscita.");return;}
+      if(data.needs_confirmation){
+        var count=Number(data.archived&&data.archived.task_count||0);
+        var message="Nello storico è già presente un box \""+(data.archived.title||value)+"\"";
+        message+=count ? " con "+count+" attività." : ".";
+        message+="\n\nVuoi ripristinare il vecchio box con tutte le sue attività?";
+        showArchivedCustomBoxChoice(message,function(choice){
+          if(choice===null){create.disabled=false;return;}
+          payload.reuse_archived=true;
+          payload.restore_tasks=choice==="yes";
+          usersRequest("POST","/custom-boxes",payload,function(reuseErr,reuseData){
+            create.disabled=false;
+            if(reuseErr||!reuseData||!reuseData.ok||!reuseData.box){alert(reuseErr||(reuseData&&reuseData.error)||"Riutilizzo del box non riuscito.");return;}
+            finishCustomBoxCreation(reuseData.box,false);
+          });
+        });
+        return;
+      }
+      create.disabled=false;
+      if(!data.box){alert("Creazione non riuscita.");return;}
+      if(boxKind.value==="weekly_dates"){
+        usersRequest("PUT","/custom-boxes/"+data.box.id+"/weekly-dates",{weekdays:payload.weekdays},function(ruleErr,ruleData){
+          if(ruleErr||!ruleData||!ruleData.ok){alert(ruleErr||(ruleData&&ruleData.error)||"Box creato, ma regola settimanale non salvata.");}
+          finishCustomBoxCreation(data.box,!data.reused);
+        });
+      }else finishCustomBoxCreation(data.box,!data.reused);
+    });
+  };
+  function collectCreateGrantPayload(){
+    var payload=[];
+    for(var i=0;i<createGrantRows.children.length;i++){
+      var node=createGrantRows.children[i],entry={user_id:node._userId};
+      Object.keys(node._permissionInputs).forEach(function(key){entry[key]=node._permissionInputs[key].checked;});
+      payload.push(entry);
+    }
+    return payload;
+  }
+  function finishCustomBoxCreation(box,saveGrants){
+      var def={id:box.box_id,element_id:box.element_id,title:box.title,box_kind:box.box_kind||payload.box_kind||"tasklist",view_type:(findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(currentView);})||{}).view_type||"shared",custom_box_id:box.id,box_key:box.box_key,custom_family_id:box.family_id,custom_owner_user_id:box.owner_user_id,assignment_enabled:box.assignment_enabled,share_mode:box.share_mode,user_ids:box.user_ids||[],can_add_to_layout:1};
+      function refresh(){
+        DASHBOARD_BOXES.push(def);
+        closeViewMenu();
+        loadAuthorizedConfig(function(configErr){if(configErr){alert("Box creato, ma aggiornamento dashboard non riuscito.");return;}setView(currentView,false);});
+      }
+      var grants=saveGrants?collectCreateGrantPayload():[];
+      if(saveGrants&&grants.length){
+        usersRequest("PUT","/custom-boxes/"+box.id+"/permissions",{permissions:grants},function(grantErr,grantData){
+          if(grantErr||!grantData||!grantData.ok)alert(grantErr||(grantData&&grantData.error)||"Box creato, ma le autorizzazioni non sono state salvate. Puoi configurarle da MODIFICA.");
+          refresh();
+        });
+      }else refresh();
+  }
+  wrap.appendChild(create);
+  var back=mk("button","","INDIETRO");back.type="button";back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};wrap.appendChild(back);
+  panel.appendChild(wrap);
+  positionCustomBoxPanel(panel,addAnchorRect,true);
+  bindCustomBoxPanelPosition(panel,addAnchorRect,true);
+
+  usersRequest("GET","/views",null,function(err,data){
+    if(err||!data||!data.views){available.textContent=err||"Impossibile caricare le viste.";return;}
+    var view=data.views.filter(function(v){return String(v.id)===String(currentView);})[0];
+    if(!view){available.textContent="Vista non disponibile.";return;}
+    var present={};
+    var sections=dashboardGetSections()||[];
+    sections.forEach(function(sec){(sec.columns||[]).forEach(function(col){col.forEach(function(item){present[item.box_id]=true;});});});
+    /* Per i box custom usiamo anche l'elenco live dell'API dedicata:
+       /config è il catalogo generale, mentre /custom-boxes esclude gli
+       elementi archiviati. Un box custom compare solo se presente in entrambi. */
+    function appendAvailableBox(def){
+      var button=mk("button","","+ "+(def.title||def.id));button.type="button";
+      button.onclick=function(){
+        /* Elimina le eventuali colonne vuote ereditate dal layout prima
+           di aggiungere la nuova sezione: il backend non accetta colonne vuote. */
+        var next=dashboardCleanupSections(dashboardGetSections()||[]);
+        next.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
+        dashboardSaveSections(next,function(){
+          closeViewMenu();
+          if(def.custom_box_id && def.box_key)loadCustomBoxTasks(def);
+        },{activateReorder:false});
+      };
+      available.appendChild(button);
+    }
+    /* I box standard vengono caricati senza dipendere dall'API dei custom.
+       "both" significa disponibile sia nelle viste condivise sia personali. */
+    var standardCandidates=(DASHBOARD_BOXES||[]).filter(function(b){
+      /* Appunti è un'azione globale nella toolbar, non un box di layout. */
+      if(!b || b.id==="handwrittenNotes" || b.element_id==="handwrittenNotesBox" ||
+         b.custom_family_id || Number(b.can_add_to_layout)!==1 || present[b.id])return false;
+      return String(b.view_type)==="both" || String(b.view_type)===String(view.view_type);
+    });
+    standardCandidates.forEach(appendAvailableBox);
+    positionCustomBoxPanel(panel,addAnchorRect,true);
+    usersRequest("GET","/custom-boxes",null,function(customErr,customData){
+      if(!customErr && customData && customData.ok && Array.isArray(customData.boxes)){
+        var activeCustom={};
+        customData.boxes.forEach(function(box){activeCustom[String(box.box_id)]=true;});
+        var customCandidates=(DASHBOARD_BOXES||[]).filter(function(b){
+          return b && b.custom_family_id && Number(b.can_add_to_layout)===1 &&
+            (String(b.view_type)==="both" || String(b.view_type)===String(view.view_type)) &&
+            !present[b.id] && Number(b.available_to_user)===1 &&
+            !!activeCustom[String(b.id)];
+        });
+        customCandidates.forEach(appendAvailableBox);
+      }else if(customErr || !customData || !customData.ok){
+        var warning=mk("div","","Impossibile caricare i box custom: "+(customErr||(customData&&customData.error)||"errore"));
+        warning.style.fontSize="12px";warning.style.opacity=".75";
+        available.appendChild(warning);
+      }
+      if(!available.children.length)available.textContent="Nessun altro box disponibile.";
+      positionCustomBoxPanel(panel,addAnchorRect,true);
+    });
+  });
 }
 
+/* Crea il contenitore dei box di sistema che non hanno markup statico.
+   La presenza e la posizione del box continuano a dipendere esclusivamente da D1. */
 function customTaskAssignControl(def,task){
   var btn=mk("button","todo-assign",IS_KINDLE?"↗":"👥");
   btn.type="button";
