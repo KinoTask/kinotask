@@ -9889,15 +9889,6 @@ function buildLayout(view, previewSections){
   }
 
   sections.forEach(function(section){
-      (section.columns||[]).forEach(function(items){
-        (items||[]).forEach(function(item){appendBox(item,kindleHost);});
-      });
-    });
-    host.appendChild(kindleHost);
-    applyDashboardReorderMode();
-    return;
-  }
-  sections.forEach(function(section){
     if(section.type==="full"){
       var fullRow=mk("div","row layout-row dashboard-layout-row dashboard-layout-full");
       var fullCol=mk("div","col full");
