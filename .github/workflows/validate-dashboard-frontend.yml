@@ -23,8 +23,9 @@ jobs:
           import subprocess
 
           source = Path("index.html").read_text(encoding="utf-8")
-          assert "numeric_id" not in source, "Legacy numeric custom-box property remains"
           assert "custom_box_id" in source, "UUID custom-box property is missing"
+          assert "if(!box.custom_box_id && box.numeric_id)" in source, "Transitional old-Worker adapter is missing"
+          assert "def.numeric_id" not in source, "UI still consumes the legacy numeric property directly"
 
           class Scripts(HTMLParser):
               def __init__(self):
