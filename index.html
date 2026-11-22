@@ -11433,7 +11433,7 @@ function openAddBoxPanel(anchor){
           return b && b.custom_family_id && Number(b.can_add_to_layout)===1 &&
             (String(b.view_type)==="both" || String(b.view_type)===String(view.view_type)) &&
             /* La vista Famiglia segue la visibilità, non la lista dei collaboratori. */
-            (function(){if(String(b.visibility_mode)==="family")return true;var ids=b.visible_user_ids||[];if(typeof ids==="string"){try{ids=JSON.parse(ids||"[]");}catch(ignore){ids=[];}}var targets=[String(view.owner_user_id||"")];return Array.isArray(ids)&&ids.some(function(id){return targets.indexOf(String(id))>=0;});})() &&
+            (function(){if(String(b.visibility_mode)==="family")return true;var ids=b.visible_user_ids||[];if(typeof ids==="string"){try{ids=JSON.parse(ids||"[]");}catch(ignore){ids=[];}}var targets=[String(view.owner_user_id||"")];(USERS||[]).forEach(function(user){if(String(user.view_id)===String(view.id))targets.push(String(user.id));});return Array.isArray(ids)&&ids.some(function(id){return targets.indexOf(String(id))>=0;});})() &&
             !present[b.id] &&
             !!activeCustom[String(b.id)];
         });
@@ -11890,7 +11890,14 @@ function loadWeeklyDateCalendar(def){
         var assignMenu=mk("div","todo-assign-menu","");assignMenu.style.position="absolute";assignMenu.style.top="100%";assignMenu.style.left="0";assignMenu.style.zIndex="10";assignMenu.style.width="190px";assignMenu.style.margin="4px 0 0";
         assignMenu.appendChild(mk("div","todo-assign-title","Assegna a:"));
         var assignOptions=mk("div","todo-assign-options",""),assignChecks=[];
-        (USERS||[]).forEach(function(user){
+        var weeklySharedIds=[];
+        if(def.share_mode==="selected"){
+          try{weeklySharedIds=Array.isArray(def.user_ids)?def.user_ids.map(String):JSON.parse(def.user_ids||"[]").map(String);}catch(ignore){weeklySharedIds=[];}
+        }
+        var weeklyEligibleUsers=(USERS||[]).filter(function(user){
+          return def.share_mode!=="selected"||weeklySharedIds.indexOf(String(user.id))!==-1;
+        });
+        weeklyEligibleUsers.forEach(function(user){
           var label=mk("label","todo-assign-option","");
           var input=document.createElement("input");input.type="checkbox";input.value=String(user.id);input.checked=assigned.indexOf(String(user.id))!==-1;
           label.appendChild(input);label.appendChild(document.createTextNode(user.name));assignOptions.appendChild(label);assignChecks.push(input);
