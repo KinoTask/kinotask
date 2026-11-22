@@ -11512,6 +11512,9 @@ function createCustomBoxElement(def){
   if(!def || !def.element_id) return;
   if($(def.element_id)){
     var existingBox=$(def.element_id);
+    var persistedKind=existingBox.getAttribute("data-custom-box-kind");
+    if(persistedKind==="weekly_dates")def.box_kind="weekly_dates";
+    existingBox.setAttribute("data-custom-box-kind",def.box_kind||"tasklist");
     var existingHeading=existingBox.querySelector(".section-heading h2");
     if(existingHeading)existingHeading.textContent=def.title || "Attività";
     var existingEdit=existingBox.querySelector(".custom-box-edit");
@@ -11541,6 +11544,7 @@ function createCustomBoxElement(def){
   var box=mk("div","box","");
   box.id=def.element_id;
   box.setAttribute("data-custom-box-id",String(def.custom_box_id));
+  box.setAttribute("data-custom-box-kind",def.box_kind||"tasklist");
 
   var heading=mk("div","section-heading","");
   heading.appendChild(mk("h2","",def.title || "Attività"));
@@ -11602,7 +11606,9 @@ function loadCustomBoxRenderer(def){
   usersRequest("GET","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView)+"&from="+from+"&to="+to,null,function(err,data){
     if(!err&&data&&data.ok){
       def.box_kind="weekly_dates";
-      var box=$(def.element_id),add=box&&box.querySelector(".custom-box-add");
+      var box=$(def.element_id);
+      if(box)box.setAttribute("data-custom-box-kind","weekly_dates");
+      var add=box&&box.querySelector(".custom-box-add");
       if(add)add.hidden=true;
       loadWeeklyDateCalendar(def);
     }else loadCustomBoxTasks(def);
@@ -11780,6 +11786,13 @@ function customTaskAssignControl(def,task){
 function loadCustomBoxTasks(def){
   var list=$("customTasks_"+def.custom_box_id);
   if(!list)return;
+  var boxElement=$(def.element_id);
+  if(def.box_kind==="weekly_dates"||(boxElement&&boxElement.getAttribute("data-custom-box-kind")==="weekly_dates")){
+    def.box_kind="weekly_dates";
+    if(boxElement){boxElement.setAttribute("data-custom-box-kind","weekly_dates");var composer=boxElement.querySelector(".custom-box-add");if(composer)composer.hidden=true;}
+    loadWeeklyDateCalendar(def);
+    return;
+  }
   /* I renderer dei box custom vengono inizializzati anche durante il
      caricamento del catalogo, prima che setView() abbia scelto la vista.
      Non chiamare l'API con viewId vuoto: il Worker non può determinare
@@ -11790,6 +11803,13 @@ function loadCustomBoxTasks(def){
   }
   list.textContent="Caricamento...";
   usersRequest("GET","/custom-boxes/"+def.custom_box_id+"/tasks?viewId="+encodeURIComponent(String(currentView)),null,function(err,data){
+    var liveBox=$(def.element_id);
+    if(def.box_kind==="weekly_dates"||(liveBox&&liveBox.getAttribute("data-custom-box-kind")==="weekly_dates")){
+      def.box_kind="weekly_dates";
+      if(liveBox){liveBox.setAttribute("data-custom-box-kind","weekly_dates");var composer=liveBox.querySelector(".custom-box-add");if(composer)composer.hidden=true;}
+      loadWeeklyDateCalendar(def);
+      return;
+    }
     if(err||!data||!data.ok){
       list.textContent=err||(data&&data.error)||"Errore caricamento";
       return;
