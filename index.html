@@ -12108,6 +12108,10 @@ function loadCustomBoxTasks(def){
     // Usa il valore aggiornato restituito dall'API, non il flag eventualmente
     // obsoleto nella definizione del box già caricata in memoria.
     def.assignment_enabled = data.assignment_enabled === true;
+    /* I dati di collaborazione provengono dalla risposta live del Worker,
+       non dalla copia potenzialmente incompleta del catalogo dashboard. */
+    def.share_mode = data.share_mode || "private";
+    def.user_ids = Array.isArray(data.user_ids) ? data.user_ids : [];
     var permissions=data.permissions||{};
     def.customPermissions=permissions;
     var boxElement=$(def.element_id);
