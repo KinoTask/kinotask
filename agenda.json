@@ -1,134 +1,8 @@
 {
   "calendar": "Famiglia",
-  "generated_at": "2026-11-22T23:50:03.260668+01:00",
+  "generated_at": "2026-11-23T00:00:03.188949+01:00",
   "period_days": 14,
   "events": [
-    {
-      "id": "q1rhdovpk97b31egfgfbgl3h8j_20261116T073000Z",
-      "title": "Motricità",
-      "start": {
-        "dateTime": "2026-11-16T07:30:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "end": {
-        "dateTime": "2026-11-16T07:30:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "all_day": false,
-      "location": "",
-      "description": "",
-      "htmlLink": "https://www.google.com/calendar/event?eid=cTFyaGRvdnBrOTdiMzFlZ2ZnZmJnbDNoOGpfMjAyNjExMTZUMDczMDAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
-    },
-    {
-      "id": "5c4ceqv0k61m5qce03gt139opf",
-      "title": "Riunione asilo",
-      "start": {
-        "dateTime": "2026-11-16T15:45:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "end": {
-        "dateTime": "2026-11-16T16:45:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "all_day": false,
-      "location": "",
-      "description": "",
-      "htmlLink": "https://www.google.com/calendar/event?eid=NWM0Y2VxdjBrNjFtNXFjZTAzZ3QxMzlvcGYgZmFtaWx5MDI3MjI5Nzk3MDg3MjgwNTUzNzRAZw"
-    },
-    {
-      "id": "12ug354gtoq95bjhtvc2lbvafc_20261116T163000Z",
-      "title": "Motricità",
-      "start": {
-        "dateTime": "2026-11-16T16:30:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "end": {
-        "dateTime": "2026-11-16T16:30:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "all_day": false,
-      "location": "",
-      "description": "",
-      "htmlLink": "https://www.google.com/calendar/event?eid=MTJ1ZzM1NGd0b3E5NWJqaHR2YzJsYnZhZmNfMjAyNjExMTZUMTYzMDAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
-    },
-    {
-      "id": "01guhquf80r3kbvobnkb9hv1pk_20261117T161500Z",
-      "title": "Piscina",
-      "start": {
-        "dateTime": "2026-11-17T16:15:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "end": {
-        "dateTime": "2026-11-17T17:00:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "all_day": false,
-      "location": "",
-      "description": "",
-      "htmlLink": "https://www.google.com/calendar/event?eid=MDFndWhxdWY4MHIza2J2b2Jua2I5aHYxcGtfMjAyNjExMTdUMTYxNTAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
-    },
-    {
-      "id": "34ec9dkbompbtjfs9oa9f2apjb_20261118",
-      "title": "Atletica",
-      "start": {
-        "date": "2026-11-18"
-      },
-      "end": {
-        "date": "2026-11-19"
-      },
-      "all_day": true,
-      "location": "",
-      "description": "",
-      "htmlLink": "https://www.google.com/calendar/event?eid=MzRlYzlka2JvbXBidGpmczlvYTlmMmFwamJfMjAyNjExMTggZmFtaWx5MDI3MjI5Nzk3MDg3MjgwNTUzNzRAZw"
-    },
-    {
-      "id": "072ngfmhkv80b5s5n8h83qgatj_20261119T163000Z",
-      "title": "Inglese Mattia",
-      "start": {
-        "dateTime": "2026-11-19T16:30:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "end": {
-        "dateTime": "2026-11-19T16:30:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "all_day": false,
-      "location": "",
-      "description": "",
-      "htmlLink": "https://www.google.com/calendar/event?eid=MDcybmdmbWhrdjgwYjVzNW44aDgzcWdhdGpfMjAyNjExMTlUMTYzMDAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
-    },
-    {
-      "id": "5qoa02pl5k02rq7lmilo9ci5qh",
-      "title": "Riunione condominio",
-      "start": {
-        "dateTime": "2026-11-20T16:30:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "end": {
-        "dateTime": "2026-11-20T18:00:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "all_day": false,
-      "location": "",
-      "description": "",
-      "htmlLink": "https://www.google.com/calendar/event?eid=NXFvYTAycGw1azAycnE3bG1pbG85Y2k1cWggZmFtaWx5MDI3MjI5Nzk3MDg3MjgwNTUzNzRAZw"
-    },
-    {
-      "id": "ckrj2o9icpj3eb9gchi3cb9k71hj0bb1c4r68b9l74qj6dhm6ph32c1i64_20261120T163000Z",
-      "title": "Rugby",
-      "start": {
-        "dateTime": "2026-11-20T16:30:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "end": {
-        "dateTime": "2026-11-20T17:30:00Z",
-        "timeZone": "Europe/Rome"
-      },
-      "all_day": false,
-      "location": "",
-      "description": "",
-      "htmlLink": "https://www.google.com/calendar/event?eid=Y2tyajJvOWljcGozZWI5Z2NoaTNjYjlrNzFoajBiYjFjNHI2OGI5bDc0cWo2ZGhtNnBoMzJjMWk2NF8yMDI2MTEyMFQxNjMwMDBaIGZhbWlseTAyNzIyOTc5NzA4NzI4MDU1Mzc0QGc"
-    },
     {
       "id": "q1rhdovpk97b31egfgfbgl3h8j_20261123T073000Z",
       "title": "Motricità",
@@ -222,6 +96,116 @@
       "location": "",
       "description": "",
       "htmlLink": "https://www.google.com/calendar/event?eid=Y2tyajJvOWljcGozZWI5Z2NoaTNjYjlrNzFoajBiYjFjNHI2OGI5bDc0cWo2ZGhtNnBoMzJjMWk2NF8yMDI2MTEyN1QxNjMwMDBaIGZhbWlseTAyNzIyOTc5NzA4NzI4MDU1Mzc0QGc"
+    },
+    {
+      "id": "q1rhdovpk97b31egfgfbgl3h8j_20261130T073000Z",
+      "title": "Motricità",
+      "start": {
+        "dateTime": "2026-11-30T07:30:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "end": {
+        "dateTime": "2026-11-30T07:30:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "all_day": false,
+      "location": "",
+      "description": "",
+      "htmlLink": "https://www.google.com/calendar/event?eid=cTFyaGRvdnBrOTdiMzFlZ2ZnZmJnbDNoOGpfMjAyNjExMzBUMDczMDAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
+    },
+    {
+      "id": "12ug354gtoq95bjhtvc2lbvafc_20261130T163000Z",
+      "title": "Motricità",
+      "start": {
+        "dateTime": "2026-11-30T16:30:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "end": {
+        "dateTime": "2026-11-30T16:30:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "all_day": false,
+      "location": "",
+      "description": "",
+      "htmlLink": "https://www.google.com/calendar/event?eid=MTJ1ZzM1NGd0b3E5NWJqaHR2YzJsYnZhZmNfMjAyNjExMzBUMTYzMDAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
+    },
+    {
+      "id": "mt8m4q412mh029kl2ptbvkni53_20261130T163000Z",
+      "title": "Motricità",
+      "start": {
+        "dateTime": "2026-11-30T16:30:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "end": {
+        "dateTime": "2026-11-30T16:30:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "all_day": false,
+      "location": "",
+      "description": "",
+      "htmlLink": "https://www.google.com/calendar/event?eid=bXQ4bTRxNDEybWgwMjlrbDJwdGJ2a25pNTNfMjAyNjExMzBUMTYzMDAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
+    },
+    {
+      "id": "01guhquf80r3kbvobnkb9hv1pk_20261201T161500Z",
+      "title": "Piscina",
+      "start": {
+        "dateTime": "2026-12-01T16:15:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "end": {
+        "dateTime": "2026-12-01T17:00:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "all_day": false,
+      "location": "",
+      "description": "",
+      "htmlLink": "https://www.google.com/calendar/event?eid=MDFndWhxdWY4MHIza2J2b2Jua2I5aHYxcGtfMjAyNjEyMDFUMTYxNTAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
+    },
+    {
+      "id": "34ec9dkbompbtjfs9oa9f2apjb_20261202",
+      "title": "Atletica",
+      "start": {
+        "date": "2026-12-02"
+      },
+      "end": {
+        "date": "2026-12-03"
+      },
+      "all_day": true,
+      "location": "",
+      "description": "",
+      "htmlLink": "https://www.google.com/calendar/event?eid=MzRlYzlka2JvbXBidGpmczlvYTlmMmFwamJfMjAyNjEyMDIgZmFtaWx5MDI3MjI5Nzk3MDg3MjgwNTUzNzRAZw"
+    },
+    {
+      "id": "072ngfmhkv80b5s5n8h83qgatj_20261203T163000Z",
+      "title": "Inglese Mattia",
+      "start": {
+        "dateTime": "2026-12-03T16:30:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "end": {
+        "dateTime": "2026-12-03T16:30:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "all_day": false,
+      "location": "",
+      "description": "",
+      "htmlLink": "https://www.google.com/calendar/event?eid=MDcybmdmbWhrdjgwYjVzNW44aDgzcWdhdGpfMjAyNjEyMDNUMTYzMDAwWiBmYW1pbHkwMjcyMjk3OTcwODcyODA1NTM3NEBn"
+    },
+    {
+      "id": "ckrj2o9icpj3eb9gchi3cb9k71hj0bb1c4r68b9l74qj6dhm6ph32c1i64_20261204T163000Z",
+      "title": "Rugby",
+      "start": {
+        "dateTime": "2026-12-04T16:30:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "end": {
+        "dateTime": "2026-12-04T17:30:00Z",
+        "timeZone": "Europe/Rome"
+      },
+      "all_day": false,
+      "location": "",
+      "description": "",
+      "htmlLink": "https://www.google.com/calendar/event?eid=Y2tyajJvOWljcGozZWI5Z2NoaTNjYjlrNzFoajBiYjFjNHI2OGI5bDc0cWo2ZGhtNnBoMzJjMWk2NF8yMDI2MTIwNFQxNjMwMDBaIGZhbWlseTAyNzIyOTc5NzA4NzI4MDU1Mzc0QGc"
     }
   ]
 }
