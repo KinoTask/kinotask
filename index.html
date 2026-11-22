@@ -11578,6 +11578,24 @@ function loadWeeklyDateCalendar(def){
     host.appendChild(nav);
     var rule=mk("div","small","Ricorrenza: "+(weekdays.length?weekdays.map(function(d){return ["dom","lun","mar","mer","gio","ven","sab"][d];}).join(", "):"nessun giorno configurato"));
     host.appendChild(rule);
+    if(canEdit){
+      var editRule=mk("button","","MODIFICA GIORNI");editRule.type="button";editRule.style.margin="6px 0";
+      editRule.onclick=function(){
+        var panel=mk("div","weekly-date-rule-editor","");panel.style.display="flex";panel.style.flexWrap="wrap";panel.style.gap="8px";panel.style.padding="7px 0";
+        var checks=[];
+        ["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"].forEach(function(day,index){
+          var label=mk("label","","");label.style.display="flex";label.style.alignItems="center";label.style.gap="4px";
+          var check=document.createElement("input");check.type="checkbox";check.value=String((index+1)%7);check.checked=weekdays.indexOf(Number(check.value))!==-1;checks.push(check);
+          label.appendChild(check);label.appendChild(document.createTextNode(day));panel.appendChild(label);
+        });
+        var save=mk("button","","SALVA");save.type="button";save.onclick=function(){
+          var selected=checks.filter(function(c){return c.checked;}).map(function(c){return Number(c.value);});
+          usersRequest("PUT","/custom-boxes/"+def.custom_box_id+"/weekly-dates",{weekdays:selected},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Regola non salvata");return;}load();});
+        };
+        panel.appendChild(save);host.insertBefore(panel,host.children[2]);
+      };
+      host.appendChild(editRule);
+    }
     var map={};entries.forEach(function(e){map[e.source_date]=e;});
     var rows=[];
     for(var d=new Date(start);d<=end;d=shift(d,1)){
@@ -11599,7 +11617,7 @@ function loadWeeklyDateCalendar(def){
       if(entry.completed_by_name){var who=mk("span","small",String(entry.completed_by_name).toUpperCase());line.appendChild(who);}
       if(canEdit){
         var edit=mk("button","","✎");edit.type="button";edit.title="Sposta questa data";
-        edit.onclick=function(){var next=prompt("Nuova data (AAAA-MM-GG)",row.date);if(!next)return;if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(next)){alert("Formato data non valido");return;}usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_date:next,entry_type:"override"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
+        edit.onclick=function(){var next=prompt("Nuova data (AAAA-MM-GG)",row.date);if(!next)return;if(!/^\d{4}-\d{2}-\d{2}$/.test(next)){alert("Formato data non valido");return;}usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_date:next,entry_type:"override"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
         line.appendChild(edit);
         var exclude=mk("button","","×");exclude.type="button";exclude.title="Escludi questa data";
         exclude.onclick=function(){if(!confirm("Escludere questa data?"))return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_type:"excluded"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
