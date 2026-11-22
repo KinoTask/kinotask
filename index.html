@@ -583,6 +583,15 @@ input[type=checkbox] {
   display:none!important;
 }
 /* Calendario date: righe e gerarchia visiva coerenti con gli eventi agenda. */
+.weekly-date-nav { margin:5px 0 10px; }
+.weekly-date-nav > button { min-height:32px; padding:7px 3px; font-size:.85em; }
+.weekly-date-nav > button:disabled { opacity:.55; }
+.weekly-date-assignment { display:flex; flex-direction:column; align-items:flex-start; }
+.weekly-date-assignment > button { width:30px; min-width:30px; height:27px; margin:0; padding:2px; }
+.weekly-date-assignment .todo-assign-menu { width:100%; }
+.weekly-date-notes textarea { font:inherit; font-size:.85em; }
+.weekly-date-notes button { font-size:.75em; padding:4px 8px; }
+
 .weekly-date-row { margin:4px 0; padding:6px 0; }
 .weekly-date-main { display:flex; flex:1 1 auto; min-width:0; flex-direction:column; line-height:1.2; }
 .weekly-date-label { font-weight:bold; text-transform:capitalize; }
@@ -11681,7 +11690,7 @@ function loadWeeklyDateCalendar(def){
     rows.forEach(function(row){
       var d=new Date(row.date+"T12:00:00"),entry=row.entry||{},line=mk("div","weekly-date-row","");
       line.className="weekly-date-row";
-      line.style.display="flex";line.style.alignItems="center";line.style.gap="8px";line.style.padding="7px 2px";line.style.borderBottom="1px solid #ddd";
+      line.style.display="flex";line.style.flexWrap="wrap";line.style.alignItems="center";line.style.gap="8px";line.style.padding="7px 2px";line.style.borderBottom="1px solid #ddd";
       var check=document.createElement("input");check.type="checkbox";check.checked=!!entry.done;check.disabled=false;
       check.onchange=function(){usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,done:check.checked},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Salvataggio non riuscito");load();}else load();});};
       line.appendChild(check);
@@ -11693,7 +11702,7 @@ function loadWeeklyDateCalendar(def){
       mark.onclick=function(){check.checked=!check.checked;check.onchange();};line.appendChild(mark);
       if(canEdit){
         var assigned=[];try{assigned=JSON.parse(entry.assigned_user_ids||"[]").map(String);}catch(ignore){assigned=[];}
-        var assignWrap=mk("div","weekly-date-assignment","");
+        var assignWrap=mk("div","weekly-date-assignment","");assignWrap.style.flex="1 0 100%";
         var assignButton=mk("button","todo-assign","👥");assignButton.type="button";assignButton.title="Assegna la data";
         var assignMenu=mk("div","todo-assign-menu","");
         assignMenu.appendChild(mk("div","todo-assign-title","Assegna a:"));
@@ -11717,13 +11726,13 @@ function loadWeeklyDateCalendar(def){
             assignSave.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Assegnazione non salvata");return;}load();
           });
         };
-        assignWrap.appendChild(assignButton);assignWrap.appendChild(assignMenu);host.appendChild(assignWrap);
-        var note=mk("div","weekly-date-notes","");
+        assignWrap.appendChild(assignButton);assignWrap.appendChild(assignMenu);line.appendChild(assignWrap);
+        var note=mk("div","weekly-date-notes","");note.style.flex="1 0 100%";
         var noteInput=document.createElement("textarea");noteInput.rows=2;noteInput.maxLength=2000;noteInput.placeholder="Annotazioni...";noteInput.value=entry.notes||"";
         noteInput.style.width="100%";noteInput.style.boxSizing="border-box";noteInput.style.margin="3px 0 7px";
         var noteSave=mk("button","","SALVA ANNOTAZIONE");noteSave.type="button";noteSave.style.margin="0 0 7px";
         noteSave.onclick=function(){noteSave.disabled=true;usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,notes:noteInput.value},function(e,r){noteSave.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Annotazione non salvata");return;}load();});};
-        note.appendChild(noteInput);note.appendChild(noteSave);host.appendChild(note);
+        note.appendChild(noteInput);note.appendChild(noteSave);line.appendChild(note);
       }
       if(canEdit){
         var edit=mk("button","","✎");edit.type="button";edit.title="Sposta questa data";
