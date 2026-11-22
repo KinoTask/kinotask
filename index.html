@@ -9842,9 +9842,18 @@ function buildLayout(view, previewSections){
        segnala il dato incoerente senza interrompere il rendering degli altri
        box della vista (in particolare dei box custom, creati dinamicamente). */
     if(!b && def){
-      console.warn("Box standard presente nel layout ma contenitore HTML assente:",{
-        id:def.id, element_id:def.element_id, element_key:def.element_key
-      });
+      console.warn("Box senza contenitore HTML statico:", JSON.stringify({
+        id:def.id,
+        element_id:def.element_id,
+        element_key:def.element_key,
+        custom_box_id:def.custom_box_id,
+        numeric_id:def.numeric_id,
+        box_key:def.box_key,
+        custom_family_id:def.custom_family_id,
+        custom_owner_user_id:def.custom_owner_user_id,
+        share_mode:def.share_mode,
+        view_type:def.view_type
+      }));
       return;
     }
     if(!b)return;
