@@ -5101,19 +5101,45 @@ body.k #dashboardToolbar #dashboardCancelReorderButton {
   font-weight:600!important;
   text-align:center!important;
 }
-/* Kindle usa un flusso a colonna singola indipendente dal viewport CSS
-   dichiarato da Silk (che può essere superiore a 800px). */
+/* Kindle/Silk: conserva la stessa struttura di sezioni e colonne salvata
+   nel layout. Il vecchio browser non gestisce in modo affidabile flexbox:
+   usa float al 50% come fallback, senza impilare tutte le box. */
 body.k #dashboardContent:not([hidden]),
 body.k #personalView:not([hidden]),
-body.k #personalLayoutRow,
-body.k .dashboard-layout-kindle {
+body.k #personalLayoutRow {
   display:block!important;
   width:100%!important;
   max-width:100%!important;
   min-width:0!important;
   box-sizing:border-box!important;
 }
-body.k .dashboard-layout-kindle > .box {
+body.k .dashboard-layout-row {
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+body.k .dashboard-layout-columns {
+  display:block!important;
+  overflow:hidden!important;
+}
+body.k .dashboard-layout-columns > .dashboard-layout-column {
+  display:block!important;
+  float:left!important;
+  width:50%!important;
+  max-width:50%!important;
+  min-width:0!important;
+  flex:none!important;
+  box-sizing:border-box!important;
+}
+body.k .dashboard-layout-columns > .dashboard-layout-column:only-child {
+  float:none!important;
+  width:100%!important;
+  max-width:100%!important;
+}
+body.k .dashboard-layout-column > .box,
+body.k .dashboard-layout-full > .col > .box {
   display:block!important;
   float:none!important;
   width:100%!important;
@@ -5121,8 +5147,14 @@ body.k .dashboard-layout-kindle > .box {
   min-width:0!important;
   flex:none!important;
   box-sizing:border-box!important;
-  margin-left:0!important;
-  margin-right:0!important;
+}
+body.k .dashboard-layout-full,
+body.k .dashboard-layout-full > .col {
+  display:block!important;
+  float:none!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
 }
 </style>
 </head>
@@ -10292,9 +10324,10 @@ function canManageDashboardLayout(viewPermission){
     }
     return false;
   }
-  return viewPermission.owner_user_id!==null &&
-    viewPermission.owner_user_id!==undefined &&
-    String(viewPermission.owner_user_id)===String(authProfile);
+  /* Il Worker autorizza il layout in base a auth_profile_views.can_edit.
+     Non restringere ulteriormente al solo owner_user_id: una vista personale
+     può essere associata al profilo tramite users.view_id e avere owner nullo. */
+  return true;
 }
 
 function toggleDashboardReorder(){
