@@ -11898,6 +11898,45 @@ function loadWeeklyDateCalendar(def){
       }
       host.appendChild(line);
     });
+    if(canEdit&&showOverdue){
+      var overdueActions=mk("div","weekly-date-overdue-actions","");
+      overdueActions.style.display="flex";overdueActions.style.flexWrap="wrap";overdueActions.style.gap="6px";overdueActions.style.marginTop="10px";
+      var completeAll=mk("button","","CONCLUDI TUTTI GLI ARRETRATI");completeAll.type="button";completeAll.disabled=!rows.length;
+      completeAll.onclick=function(){
+        if(!rows.length)return;
+        if(!confirm("Concludere tutti i "+rows.length+" arretrati visualizzati?"))return;
+        completeAll.disabled=true;
+        var index=0;
+        function completeNext(){
+          if(index>=rows.length){load();return;}
+          var row=rows[index++];
+          usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,done:true},function(e,r){
+            if(e||!r||!r.ok){completeAll.disabled=false;alert(e||(r&&r.error)||"Interruzione: non tutti gli arretrati sono stati conclusi.");load();return;}
+            completeNext();
+          });
+        }
+        completeNext();
+      };
+      overdueActions.appendChild(completeAll);
+      var addOverdue=mk("button","","AGGIUNGI UN ARRETRATO");addOverdue.type="button";
+      addOverdue.onclick=function(){
+        var value=prompt("Data dell'arretrato (AAAA-MM-GG)");
+        if(!value)return;
+        if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)||iso(new Date(value+"T12:00:00"))!==value){alert("Inserisci una data valida nel formato AAAA-MM-GG.");return;}
+        if(value<iso(start)||value>iso(end)){alert("La data deve rientrare nel periodo degli arretrati visualizzato (massimo 3 mesi, fino a 15 giorni fa).");return;}
+        var existing=entries.find(function(e){return e.source_date===value;});
+        var day=new Date(value+"T12:00:00").getDay();
+        if(existing||weekdays.indexOf(day)!==-1){alert("Per questa data esiste già un'attività nel calendario.");return;}
+        addOverdue.disabled=true;
+        usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){
+          addOverdue.disabled=false;
+          if(e||!r||!r.ok){alert(e||(r&&r.error)||"Arretrato non aggiunto");return;}
+          load();
+        });
+      };
+      overdueActions.appendChild(addOverdue);
+      host.appendChild(overdueActions);
+    }
     if(canEdit&&!showOverdue){
       var add=mk("button","","+ AGGIUNGI DATA");add.type="button";add.style.marginTop="9px";
       add.onclick=function(){var value=prompt("Data aggiuntiva (AAAA-MM-GG)");if(!value)return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Data non aggiunta");load();});};host.appendChild(add);
