@@ -10141,16 +10141,27 @@ function dashboardRemoveBoxFromLayout(boxEl){
   if(!boxId)return;
   var customId=boxEl.getAttribute("data-custom-box-id");
   if(customId){
+    function hideCustomBoxInCurrentView(){
+      usersRequest("POST","/custom-boxes/"+encodeURIComponent(customId)+"/hide",{view_id:currentView},function(err,data){
+        if(err||!data||!data.ok){alert(err||(data&&data.error)||"Nascondimento non riuscito.");return;}
+        loadAuthorizedConfig(function(configErr){
+          if(configErr){alert("Box nascosto, ma aggiornamento dashboard non riuscito. Ricarica la pagina.");return;}
+          setView(currentView,false);
+        });
+      });
+    }
+
+    /* I profili personali possono soltanto nascondere il box nella propria vista.
+       L'archiviazione familiare è un'azione riservata al profilo Famiglia. */
+    if(authUserType!=="family"){
+      hideCustomBoxInCurrentView();
+      return;
+    }
+
     showCustomBoxRemovalChoice(function(choice){
       if(choice==="cancel")return;
       if(choice==="hide"){
-        usersRequest("POST","/custom-boxes/"+encodeURIComponent(customId)+"/hide",{view_id:currentView},function(err,data){
-          if(err||!data||!data.ok){alert(err||(data&&data.error)||"Nascondimento non riuscito.");return;}
-          loadAuthorizedConfig(function(configErr){
-            if(configErr){alert("Box nascosto, ma aggiornamento dashboard non riuscito. Ricarica la pagina.");return;}
-            setView(currentView,false);
-          });
-        });
+        hideCustomBoxInCurrentView();
         return;
       }
       usersRequest("DELETE","/custom-boxes/"+encodeURIComponent(customId),null,function(err,data){
