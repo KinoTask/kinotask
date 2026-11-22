@@ -5317,6 +5317,7 @@ body.k .dashboard-layout-full > .col {
 <div id="loginPage" hidden>
 
   <div class="login-card">
+    <form id="loginForm" autocomplete="on">
 
     <div class="login-logo">KinoTask</div>
 
@@ -5356,7 +5357,7 @@ body.k .dashboard-layout-full > .col {
     <button type="button" class="login-back" id="loginBack">
       INDIETRO
     </button>
-
+    </form>
   </div>
 
 </div>
@@ -5759,6 +5760,7 @@ function updateRecurringConfigButton(){
 var agendaData = null, agendaErr = false, agendaSyncedAt = null;
 var agendaSt = {today: true, week: 0};
 var userData = null, userErr = false, userSyncedAt = null;
+var userAgendaRequestSequence = 0, userAgendaLoadedFor = null;
 var userSt = {today: true, week: 0};
 var routesData = null, routesErr = false, routesSyncedAt = null;
 
@@ -5862,8 +5864,9 @@ function toMin(s){
 }
 
 /* GET JSON: prova gli URL in ordine; nocb = niente parametro anti-cache */
-function getJson(urls, cb, nocb){
+function getJson(urls, cb, nocb, timeoutMs){
   var i = 0;
+  var requestTimeout = timeoutMs || 20000;
   (function next(){
     if(i >= urls.length){ cb("non raggiungibile", null); return; }
     var u = urls[i++], x, done = false, timer;
@@ -5875,7 +5878,7 @@ function getJson(urls, cb, nocb){
       if(ok){ cb(null, d); } else { next(); }
     }
     try { x = new XMLHttpRequest(); x.open("GET", u, true); } catch(e){ next(); return; }
-    timer = setTimeout(function(){ try{ x.abort(); }catch(e){} fin(false); }, 20000);
+    timer = setTimeout(function(){ try{ x.abort(); }catch(e){} fin(false); }, requestTimeout);
     x.onreadystatechange = function(){
       if(x.readyState !== 4 || done){ return; }
       if(x.status !== 200){ fin(false); return; }
@@ -6270,21 +6273,46 @@ function renderUserAgenda(){
 }
 
 function loadUserAgenda(userId){
-  var file = "agenda_" + String(userId).toLowerCase() + ".json";
-  var start = Date.now();
+  var requestedView = String(currentView || "");
+  var viewConfig = findItem(DASHBOARD_VIEWS, function(v){
+    return String(v.id) === requestedView;
+  });
+  /* I file agenda personali sono nominati con users.id, non con l'alias
+     della vista. La vista personale espone owner_user_id da /views. */
+  var agendaUserId = String((viewConfig && viewConfig.owner_user_id) || userId || "");
+  var sequence = ++userAgendaRequestSequence;
 
+  userData = null;
+  userErr = false;
+  userAgendaLoadedFor = agendaUserId;
+  safe(renderUserAgenda);
+
+  if(!agendaUserId){
+    userErr = true;
+    safe(renderUserAgenda);
+    return;
+  }
+
+  var file = "agenda_" + agendaUserId.toLowerCase() + ".json";
+  /* Una vista senza file agenda deve risolversi rapidamente e non mostrare
+     per decine di secondi i dati della persona visitata in precedenza. */
   getJson([CONFIG.base + file, file], function(err, d){
+    if(sequence !== userAgendaRequestSequence ||
+       String(currentView || "") !== requestedView){
+      return;
+    }
 
-    if(!err && d && d.events){
+    if(!err && d && Array.isArray(d.events)){
       userData = d;
       userErr = false;
       userSyncedAt = new Date();
     } else {
+      userData = null;
       userErr = true;
     }
 
     safe(renderUserAgenda);
-  });
+  }, false, 7000);
 }
 
 /* Aggiorna l'agenda ogni minuto, al secondo :05 */
@@ -9986,6 +10014,11 @@ function buildLayout(view, previewSections){
       createCustomBoxElement(def);
       b=$(def.element_id);
     }
+    /* Appunti è un'azione della toolbar, non un contenitore di layout:
+       ignora le associazioni D1 storiche che lo riportano come box. */
+    if(def && String(def.element_id || "") === "handwrittenNotesBox"){
+      return;
+    }
     /* I box standard hanno contenitori HTML statici. Non esiste un
        createDashboardBoxElement: se il catalogo punta a un elemento assente,
        segnala il dato incoerente senza interrompere il rendering degli altri
@@ -10589,7 +10622,13 @@ function setView(view, manual){
   }
 
   var personal = viewConfig.view_type === "personal";
-  
+
+  /* Invalida subito ogni fetch dell'agenda precedente e scarta i suoi dati. */
+  userAgendaRequestSequence++;
+  userData = null;
+  userErr = false;
+  userAgendaLoadedFor = null;
+
   setHidden($("dashboardContent"), personal);
   setHidden($("personalView"), !personal);
 
@@ -11157,12 +11196,15 @@ function openUserSwitchPrompt(viewId, userLabel){
   pin.placeholder = "PIN utente";
   pin.className = "user-switch-pin";
 
+  var form = document.createElement("form");
+  form.autocomplete = "on";
+  form.onsubmit = function(ev){ ev.preventDefault(); submitSwitch(); return false; };
   var error = mk("div", "user-switch-error", "");
   var actions = mk("div", "user-switch-actions");
   var cancel = mk("button", "user-switch-cancel", "ANNULLA");
   var confirmButton = mk("button", "user-switch-confirm", "CONFERMA");
   cancel.type = "button";
-  confirmButton.type = "button";
+  confirmButton.type = "submit";
   actions.appendChild(cancel);
   actions.appendChild(confirmButton);
 
@@ -11219,7 +11261,6 @@ function openUserSwitchPrompt(viewId, userLabel){
   }
 
   cancel.onclick = cancelSwitch;
-  confirmButton.onclick = submitSwitch;
   pin.onkeydown = function(ev){
     if(ev.key === "Enter"){
       ev.preventDefault();
@@ -11230,11 +11271,12 @@ function openUserSwitchPrompt(viewId, userLabel){
     }
   };
 
-  box.appendChild(title);
-  box.appendChild(subtitle);
-  box.appendChild(pin);
-  box.appendChild(error);
-  box.appendChild(actions);
+  form.appendChild(title);
+  form.appendChild(subtitle);
+  form.appendChild(pin);
+  form.appendChild(error);
+  form.appendChild(actions);
+  box.appendChild(form);
   panel.appendChild(box);
   pin.focus();
 }
@@ -13481,6 +13523,7 @@ function openLoginPage(){
 function initLoginPage(){
 
   restoreLoginNames();
+  $("loginForm").onsubmit = function(ev){ ev.preventDefault(); $("loginSubmit").click(); return false; };
   $("loginFamily").onchange = saveLoginNames;
   $("loginUser").onchange = saveLoginNames;
   $("loginFamily").onblur = saveLoginNames;
@@ -13721,10 +13764,10 @@ function authRequest(method, path, body, callback){
     x.setRequestHeader("Content-Type", "application/json");
   }
 
-  var token = "";
+  var token = authToken || "";
 
   try {
-    token = localStorage.getItem("dashboardAuthToken") || "";
+    if(!token) token = localStorage.getItem("dashboardAuthToken") || "";
   } catch(e){}
 
   if(token){
