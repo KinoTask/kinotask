@@ -1,0 +1,58 @@
+name: Validate dashboard frontend
+
+on:
+  push:
+    paths:
+      - "index.html"
+      - ".github/workflows/validate-dashboard-frontend.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check inline JavaScript and UUID box contract
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import subprocess
+
+          source = Path("index.html").read_text(encoding="utf-8")
+          assert "numeric_id" not in source, "Legacy numeric custom-box property remains"
+          assert "custom_box_id" in source, "UUID custom-box property is missing"
+
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.in_script = False
+                  self.current = []
+                  self.items = []
+              def handle_starttag(self, tag, attrs):
+                  if tag.lower() == "script":
+                      attrs = dict(attrs)
+                      kind = (attrs.get("type") or "").lower()
+                      self.in_script = kind in ("", "text/javascript", "application/javascript")
+                      self.current = []
+              def handle_data(self, data):
+                  if self.in_script:
+                      self.current.append(data)
+              def handle_endtag(self, tag):
+                  if tag.lower() == "script" and self.in_script:
+                      self.items.append("".join(self.current))
+                      self.in_script = False
+
+          parser = Scripts()
+          parser.feed(source)
+          assert parser.items, "No inline JavaScript found"
+          for index, script in enumerate(parser.items):
+              path = Path(f"/tmp/dashboard-inline-{index}.js")
+              path.write_text(script, encoding="utf-8")
+              subprocess.run(["node", "--check", str(path)], check=True)
+          print(f"Frontend JavaScript syntax: PASSED ({len(parser.items)} scripts)")
+          print("Frontend UUID custom-box contract: PASSED")
+          PY
