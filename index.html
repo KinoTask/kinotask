@@ -7607,16 +7607,8 @@ function loadFamilyShoppingList() {
       }
 
       clear(list);
-      // shopping-api restituisce le liste con gli articoli annidati.
-      // Appiattiamo la risposta nel formato usato dal renderer.
-      var lists = Array.isArray(data.lists) ? data.lists : [];
-      var items = [];
-      for (var li = 0; li < lists.length; li++) {
-        var listItems = Array.isArray(lists[li].items) ? lists[li].items : [];
-        for (var lj = 0; lj < listItems.length; lj++) {
-          items.push(listItems[lj]);
-        }
-      }
+      // shopping-api restituisce direttamente { items: [...] }.
+      var items = Array.isArray(data.items) ? data.items : [];
       var pending = [];
       var completed = [];
       for (var i=0; i<items.length; i++) {
@@ -13492,9 +13484,24 @@ function updateDashboardBoxTitles(){
             continue;
         }
 
-        var title = container.querySelector(
-            '[data-box-title="' + box.id + '"]'
-        );
+        /* Nel DB box.id è un UUID; il markup usa la chiave
+           funzionale del box (element_key), non l'ID tecnico. */
+        var titleNodes = container.querySelectorAll("[data-box-title]");
+        var title = null;
+        var titleKeys = [
+            box.element_key,
+            box.element_id,
+            box.id
+        ];
+        for(var t = 0; t < titleNodes.length && !title; t++){
+            var titleKey = titleNodes[t].getAttribute("data-box-title");
+            for(var k = 0; k < titleKeys.length; k++){
+                if(titleKeys[k] && String(titleKeys[k]) === String(titleKey)){
+                    title = titleNodes[t];
+                    break;
+                }
+            }
+        }
 
         if(!title){
             continue;
