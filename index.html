@@ -14449,24 +14449,35 @@ function startDashboard(preferredView){
 	  renderPersonalTasks();
 	});
 	
-	$("recurringConfigButton").onclick = function(){
-      if(!canManageRecurringTasks()){
-        updateRecurringConfigButton();
-        return;
-      }
-      openRecurringConfig();
-    };
-	$("recurringConfigClose").onclick = closeRecurringConfig;
-  $("recurringPermissionsToggle").onclick = function(){
+  // I controlli delle attività ricorrenti possono non essere presenti
+  // nel DOM in alcune configurazioni/vista: non devono interrompere
+  // l'inizializzazione generale della dashboard.
+  var recurringConfigButton = $("recurringConfigButton");
+  if(recurringConfigButton) recurringConfigButton.onclick = function(){
+    if(!canManageRecurringTasks()){
+      updateRecurringConfigButton();
+      return;
+    }
+    openRecurringConfig();
+  };
+  var recurringConfigClose = $("recurringConfigClose");
+  if(recurringConfigClose) recurringConfigClose.onclick = closeRecurringConfig;
+  var recurringPermissionsToggle = $("recurringPermissionsToggle");
+  if(recurringPermissionsToggle) recurringPermissionsToggle.onclick = function(){
     var panel = $("recurringPermissionsPanel");
+    if(!panel) return;
     var show = panel.hidden;
     setHidden(panel, !show);
     if(show) openRecurringPermissions();
   };
-	$("recurringCancelEditButton").onclick = cancelRecurringEdit;
-	$("recurringType").onchange = updateRecurringFields;
-  $("recurringTimeMode").onchange = updateRecurringFields;
-	$("recurringSaveButton").onclick = saveRecurringDefinition;
+  var recurringCancelEditButton = $("recurringCancelEditButton");
+  if(recurringCancelEditButton) recurringCancelEditButton.onclick = cancelRecurringEdit;
+  var recurringType = $("recurringType");
+  if(recurringType) recurringType.onchange = updateRecurringFields;
+  var recurringTimeMode = $("recurringTimeMode");
+  if(recurringTimeMode) recurringTimeMode.onchange = updateRecurringFields;
+  var recurringSaveButton = $("recurringSaveButton");
+  if(recurringSaveButton) recurringSaveButton.onclick = saveRecurringDefinition;
   var recurringForm = $("recurringConfigForm");
   if(recurringForm){
     recurringForm.oninput = function(){
