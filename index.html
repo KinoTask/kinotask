@@ -585,10 +585,12 @@ input[type=checkbox] {
 /* Calendario date: righe e gerarchia visiva coerenti con gli eventi agenda. */
 .weekly-date-nav { margin:5px 0 10px; }
 .weekly-date-nav > button { min-height:32px; padding:7px 3px; font-size:.85em; }
-.weekly-date-nav > button:disabled { opacity:.55; }
+.weekly-date-nav > button { opacity:1!important; }
 .weekly-date-assignment { display:flex; flex-direction:column; align-items:flex-start; }
 .weekly-date-assignment > button { width:30px; min-width:30px; height:27px; margin:0; padding:2px; }
 .weekly-date-assignment .todo-assign-menu { width:100%; }
+.weekly-date-notes { display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
+.weekly-date-notes > button { width:30px; min-width:30px; height:27px; margin:0; padding:2px; }
 .weekly-date-notes textarea { font:inherit; font-size:.85em; }
 .weekly-date-notes button { font-size:.75em; padding:4px 8px; }
 
@@ -11649,9 +11651,10 @@ function loadWeeklyDateCalendar(def){
     clear(host);
     var nav=mk("div","weekly-date-nav seg","");
     [-2,-1,0,1,2].forEach(function(n){
-      var label=n===0?"OGGI":(n<0?"−"+Math.abs(n):"+"+n);
-      var b=mk("button","seg-button"+(n===offset?" sel":""),label);b.type="button";b.disabled=n===offset;
-      b.onclick=function(){if(n===0&&offset!==0){offset=0;load();return;}offset=n;load();};
+      var label=n===0?(offset===0?"SETTIMANA CORRENTE":"OGGI"):(n<0?"−"+Math.abs(n):"+"+n);
+      var b=mk("button","seg-button"+(n===offset?" sel":""),label);b.type="button";
+      b.setAttribute("aria-label",n===0?(offset===0?"Settimana corrente":"Torna a oggi"):(n<0?"Settimana precedente di "+Math.abs(n):"Settimana successiva di "+n));
+      b.onclick=function(){if(n===0){if(offset!==0){offset=0;load();}return;}offset=n;load();};
       nav.appendChild(b);
     });
     host.appendChild(nav);
@@ -11733,12 +11736,17 @@ function loadWeeklyDateCalendar(def){
         assignWrap.appendChild(assignMenu);line.appendChild(assignWrap);
         }
         if(canEdit){
-        var note=mk("div","weekly-date-notes","");note.style.flex="1 0 100%";
-        var noteInput=document.createElement("textarea");noteInput.rows=2;noteInput.maxLength=2000;noteInput.placeholder="Annotazioni...";noteInput.value=entry.notes||"";
-        noteInput.style.width="100%";noteInput.style.boxSizing="border-box";noteInput.style.margin="3px 0 7px";
-        var noteSave=mk("button","","SALVA ANNOTAZIONE");noteSave.type="button";noteSave.style.margin="0 0 7px";
+        var noteWrap=mk("div","weekly-date-notes","");noteWrap.style.flex="1 0 100%";
+        var noteButton=mk("button","todo-assign","▤");noteButton.type="button";noteButton.title=entry.notes?"Visualizza o modifica annotazione":"Aggiungi annotazione";noteButton.setAttribute("aria-label",noteButton.title);
+        var notePanel=mk("div","weekly-date-note-panel","");notePanel.style.display="none";notePanel.style.width="100%";
+        var noteInput=document.createElement("textarea");noteInput.rows=2;noteInput.maxLength=2000;noteInput.placeholder="Scrivi un'annotazione...";noteInput.value=entry.notes||"";
+        noteInput.style.width="100%";noteInput.style.boxSizing="border-box";noteInput.style.margin="6px 0 4px";
+        var noteSave=mk("button","","SALVA");noteSave.type="button";noteSave.style.margin="0 0 7px";
+        noteButton.onclick=function(){notePanel.style.display=notePanel.style.display==="none"?"block":"none";};
         noteSave.onclick=function(){noteSave.disabled=true;usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,notes:noteInput.value},function(e,r){noteSave.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Annotazione non salvata");return;}load();});};
-        note.appendChild(noteInput);note.appendChild(noteSave);line.appendChild(note);
+        notePanel.appendChild(noteInput);notePanel.appendChild(noteSave);
+        if(entry.notes){var notePreview=mk("div","weekly-date-note-preview",entry.notes);notePreview.style.fontSize=".78em";notePreview.style.marginTop="4px";notePreview.style.whiteSpace="pre-wrap";notePreview.style.maxWidth="100%";noteWrap.appendChild(notePreview);}
+        noteWrap.appendChild(noteButton);noteWrap.appendChild(notePanel);line.appendChild(noteWrap);
         }
       }
       if(canEdit){
