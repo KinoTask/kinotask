@@ -11398,12 +11398,14 @@ function openCustomBoxEditor(def, anchor){
     assignment.checked=!!found.assignment_enabled;
     editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';
     scope.disabled=false;
-    if(boxKind.value==='weekly_dates'){
-      var ruleYear=(new Date()).getFullYear();
-      usersRequest('GET','/custom-boxes/'+def.custom_box_id+'/weekly-dates?viewId='+encodeURIComponent(currentView)+'&from='+ruleYear+'-01-01&to='+ruleYear+'-12-31',null,function(ruleErr,ruleData){
-        if(!ruleErr&&ruleData&&ruleData.ok)editWeekdayChecks.forEach(function(c){c.checked=(ruleData.weekdays||[]).indexOf(Number(c.value))!==-1;});
-      });
-    }
+    var ruleYear=(new Date()).getFullYear();
+    usersRequest('GET','/custom-boxes/'+def.custom_box_id+'/weekly-dates?viewId='+encodeURIComponent(currentView)+'&from='+ruleYear+'-01-01&to='+ruleYear+'-12-31',null,function(ruleErr,ruleData){
+      if(!ruleErr&&ruleData&&ruleData.ok){
+        def.box_kind='weekly_dates';boxKind.value='weekly_dates';editWeekdays.style.display='flex';
+        editWeekdayChecks.forEach(function(c){c.checked=(ruleData.weekdays||[]).indexOf(Number(c.value))!==-1;});
+        updateUsers();positionCustomBoxPanel(panel,anchorRect);
+      }
+    });
     editorReady=true;save.disabled=false;loadStatus.hidden=true;
     renderCustomBoxUserChoices(users,ids,function(){positionCustomBoxPanel(panel,anchorRect);});updateUsers();
     positionCustomBoxPanel(panel,anchorRect);
