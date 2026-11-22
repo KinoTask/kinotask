@@ -9894,7 +9894,7 @@ function buildLayout(view, previewSections){
   /* Silk può esporre una viewport CSS ampia anche sul Kindle.
      Non affidarsi alle media query: generare direttamente una sola colonna
      piatta, senza .row/.col Bootstrap né flex a percentuale. */
-  var kindleLayout=!!(document.body&&document.body.classList&&document.body.classList.contains("k"));
+  var kindleLayout=!!IS_KINDLE;
   if(kindleLayout){
     var kindleHost=mk("div","dashboard-layout-kindle");
     kindleHost.style.display="block";kindleHost.style.width="100%";kindleHost.style.maxWidth="100%";
