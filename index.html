@@ -11497,8 +11497,14 @@ function openCustomBoxEditor(def, anchor){
   wrap.appendChild(editWeekdays);
   var scope=document.createElement('select');scope.style.padding='9px';scope.style.width='100%';
   [['private','Privato'],['family','Condiviso con tutta la famiglia'],['selected','Condiviso con utenti specifici']].forEach(function(item){var opt=document.createElement('option');opt.value=item[0];opt.textContent=item[1];scope.appendChild(opt);});
+  wrap.appendChild(mk('div','','COLLABORATORI (possono collaborare e ricevere assegnazioni)'));
   wrap.appendChild(scope);
   var users=mk('div','custom-box-share-users','');wrap.appendChild(users);
+  var visibilityScope=document.createElement('select');visibilityScope.style.padding='9px';visibilityScope.style.width='100%';
+  [['family','Visibile a tutta la famiglia'],['selected','Visibile solo agli utenti selezionati']].forEach(function(item){var opt=document.createElement('option');opt.value=item[0];opt.textContent=item[1];visibilityScope.appendChild(opt);});
+  wrap.appendChild(mk('div','','VISIBILITÀ (chi può vedere box e attività)'));
+  wrap.appendChild(visibilityScope);
+  var visibleUsers=mk('div','custom-box-visible-users','');wrap.appendChild(visibleUsers);
   var assignment=document.createElement('input');assignment.type='checkbox';assignment.checked=!!def.assignment_enabled;
   var assignmentLabel=mk('label','','');assignmentLabel.style.display='flex';assignmentLabel.style.alignItems='center';assignmentLabel.style.gap='7px';assignmentLabel.style.marginTop='8px';assignmentLabel.style.paddingTop='10px';assignmentLabel.style.borderTop='1px solid #ccc';assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode('Abilita assegnazione delle attività'));wrap.appendChild(assignmentLabel);
   var grantPanel=mk('div','custom-box-permissions-panel','');
@@ -11511,11 +11517,13 @@ function openCustomBoxEditor(def, anchor){
   var back=mk('button','','INDIETRO');back.type='button';back.onclick=function(){setHidden(panel,true);setHidden($('dashboardLayoutMenu'),false);};
   function updateUsers(){
     setHidden(users,scope.value!=='selected');
+    setHidden(visibleUsers,visibilityScope.value!=='selected');
     assignment.disabled=scope.value==='private'||boxKind.value==='weekly_dates';
     if(assignment.disabled)assignment.checked=false;
     positionCustomBoxPanel(panel,anchorRect);
   }
   scope.onchange=function(){updateUsers();editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';assignment.disabled=boxKind.value==='weekly_dates'||scope.value==='private';if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,anchorRect);};
+  visibilityScope.onchange=updateUsers;
   boxKind.onchange=function(){editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';assignment.disabled=boxKind.value==='weekly_dates'||scope.value==='private';if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,anchorRect);};
   var loadStatus=mk('div','','Caricamento configurazione del box…');
   loadStatus.style.fontSize='13px';loadStatus.style.color='#9b2c2c';
@@ -11539,7 +11547,9 @@ function openCustomBoxEditor(def, anchor){
     def.box_key=found.box_key||def.box_key;
     def.custom_owner_user_id=found.owner_user_id||def.custom_owner_user_id;
     var ids=[];if(found.user_ids){try{ids=Array.isArray(found.user_ids)?found.user_ids:JSON.parse(found.user_ids||'[]');}catch(ignore){ids=[];}}
+    var visibleIds=[];if(found.visible_user_ids){try{visibleIds=Array.isArray(found.visible_user_ids)?found.visible_user_ids:JSON.parse(found.visible_user_ids||'[]');}catch(ignore){visibleIds=[];}}
     scope.value=found.share_mode;
+    visibilityScope.value=found.visibility_mode|| (found.share_mode==='family'?'family':'selected');
     def.box_kind=found.box_kind||'tasklist';boxKind.value=def.box_kind;
     assignment.checked=!!found.assignment_enabled;
     editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';
@@ -11553,7 +11563,9 @@ function openCustomBoxEditor(def, anchor){
       }
     });
     editorReady=true;save.disabled=false;loadStatus.hidden=true;
-    renderCustomBoxUserChoices(users,ids,function(){positionCustomBoxPanel(panel,anchorRect);});updateUsers();
+    renderCustomBoxUserChoices(users,ids,function(){positionCustomBoxPanel(panel,anchorRect);});
+    renderCustomBoxUserChoices(visibleUsers,visibleIds,function(){positionCustomBoxPanel(panel,anchorRect);});
+    updateUsers();
     positionCustomBoxPanel(panel,anchorRect);
      usersRequest('GET','/custom-boxes/'+def.custom_box_id+'/permissions',null,function(permissionErr,permissionData){
       if(permissionErr||!permissionData||!permissionData.ok)return;
@@ -11606,8 +11618,9 @@ function openCustomBoxEditor(def, anchor){
     var title=name.value.trim();if(!title){alert('Inserisci il nome del box.');name.focus();return;}
     var selectedEditDays=editWeekdayChecks.filter(function(c){return c.checked;}).map(function(c){return Number(c.value);});
     if(boxKind.value==='weekly_dates'&&!selectedEditDays.length){alert('Seleziona almeno un giorno della settimana.');return;}
-    var payload={title:title,box_kind:boxKind.value,weekdays:selectedEditDays,assignment_enabled:boxKind.value!=='weekly_dates'&&scope.value!=='private'&&assignment.checked,scope:scope.value,user_ids:scope.value==='selected'?customBoxSelectedUserIds(users):[],view_id:currentView};
-    if(scope.value==='selected'&&!payload.user_ids.length){alert('Seleziona almeno un utente.');return;}
+    var payload={title:title,box_kind:boxKind.value,weekdays:selectedEditDays,assignment_enabled:boxKind.value!=='weekly_dates'&&scope.value!=='private'&&assignment.checked,scope:scope.value,user_ids:scope.value==='selected'?customBoxSelectedUserIds(users):[],visibility_mode:visibilityScope.value,visible_user_ids:visibilityScope.value==='selected'?customBoxSelectedUserIds(visibleUsers):[],view_id:currentView};
+    if(scope.value==='selected'&&!payload.user_ids.length){alert('Seleziona almeno un collaboratore.');return;}
+    if(visibilityScope.value==='selected'&&!payload.visible_user_ids.length){alert('Seleziona almeno un utente che può vedere il box.');return;}
     save.disabled=true;
     function submitBoxUpdate(confirmed){
       if(confirmed)payload.confirm_visibility_change=true;
