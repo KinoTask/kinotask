@@ -11638,11 +11638,12 @@ function loadWeeklyDateCalendar(def){
   }
   function render(start,end){
     clear(host);
-    var nav=mk("div","weekly-date-nav","");
-    nav.style.display="flex";nav.style.gap="4px";nav.style.justifyContent="space-between";nav.style.margin="5px 0 10px";
+    var nav=mk("div","weekly-date-nav seg","");
     [-2,-1,0,1,2].forEach(function(n){
-      var b=mk("button","",n===0?"OGGI":(n<0?"−"+Math.abs(n):"+"+n));b.type="button";b.style.flex="1";b.style.padding="7px 2px";b.disabled=n===0;
-      b.textContent=n===0?(offset===0?"OGGI":"SETT. SELEZIONATA"):(n<0?"−"+Math.abs(n):"+"+n);b.disabled=n===offset;b.onclick=function(){offset=n;load();};nav.appendChild(b);
+      var label=n===0?"OGGI":(n<0?"−"+Math.abs(n):"+"+n);
+      var b=mk("button","seg-button"+(n===offset?" sel":""),label);b.type="button";b.disabled=n===offset;
+      b.onclick=function(){if(n===0&&offset!==0){offset=0;load();return;}offset=n;load();};
+      nav.appendChild(b);
     });
     host.appendChild(nav);
     var rule=mk("div","small","Ricorrenza: "+(weekdays.length?weekdays.map(function(d){return ["dom","lun","mar","mer","gio","ven","sab"][d];}).join(", "):"nessun giorno configurato"));
@@ -11690,6 +11691,40 @@ function loadWeeklyDateCalendar(def){
       var who=mk("span","weekly-date-who",entry.done?(String(entry.completed_by_name||"Completato").toUpperCase()):"DA FARE");line.appendChild(who);
       var mark=mk("button","weekly-date-mark",entry.done?"SVOLTO":"SEGNA SVOLTO");mark.type="button";mark.title=entry.done?"Annulla completamento":"Segna la data come completata";
       mark.onclick=function(){check.checked=!check.checked;check.onchange();};line.appendChild(mark);
+      if(canEdit){
+        var assigned=[];try{assigned=JSON.parse(entry.assigned_user_ids||"[]").map(String);}catch(ignore){assigned=[];}
+        var assignWrap=mk("div","weekly-date-assignment","");
+        var assignButton=mk("button","todo-assign","👥");assignButton.type="button";assignButton.title="Assegna la data";
+        var assignMenu=mk("div","todo-assign-menu","");
+        assignMenu.appendChild(mk("div","todo-assign-title","Assegna a:"));
+        var assignOptions=mk("div","todo-assign-options",""),assignChecks=[];
+        (USERS||[]).forEach(function(user){
+          var label=mk("label","todo-assign-option","");
+          var input=document.createElement("input");input.type="checkbox";input.value=String(user.id);input.checked=assigned.indexOf(String(user.id))!==-1;
+          label.appendChild(input);label.appendChild(document.createTextNode(user.name));assignOptions.appendChild(label);assignChecks.push(input);
+        });
+        assignMenu.appendChild(assignOptions);
+        var assignActions=mk("div","todo-assign-buttons","");
+        var assignSave=mk("button","","Salva");assignSave.type="button";
+        var assignCancel=mk("button","","Annulla");assignCancel.type="button";
+        assignActions.appendChild(assignSave);assignActions.appendChild(assignCancel);assignMenu.appendChild(assignActions);
+        assignButton.onclick=function(){closeAssignMenus();assignMenu.classList.toggle("open");};
+        assignCancel.onclick=function(){assignMenu.classList.remove("open");};
+        assignSave.onclick=function(){
+          var ids=assignChecks.filter(function(c){return c.checked;}).map(function(c){return c.value;});
+          assignSave.disabled=true;
+          usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,assigned_user_ids:ids},function(e,r){
+            assignSave.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Assegnazione non salvata");return;}load();
+          });
+        };
+        assignWrap.appendChild(assignButton);assignWrap.appendChild(assignMenu);host.appendChild(assignWrap);
+        var note=mk("div","weekly-date-notes","");
+        var noteInput=document.createElement("textarea");noteInput.rows=2;noteInput.maxLength=2000;noteInput.placeholder="Annotazioni...";noteInput.value=entry.notes||"";
+        noteInput.style.width="100%";noteInput.style.boxSizing="border-box";noteInput.style.margin="3px 0 7px";
+        var noteSave=mk("button","","SALVA ANNOTAZIONE");noteSave.type="button";noteSave.style.margin="0 0 7px";
+        noteSave.onclick=function(){noteSave.disabled=true;usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,notes:noteInput.value},function(e,r){noteSave.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Annotazione non salvata");return;}load();});};
+        note.appendChild(noteInput);note.appendChild(noteSave);host.appendChild(note);
+      }
       if(canEdit){
         var edit=mk("button","","✎");edit.type="button";edit.title="Sposta questa data";
         edit.onclick=function(){var next=prompt("Nuova data (AAAA-MM-GG)",row.date);if(!next)return;if(!/^\d{4}-\d{2}-\d{2}$/.test(next)){alert("Formato data non valido");return;}usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_date:next,entry_type:"override"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
