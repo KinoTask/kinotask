@@ -11646,9 +11646,32 @@ function loadWeeklyDateCalendar(def){
       b.setAttribute("aria-label",n===0?(offset===0?"Settimana corrente":"Torna a oggi"):(n<0?"Settimana precedente di "+Math.abs(n):"Settimana successiva di "+n));
       b.onclick=function(){if(n===0){if(offset!==0){offset=0;load();}return;}offset=n;load();};
       nav.appendChild(b);
+      if(n===-1&&includeOverdue){
+        var overdueButton=mk("button","weekly-date-overdue-button"+(showOverdue?" sel":""),"ARRETRATI");
+        overdueButton.type="button";
+        overdueButton.style.flex="0 0 auto";
+        overdueButton.style.width="auto";
+        overdueButton.style.minWidth="0";
+        overdueButton.style.padding="7px 9px";
+        overdueButton.style.fontSize=".78em";
+        overdueButton.setAttribute("aria-label","Mostra attività arretrate");
+        overdueButton.onclick=function(){showOverdue=true;load();};
+        nav.appendChild(overdueButton);
+      }
     });
+    if(showOverdue&&includeOverdue){
+      var overdueButton=mk("button","weekly-date-overdue-button sel","ARRETRATI");
+      overdueButton.type="button";
+      overdueButton.style.flex="0 0 auto";
+      overdueButton.style.width="auto";
+      overdueButton.style.minWidth="0";
+      overdueButton.style.padding="7px 9px";
+      overdueButton.style.fontSize=".78em";
+      overdueButton.setAttribute("aria-label","Torna al calendario settimanale");
+      overdueButton.onclick=function(){showOverdue=false;load();};
+      nav.appendChild(overdueButton);
+    }
     host.appendChild(nav);
-    if(includeOverdue){var overdueRow=mk("div","weekly-date-overdue-row","");overdueRow.style.display="flex";overdueRow.style.justifyContent="flex-start";overdueRow.style.margin="5px 0 9px";var overdueButton=mk("button","weekly-date-overdue-button"+(showOverdue?" sel":""),"ARRETRATI");overdueButton.type="button";overdueButton.style.width="auto";overdueButton.style.minWidth="112px";overdueButton.style.height="36px";overdueButton.style.minHeight="36px";overdueButton.style.padding="7px 14px";overdueButton.style.fontSize=".9em";overdueButton.style.flex="0 0 auto";overdueButton.style.display="inline-flex";overdueButton.style.alignItems="center";overdueButton.style.justifyContent="center";overdueButton.onclick=function(){showOverdue=!showOverdue;load();};overdueRow.appendChild(overdueButton);host.appendChild(overdueRow);}
     var rule=mk("div","small",showOverdue?"Attività delle settimane precedenti non ancora completate.":"Ricorrenza: "+(weekdays.length?weekdays.map(function(d){return ["dom","lun","mar","mer","gio","ven","sab"][d];}).join(", "):"nessun giorno configurato"));
     host.appendChild(rule);
     if(canEdit&&!showOverdue){
