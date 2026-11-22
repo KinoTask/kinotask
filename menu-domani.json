@@ -1,33 +1,33 @@
 {
   "available": true,
-  "date": "2026-11-23",
+  "date": "2026-11-24",
   "site": "U003128",
-  "generated_at": "2026-11-22T01:46:39.537721+01:00",
+  "generated_at": "2026-11-23T00:01:02.718871+01:00",
   "plates": [
     {
-      "position": "3132",
-      "dishCode": "P102032",
-      "name": "Gnocchi al pomodoro "
+      "position": "3232",
+      "dishCode": "P101308",
+      "name": "Minestra di lenticchie con crostini con farina integrale biologica"
     },
     {
-      "position": "3133",
-      "dishCode": "P100571",
-      "name": "Burger con legumi con maionese 100% vegetale biologica"
+      "position": "3233",
+      "dishCode": "P100197",
+      "name": "Bastoncini di pesce"
     },
     {
-      "position": "3136",
-      "dishCode": "P01887",
-      "name": "Finocchi in insalata"
+      "position": "3236",
+      "dishCode": "P100904",
+      "name": "Spinaci e patate saporiti"
     },
     {
-      "position": "3137",
-      "dishCode": "P00005",
+      "position": "3237",
+      "dishCode": "P00001",
       "name": "Frutta fresca di stagione"
     },
     {
-      "position": "3139",
-      "dishCode": "P01889",
-      "name": "Pane tipo 0"
+      "position": "3239",
+      "dishCode": "P01891",
+      "name": "Pane ai cereali "
     }
   ]
 }
