@@ -5079,6 +5079,36 @@ body.k #dashboardToolbar #dashboardToolbarActions {
   align-items:center!important;
   min-height:30px!important;
 }
+/* Kindle: niente intestazione data/meteo né area account/layout riservata.
+   La dashboard deve iniziare subito sotto lo switch delle utenze. */
+body.k #head {
+  display:none!important;
+  height:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+}
+body.k #dashboardToolbar {
+  margin-bottom:0!important;
+  padding-bottom:0!important;
+}
+body.k #dashboardToolbar #dashboardToolbarAccount {
+  display:none!important;
+  width:0!important;
+  height:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+body.k #dashboardToolbar #viewSwitcher {
+  margin-bottom:0!important;
+}
+body.k #dashboardContent,
+body.k #personalView {
+  margin-top:0!important;
+  padding-top:0!important;
+}
 /* Su Kindle il layout è fisso: non mostrare né lasciare raggiungibili i comandi. */
 body.k #dashboardToolbar #dashboardLayoutButton,
 body.k #dashboardToolbar #dashboardLayoutMenu,
