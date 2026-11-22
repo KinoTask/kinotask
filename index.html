@@ -11247,7 +11247,7 @@ function openAddBoxPanel(anchor){
   wrap.appendChild(mk("div","","VISIBILITÀ (chi può vedere box e attività)"));
   wrap.appendChild(visibilityScope);
   var visibleUsers=mk("div","custom-box-visible-users","");visibleUsers.style.display="none";visibleUsers.style.flexDirection="column";visibleUsers.style.gap="6px";wrap.appendChild(visibleUsers);
-  var defaultVisible=(scope.value==="family")?[]:[String((USERS||[]).filter(function(u){return u&&u.id&&String(u.id)===String(currentUserId||"");})[0]?.id||"")].filter(Boolean);
+  var defaultVisible=(scope.value==="family")?[]:[String((USERS||[]).filter(function(u){return u&&u.id&&String(u.name).toLowerCase()===String(authUserName||"").toLowerCase();})[0]?.id||"")].filter(Boolean);
   renderCustomBoxUserChoices(visibleUsers,defaultVisible,function(){positionCustomBoxPanel(panel,addAnchorRect,true);});
   visibilityScope.value=scope.value==="family"?"family":"selected";
   setHidden(visibleUsers,visibilityScope.value!=="selected");
