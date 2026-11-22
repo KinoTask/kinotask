@@ -11605,7 +11605,7 @@ function loadWeeklyDateCalendar(def){
     clear(host);
     var nav=mk("div","weekly-date-nav seg","");
     [-2,-1,0,1,2].forEach(function(n){
-      var label=n===0?(offset===0?"SETTIMANA CORRENTE":"OGGI"):(n<0?"−"+Math.abs(n):"+"+n);
+      var label=n===0?"QUESTA SETTIMANA":(n<0?"−"+Math.abs(n):"+"+n);
       var b=mk("button","seg-button"+(n===offset?" sel":""),label);b.type="button";
       b.setAttribute("aria-label",n===0?(offset===0?"Settimana corrente":"Torna a oggi"):(n<0?"Settimana precedente di "+Math.abs(n):"Settimana successiva di "+n));
       b.onclick=function(){if(n===0){if(offset!==0){offset=0;load();}return;}offset=n;load();};
