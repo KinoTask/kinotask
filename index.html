@@ -13212,6 +13212,12 @@ function loadAuthorizedConfig(callback){
 
     DASHBOARD_BOXES = data.boxes.filter(function(box){
       return box && box.id && box.element_id && box.view_type;
+    }).map(function(box){
+      // Transitional compatibility: old production Workers still return
+      // numeric_id; UUID Workers return custom_box_id. All UI code below
+      // consumes only the normalized custom_box_id property.
+      if(!box.custom_box_id && box.numeric_id) box.custom_box_id = box.numeric_id;
+      return box;
     });
     updateDashboardBoxTitles();
 
