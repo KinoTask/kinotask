@@ -586,11 +586,12 @@ input[type=checkbox] {
 .weekly-date-nav { margin:5px 0 10px; }
 .weekly-date-nav > button { min-height:32px; padding:7px 3px; font-size:.85em; }
 .weekly-date-nav > button { opacity:1!important; }
-.weekly-date-assignment { display:flex; flex-direction:column; align-items:flex-start; }
-.weekly-date-assignment > button { width:30px; min-width:30px; height:27px; margin:0; padding:2px; }
-.weekly-date-assignment .todo-assign-menu { width:100%; }
-.weekly-date-notes { display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
-.weekly-date-notes > button { width:30px; min-width:30px; height:27px; margin:0; padding:2px; }
+.weekly-date-actions { display:flex; flex:0 0 100%; align-items:center; gap:7px; min-width:0; }
+.weekly-date-assignment { display:flex; flex:0 0 auto; flex-direction:row; align-items:center; gap:5px; position:relative; }
+.weekly-date-assignment > button, .weekly-date-notes > button { display:inline-flex; align-items:center; justify-content:center; width:30px; min-width:30px; height:27px; margin:0; padding:2px; }
+.weekly-date-assignment .todo-assign-menu { position:absolute; top:100%; left:0; width:260px; max-width:calc(100vw - 60px); }
+.weekly-date-notes { display:flex; flex:0 0 auto; flex-direction:row; align-items:center; gap:4px; }
+.weekly-date-notes > button { font-size:17px; line-height:1; }
 .weekly-date-notes > button.has-notes { font-weight:bold; border-width:2px; }
 .weekly-date-notes textarea { font:inherit; font-size:.85em; }
 .weekly-date-notes button { font-size:.75em; padding:4px 8px; }
@@ -11705,6 +11706,7 @@ function loadWeeklyDateCalendar(def){
       var mark=mk("button","weekly-date-mark",entry.done?"SVOLTO":"SEGNA SVOLTO");mark.type="button";mark.title=entry.done?"Annulla completamento":"Segna la data come completata";
       mark.onclick=function(){check.checked=!check.checked;check.onchange();};line.appendChild(mark);
       if(canEdit||canAssign){
+        var actionWrap=mk("div","weekly-date-actions","");
         if(canAssign){
         var assigned=[];try{assigned=JSON.parse(entry.assigned_user_ids||"[]").map(String);}catch(ignore){assigned=[];}
         var assignWrap=mk("div","weekly-date-assignment","");assignWrap.style.flex="1 0 100%";
@@ -11734,11 +11736,11 @@ function loadWeeklyDateCalendar(def){
         assignWrap.appendChild(assignButton);
         var assignedNames=(USERS||[]).filter(function(user){return assigned.indexOf(String(user.id))!==-1;}).map(function(user){return user.name;});
         if(assignedNames.length){var assignedLabel=mk("span","weekly-date-who",assignedNames.join(", "));assignedLabel.style.textAlign="left";assignWrap.appendChild(assignedLabel);}
-        assignWrap.appendChild(assignMenu);line.appendChild(assignWrap);
+        assignWrap.appendChild(assignMenu);actionWrap.appendChild(assignWrap);
         }
         if(canEdit){
-        var noteWrap=mk("div","weekly-date-notes","");noteWrap.style.flex="1 0 100%";
-        var noteButton=mk("button","todo-assign"+(entry.notes?" has-notes":""),"▤");noteButton.type="button";noteButton.title=entry.notes?"Apri annotazione":"Aggiungi annotazione";noteButton.setAttribute("aria-label",noteButton.title);
+        var noteWrap=mk("div","weekly-date-notes","");
+        var noteButton=mk("button","weekly-note-button"+(entry.notes?" has-notes":""),"✎");noteButton.type="button";noteButton.title=entry.notes?"Apri annotazione":"Aggiungi annotazione";noteButton.setAttribute("aria-label",noteButton.title);
         var notePanel=mk("div","weekly-date-note-panel","");notePanel.style.display="none";notePanel.style.width="100%";
         var noteInput=document.createElement("textarea");noteInput.rows=2;noteInput.maxLength=2000;noteInput.placeholder="Scrivi un'annotazione...";noteInput.value=entry.notes||"";
         noteInput.style.width="100%";noteInput.style.boxSizing="border-box";noteInput.style.margin="6px 0 4px";
@@ -11746,8 +11748,10 @@ function loadWeeklyDateCalendar(def){
         noteButton.onclick=function(){notePanel.style.display=notePanel.style.display==="none"?"block":"none";};
         noteSave.onclick=function(){noteSave.disabled=true;usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,notes:noteInput.value},function(e,r){noteSave.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Annotazione non salvata");return;}load();});};
         notePanel.appendChild(noteInput);notePanel.appendChild(noteSave);
-        noteWrap.appendChild(noteButton);noteWrap.appendChild(notePanel);line.appendChild(noteWrap);
+        noteWrap.appendChild(noteButton);noteWrap.appendChild(notePanel);actionWrap.appendChild(noteWrap);
         }
+      }
+        line.appendChild(actionWrap);
       }
       if(canEdit){
         var edit=mk("button","","✎");edit.type="button";edit.title="Sposta questa data";
