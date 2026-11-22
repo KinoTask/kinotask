@@ -5104,31 +5104,28 @@ body.k #dashboardToolbar #dashboardCancelReorderButton {
   font-weight:600!important;
   text-align:center!important;
 }
-/* Kindle: il layout dinamico deve occupare sempre tutta la larghezza.
-   Questa regola prevale sul flex mobile generico e sulle width delle .col legacy. */
-@media screen and (max-width:800px) {
-  body.k .dashboard-layout-row,
-  body.k .dashboard-layout-columns {
-    display:block!important;
-    width:100%!important;
-    max-width:100%!important;
-    min-width:0!important;
-    box-sizing:border-box!important;
-  }
-  body.k .dashboard-layout-column {
-    display:block!important;
-    float:none!important;
-    width:100%!important;
-    max-width:100%!important;
-    min-width:0!important;
-    flex:none!important;
-    box-sizing:border-box!important;
-  }
-  body.k .dashboard-layout-column > .box {
-    width:auto!important;
-    max-width:100%!important;
-    box-sizing:border-box!important;
-  }
+/* Kindle usa un flusso a colonna singola indipendente dal viewport CSS
+   dichiarato da Silk (che può essere superiore a 800px). */
+body.k #dashboardContent,
+body.k #personalView,
+body.k #personalLayoutRow,
+body.k .dashboard-layout-kindle {
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+body.k .dashboard-layout-kindle > .box {
+  display:block!important;
+  float:none!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  flex:none!important;
+  box-sizing:border-box!important;
+  margin-left:0!important;
+  margin-right:0!important;
 }
 </style>
 </head>
@@ -9894,6 +9891,23 @@ function buildLayout(view, previewSections){
     parent.appendChild(b);
   }
 
+  /* Silk può esporre una viewport CSS ampia anche sul Kindle.
+     Non affidarsi alle media query: generare direttamente una sola colonna
+     piatta, senza .row/.col Bootstrap né flex a percentuale. */
+  var kindleLayout=!!(document.body&&document.body.classList&&document.body.classList.contains("k"));
+  if(kindleLayout){
+    var kindleHost=mk("div","dashboard-layout-kindle");
+    kindleHost.style.display="block";kindleHost.style.width="100%";kindleHost.style.maxWidth="100%";
+    kindleHost.style.minWidth="0";kindleHost.style.boxSizing="border-box";
+    sections.forEach(function(section){
+      (section.columns||[]).forEach(function(items){
+        (items||[]).forEach(function(item){appendBox(item,kindleHost);});
+      });
+    });
+    host.appendChild(kindleHost);
+    applyDashboardReorderMode();
+    return;
+  }
   sections.forEach(function(section){
     if(section.type==="full"){
       var fullRow=mk("div","row layout-row dashboard-layout-row dashboard-layout-full");
@@ -11925,7 +11939,7 @@ function loadWeeklyDateCalendar(def){
       var whoWrap=mk("div","weekly-date-who","");
       if(entry.done){
         var whoSelect=document.createElement("select");whoSelect.className="weekly-date-completed-by";whoSelect.title="Seleziona chi ha svolto";
-        var placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="Chi ha svolto?";whoSelect.appendChild(placeholder);
+        var placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="Chi ha svolto?";placeholder.disabled=true;placeholder.selected=!entry.completed_by_user_id;whoSelect.appendChild(placeholder);
         weeklyEligibleUsers.forEach(function(user){var option=document.createElement("option");option.value=String(user.id);option.textContent=String(user.name).toUpperCase();if(String(entry.completed_by_user_id||"")===String(user.id))option.selected=true;whoSelect.appendChild(option);});
         whoSelect.onchange=function(){usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,done:true,completed_by_user_id:whoSelect.value},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Aggiornamento autore non riuscito");load();}else load();});};
         whoWrap.appendChild(whoSelect);
