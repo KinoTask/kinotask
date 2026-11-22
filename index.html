@@ -1294,7 +1294,7 @@ body.k .recurring-config-panel {
 
 /* Su smartphone in verticale, ogni colonna occupa tutta la larghezza.
    !important serve a sovrascrivere la width inline impostata da buildLayout(). */
-@media screen and (max-width:600px) {
+@media screen and (max-width:600px) and (orientation:portrait) {
   body:not(.k) .col {
     float:none;
     width:100% !important;
