@@ -5106,8 +5106,8 @@ body.k #dashboardToolbar #dashboardCancelReorderButton {
 }
 /* Kindle usa un flusso a colonna singola indipendente dal viewport CSS
    dichiarato da Silk (che può essere superiore a 800px). */
-body.k #dashboardContent,
-body.k #personalView,
+body.k #dashboardContent:not([hidden]),
+body.k #personalView:not([hidden]),
 body.k #personalLayoutRow,
 body.k .dashboard-layout-kindle {
   display:block!important;
