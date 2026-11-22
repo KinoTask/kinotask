@@ -9837,13 +9837,14 @@ function buildLayout(view, previewSections){
       createCustomBoxElement(def);
       b=$(def.element_id);
     }
+    /* I box standard hanno contenitori HTML statici. Non esiste un
+       createDashboardBoxElement: se il catalogo punta a un elemento assente,
+       segnala il dato incoerente senza interrompere il rendering degli altri
+       box della vista (in particolare dei box custom, creati dinamicamente). */
     if(!b && def){
-      createDashboardBoxElement(def);
-      b=$(def.element_id);
-    }
-    /* Non scartare in silenzio un'associazione valida del DB. */
-    if(!b && def){
-      console.warn("Box presente nel DB ma renderer/elemento non disponibile:",def.id,def.element_id);
+      console.warn("Box standard presente nel layout ma contenitore HTML assente:",{
+        id:def.id, element_id:def.element_id, element_key:def.element_key
+      });
       return;
     }
     if(!b)return;
