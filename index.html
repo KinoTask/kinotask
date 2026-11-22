@@ -583,7 +583,7 @@ input[type=checkbox] {
 .weekly-date-label { font-weight:bold; text-transform:capitalize; }
 .weekly-date-number { font-size:.82em; font-weight:normal; color:#555; }
 .weekly-date-who { flex:0 0 auto; font-size:.68em; color:#555; text-align:right; }
-.weekly-date-mark { flex:0 0 auto; min-width:86px; margin:0; padding:5px 7px; font-size:.68em; border-radius:4px; }
+.weekly-date-mark { flex:0 0 auto; min-width:86px; margin:0; padding:5px 7px; font-size:.68em; }
 .weekly-date-mark:active { background:#000; color:#fff; }
 body.k .weekly-date-mark { min-width:76px; padding:5px 4px; }
 
@@ -11554,7 +11554,7 @@ function createCustomBoxElement(def){
   /* Stessa struttura dei box task: campo e pulsante Aggiungi sopra l'elenco. */
   var addRow=mk("div","add-ctl","");
   addRow.className="add-ctl custom-box-add";
-  addRow.hidden=def.box_kind==="weekly_dates";
+  addRow.hidden=true;
   var input=mk("input");
   input.type="text";
   input.maxLength=500;
@@ -11668,7 +11668,7 @@ function loadWeeklyDateCalendar(def){
     rows.sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
     rows.forEach(function(row){
       var d=new Date(row.date+"T12:00:00"),entry=row.entry||{},line=mk("div","weekly-date-row","");
-      line.className="ev weekly-date-row";
+      line.className="weekly-date-row";
       line.style.display="flex";line.style.alignItems="center";line.style.gap="8px";line.style.padding="7px 2px";line.style.borderBottom="1px solid #ddd";
       var check=document.createElement("input");check.type="checkbox";check.checked=!!entry.done;check.disabled=false;
       check.onchange=function(){usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,done:check.checked},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Salvataggio non riuscito");load();}else load();});};
