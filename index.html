@@ -4932,32 +4932,64 @@ html body #head {
 }
 
 
-/* Kindle: barra compatta come sugli altri dispositivi, senza float né altezza vuota. */
+/* Kindle/Silk: tabella come fallback stabile (flexbox non affidabile).
+   Menu, appunti e selettore restano sempre sulla stessa riga. */
 body.k #dashboardToolbar {
-  display:flex!important; align-items:center!important; gap:4px!important;
-  width:calc(100% - 6px)!important; min-height:0!important; height:auto!important;
-  margin-bottom:3px!important; padding:0!important; overflow:visible!important;
+  display:table!important;
+  table-layout:fixed!important;
+  border-collapse:separate!important;
+  border-spacing:4px 0!important;
+  width:calc(100% - 6px)!important;
+  min-height:0!important;
+  height:30px!important;
+  margin:4px 3px 0!important;
+  padding:0!important;
+  overflow:visible!important;
   white-space:nowrap!important;
+  box-sizing:border-box!important;
 }
 body.k #dashboardToolbar #viewMenu {
-  display:block!important; position:relative!important; float:none!important;
-  flex:0 0 30px!important; width:30px!important; min-width:30px!important;
-  height:30px!important; margin:0!important;
+  display:table-cell!important;
+  position:relative!important;
+  float:none!important;
+  width:30px!important;
+  min-width:30px!important;
+  height:30px!important;
+  vertical-align:middle!important;
+  margin:0!important;
 }
 body.k #dashboardToolbar #viewMenuToggle {
-  display:block!important; width:30px!important; min-width:30px!important;
-  height:30px!important; margin:0!important;
+  display:block!important;
+  width:30px!important;
+  min-width:30px!important;
+  height:30px!important;
+  margin:0!important;
 }
 body.k #dashboardToolbar #toolbarNotesButton {
-  display:inline-flex!important; position:relative!important; float:none!important;
-  flex:0 0 36px!important; width:36px!important; min-width:36px!important;
-  height:30px!important; margin:0!important;
+  display:table-cell!important;
+  position:relative!important;
+  float:none!important;
+  width:36px!important;
+  min-width:36px!important;
+  height:30px!important;
+  vertical-align:middle!important;
+  margin:0!important;
+  padding:0!important;
+  text-align:center!important;
 }
 body.k #dashboardToolbar #viewSwitcher {
-  display:block!important; position:relative!important; float:none!important;
-  flex:1 1 auto!important; min-width:0!important; max-width:none!important;
-  height:auto!important; min-height:0!important; margin:0!important;
-  padding:0!important; overflow:hidden!important;
+  display:table-cell!important;
+  position:relative!important;
+  float:none!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:30px!important;
+  min-height:0!important;
+  vertical-align:middle!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
 }
 body.k #dashboardToolbar #viewSwitcherButtons {
   display:block!important; overflow-x:auto!important; overflow-y:hidden!important;
