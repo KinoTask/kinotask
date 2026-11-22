@@ -11431,9 +11431,8 @@ function openAddBoxPanel(anchor){
           return b && b.custom_family_id && Number(b.can_add_to_layout)===1 &&
             (String(b.view_type)==="both" || String(b.view_type)===String(view.view_type)) &&
             /* La vista Famiglia segue la visibilità, non la lista dei collaboratori. */
-            (String(view.view_type)!=="shared" || String(b.visibility_mode)==="family" ||
-              (function(){var ids=b.visible_user_ids||[];if(typeof ids==="string"){try{ids=JSON.parse(ids||"[]");}catch(ignore){ids=[];}}return Array.isArray(ids)&&ids.some(function(id){return String(id)===String(view.owner_user_id);});})()) &&
-            !present[b.id] && Number(b.available_to_user)===1 &&
+            (function(){if(String(b.visibility_mode)==="family")return true;var ids=b.visible_user_ids||[];if(typeof ids==="string"){try{ids=JSON.parse(ids||"[]");}catch(ignore){ids=[];}}return Array.isArray(ids)&&String(view.view_type)!=="shared"&&ids.some(function(id){return String(id)===String(view.owner_user_id);});})() &&
+            !present[b.id] &&
             !!activeCustom[String(b.id)];
         });
         customCandidates.forEach(appendAvailableBox);
