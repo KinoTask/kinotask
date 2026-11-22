@@ -11709,7 +11709,7 @@ function loadWeeklyDateCalendar(def){
         var actionWrap=mk("div","weekly-date-actions","");
         if(canAssign){
         var assigned=[];try{assigned=JSON.parse(entry.assigned_user_ids||"[]").map(String);}catch(ignore){assigned=[];}
-        var assignWrap=mk("div","weekly-date-assignment","");assignWrap.style.flex="1 0 100%";
+        var assignWrap=mk("div","weekly-date-assignment","");
         var assignButton=mk("button","todo-assign","👥");assignButton.type="button";assignButton.title="Assegna la data";
         var assignMenu=mk("div","todo-assign-menu","");
         assignMenu.appendChild(mk("div","todo-assign-title","Assegna a:"));
@@ -11750,7 +11750,6 @@ function loadWeeklyDateCalendar(def){
         notePanel.appendChild(noteInput);notePanel.appendChild(noteSave);
         noteWrap.appendChild(noteButton);noteWrap.appendChild(notePanel);actionWrap.appendChild(noteWrap);
         }
-      }
         line.appendChild(actionWrap);
       }
       if(canEdit){
