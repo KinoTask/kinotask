@@ -11604,7 +11604,7 @@ function loadWeeklyDateCalendar(def){
   function label(d){return d.toLocaleDateString("it-IT",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});}
   function load(){
     var today=monday(new Date()),start=shift(today,offset*7),end=shift(start,6);
-    if(showOverdue){end=shift(today,-1);start=new Date(end.getFullYear(),end.getMonth()-3,end.getDate());}
+    if(showOverdue){end=shift(today,-15);start=new Date(end.getFullYear(),end.getMonth()-3,end.getDate());}
     host.textContent="Caricamento calendario...";
     usersRequest("GET","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView)+"&from="+iso(start)+"&to="+iso(end),null,function(err,data){
       if(err||!data||!data.ok){host.textContent=err||(data&&data.error)||"Errore caricamento calendario";return;}
