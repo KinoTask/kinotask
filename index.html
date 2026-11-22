@@ -11341,12 +11341,21 @@ function openCustomBoxEditor(def, anchor){
   var editorReady=false;
   scope.disabled=true;save.disabled=true;
   usersRequest('GET','/custom-boxes?viewId='+encodeURIComponent(String(currentView)),null,function(err,data){
-    var found=!err&&data&&Array.isArray(data.boxes)?data.boxes.filter(function(x){return String(x.id)===String(def.custom_box_id);})[0]:null;
+    /* Il catalogo /config può esporre il vecchio numeric_id come custom_box_id,
+       mentre /custom-boxes restituisce l'UUID del record e box_id del box.
+       Risolvi prima tramite ID custom, poi tramite ID del box e usa sempre
+       l'ID canonico restituito dall'endpoint per le richieste successive. */
+    var found=!err&&data&&Array.isArray(data.boxes)?data.boxes.filter(function(x){
+      return String(x.id)===String(def.custom_box_id)||String(x.box_id)===String(def.id);
+    })[0]:null;
     if(err||!found||['private','family','selected'].indexOf(found.share_mode)===-1){
       loadStatus.textContent=err?'Impossibile caricare la configurazione del box: '+err:'Configurazione del box non trovata o incompleta. Ricarica la dashboard e riprova.';
       loadStatus.hidden=false;
       return;
     }
+    def.custom_box_id=found.id;
+    def.box_key=found.box_key||def.box_key;
+    def.custom_owner_user_id=found.owner_user_id||def.custom_owner_user_id;
     var ids=[];if(found.user_ids){try{ids=Array.isArray(found.user_ids)?found.user_ids:JSON.parse(found.user_ids||'[]');}catch(ignore){ids=[];}}
     scope.value=found.share_mode;
     assignment.checked=!!found.assignment_enabled;
