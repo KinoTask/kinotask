@@ -10366,6 +10366,9 @@ function setView(view, manual){
   }
 
   loadConfiguredViewBoxes(viewConfig);
+  /* Le box possono essere montate/ricreate dal layout: applica i titoli
+     solo dopo il montaggio, così gli h2 dinamici non restano vuoti. */
+  updateDashboardBoxTitles();
 
   /* Fallback esplicito per i due box alimentati da Worker dedicati.
      Il layout D1 può risolvere il contenitore DOM anche quando una vecchia
