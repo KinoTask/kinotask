@@ -11573,7 +11573,7 @@ function loadWeeklyDateCalendar(def){
     nav.style.display="flex";nav.style.gap="4px";nav.style.justifyContent="space-between";nav.style.margin="5px 0 10px";
     [-2,-1,0,1,2].forEach(function(n){
       var b=mk("button","",n===0?"OGGI":(n<0?"−"+Math.abs(n):"+"+n));b.type="button";b.style.flex="1";b.style.padding="7px 2px";b.disabled=n===0;
-      b.onclick=function(){offset+=n;load();};nav.appendChild(b);
+      b.textContent=n===0?(offset===0?"OGGI":"SETT. SELEZIONATA"):(n<0?"−"+Math.abs(n):"+"+n);b.disabled=n===offset;b.onclick=function(){offset=n;load();};nav.appendChild(b);
     });
     host.appendChild(nav);
     var rule=mk("div","small","Ricorrenza: "+(weekdays.length?weekdays.map(function(d){return ["dom","lun","mar","mer","gio","ven","sab"][d];}).join(", "):"nessun giorno configurato"));
@@ -11605,12 +11605,13 @@ function loadWeeklyDateCalendar(def){
       if(ex&&ex.entry_type==="extra"){rows.push({source:key,date:ex.entry_date,entry:ex});continue;}
       if(weekdays.indexOf(dow)!==-1)rows.push({source:key,date:key,entry:ex||null});
     }
-    entries.forEach(function(e){if(e.entry_type==="extra"&&!rows.some(function(r){return r.source===e.source_date;}))rows.push({source:e.source_date,date:e.entry_date,entry:e});});
+    entries.forEach(function(e){if((e.entry_type==="extra"||e.entry_type==="override")&&e.entry_date>=iso(start)&&e.entry_date<=iso(end)&&!rows.some(function(r){return r.source===e.source_date;}))rows.push({source:e.source_date,date:e.entry_date,entry:e});});
+    rows=rows.filter(function(r){return r.date>=iso(start)&&r.date<=iso(end);});
     rows.sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
     rows.forEach(function(row){
       var d=new Date(row.date+"T12:00:00"),entry=row.entry||{},line=mk("div","weekly-date-row","");
       line.style.display="flex";line.style.alignItems="center";line.style.gap="8px";line.style.padding="7px 2px";line.style.borderBottom="1px solid #ddd";
-      var check=document.createElement("input");check.type="checkbox";check.checked=!!entry.done;check.disabled=!canEdit;
+      var check=document.createElement("input");check.type="checkbox";check.checked=!!entry.done;check.disabled=false;
       check.onchange=function(){usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates",{source_date:row.source,date:row.date,done:check.checked},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Salvataggio non riuscito");load();}else load();});};
       line.appendChild(check);
       var dateText=mk("span","","");dateText.style.flex="1";dateText.textContent=label(d);line.appendChild(dateText);
