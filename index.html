@@ -11172,7 +11172,7 @@ function openAddBoxPanel(anchor){
       var controls=mk("div","weekly-date-controls","");
       var mark=mk("button","weekly-date-mark",entry.done?"SVOLTO":"SEGNA SVOLTO");mark.type="button";mark.title=entry.done?"Modifica chi ha completato":"Scegli chi ha completato";
       var doneMenu=mk("div","todo-assign-menu weekly-done-menu","");doneMenu.appendChild(mk("div","todo-assign-title",entry.done?"Completato da:":"Chi ha svolto?"));
-      (USERS||[]).filter(function(user){return user.enabled!==false;}).forEach(function(user){
+      (USERS||[]).filter(function(user){return user.enabled===undefined||user.enabled===true||Number(user.enabled)===1;}).forEach(function(user){
         var choose=mk("button","weekly-done-option",user.name);choose.type="button";
         choose.onclick=function(){mark.disabled=true;usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,done:true,completed_by_user_id:String(user.id)},function(e,r){mark.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Completamento non salvato");return;}load();});};
         doneMenu.appendChild(choose);
