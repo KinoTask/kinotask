@@ -6589,7 +6589,7 @@ function schedulePoll(){
 /* personal to-do */
 
 function personalTodoConnect() {
-  if (!authToken || !viewHasBox(currentView, "personalTodo")) return;
+  if (!authToken || !currentView || !$("personalTodoBox")) return;
   if (String(personalTodoRequestedView) === String(currentView)) return;
 
   personalTodoRequestedView = currentView;
