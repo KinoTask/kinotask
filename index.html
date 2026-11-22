@@ -10027,10 +10027,10 @@ function dashboardBuildLayoutWithFlip(sections){
     for(i=0;i<animated.length;i++)void animated[i].el.offsetWidth;
     for(i=0;i<animated.length;i++){
       el=animated[i].el;
-      el.style.transition="transform 190ms cubic-bezier(.2,.75,.25,1)";
+      el.style.transition="transform 260ms cubic-bezier(.22,1,.36,1)";
       el.style.transform=animated[i].transform||"";
     }
-    dashboardFlipTimer=setTimeout(dashboardClearFlipAnimation,230);
+    dashboardFlipTimer=setTimeout(dashboardClearFlipAnimation,300);
   }
 }
 function dashboardShowPreview(sections,sourceEl,targetEl){
