@@ -11606,7 +11606,7 @@ function openAddBoxPanel(anchor){
    La presenza e la posizione del box continuano a dipendere esclusivamente da D1. */
 /* Elenco utenti per la condivisione dei box custom.
    Usa USERS già caricato da /config e conserva gli ID reali di D1. */
-function renderCustomBoxUserChoices(host, selectedIds, onChange){
+function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
   if(!host)return;
   clear(host);
   host.style.display="flex";
@@ -11614,7 +11614,8 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange){
   host.style.gap="6px";
   var selected={};
   (Array.isArray(selectedIds)?selectedIds:[]).forEach(function(id){selected[String(id)]=true;});
-  var users=(USERS||[]).filter(function(user){return user&&user.id&&user.name;});
+  var sourceUsers=Array.isArray(userList)?userList:(USERS||[]);
+  var users=sourceUsers.filter(function(user){return user&&user.id&&user.name;});
   if(!users.length){
     host.appendChild(mk("div","small","Elenco utenti non disponibile."));
     return;
@@ -11745,9 +11746,15 @@ function openCustomBoxEditor(def, anchor){
       }
     });
     editorReady=true;save.disabled=false;loadStatus.hidden=true;
-    renderCustomBoxUserChoices(users,ids,function(){positionCustomBoxPanel(panel,anchorRect);});
-    renderCustomBoxUserChoices(visibleUsers,visibleIds,function(){positionCustomBoxPanel(panel,anchorRect);});
-    updateUsers();
+    /* Usa l'elenco live del Worker: gli ID delle checkbox devono provenire
+       dalla stessa tabella users usata per salvare la visibilità in D1. */
+    usersRequest('GET','/family-users',null,function(userErr,userData){
+      var choiceUsers=!userErr&&userData&&Array.isArray(userData.users)?userData.users:USERS;
+      renderCustomBoxUserChoices(users,ids,function(){positionCustomBoxPanel(panel,anchorRect);},choiceUsers);
+      renderCustomBoxUserChoices(visibleUsers,visibleIds,function(){positionCustomBoxPanel(panel,anchorRect);},choiceUsers);
+      updateUsers();
+      positionCustomBoxPanel(panel,anchorRect);
+    });
     positionCustomBoxPanel(panel,anchorRect);
      usersRequest('GET','/custom-boxes/'+def.custom_box_id+'/permissions',null,function(permissionErr,permissionData){
       if(permissionErr||!permissionData||!permissionData.ok)return;
