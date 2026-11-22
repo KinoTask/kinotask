@@ -9977,16 +9977,70 @@ function dashboardCalculateSections(sourceEl,targetEl,clientX,clientY,baseSectio
   return dashboardCleanupSections(sections);
 }
 
+var dashboardFlipTimer=null;
+var dashboardFlipNodes=[];
+function dashboardClearFlipAnimation(){
+  if(dashboardFlipTimer!==null){clearTimeout(dashboardFlipTimer);dashboardFlipTimer=null;}
+  for(var i=0;i<dashboardFlipNodes.length;i++){
+    var item=dashboardFlipNodes[i],el=item.el;
+    if(!el)continue;
+    el.style.transition=item.transition;
+    el.style.transform=item.transform;
+    el.style.willChange=item.willChange;
+  }
+  dashboardFlipNodes=[];
+}
+/* FLIP: conserva i nodi dei box e anima soltanto la differenza di posizione.
+   Non usa requestAnimationFrame, così resta compatibile anche con browser datati. */
+function dashboardBuildLayoutWithFlip(sections){
+  var host=dashboardLayoutHost(),before={},boxes=[],i,el,id,rect;
+  dashboardClearFlipAnimation();
+  if(host){
+    boxes=host.querySelectorAll(".dashboard-layout-row .box");
+    for(i=0;i<boxes.length;i++){
+      el=boxes[i];id=el.id;if(!id)continue;
+      rect=el.getBoundingClientRect();
+      before[id]={left:rect.left,top:rect.top};
+    }
+  }
+  buildLayout(currentView,sections);
+  if(!host)return;
+  boxes=host.querySelectorAll(".dashboard-layout-row .box");
+  var animated=[];
+  for(i=0;i<boxes.length;i++){
+    el=boxes[i];id=el.id;
+    if(!before[id])continue;
+    rect=el.getBoundingClientRect();
+    var dx=before[id].left-rect.left,dy=before[id].top-rect.top;
+    if(Math.abs(dx)<1&&Math.abs(dy)<1)continue;
+    var state={el:el,transition:el.style.transition,transform:el.style.transform,willChange:el.style.willChange};
+    dashboardFlipNodes.push(state);
+    el.style.transition="none";
+    el.style.willChange="transform";
+    el.style.transform="translate("+dx+"px,"+dy+"px)"+(state.transform&&state.transform!=="none"?" "+state.transform:"");
+    animated.push(state);
+  }
+  if(animated.length){
+    /* Forza il calcolo dello stato iniziale prima di avviare la transizione. */
+    for(i=0;i<animated.length;i++)void animated[i].el.offsetWidth;
+    for(i=0;i<animated.length;i++){
+      el=animated[i].el;
+      el.style.transition="transform 190ms cubic-bezier(.2,.75,.25,1)";
+      el.style.transform=animated[i].transform||"";
+    }
+    dashboardFlipTimer=setTimeout(dashboardClearFlipAnimation,230);
+  }
+}
 function dashboardShowPreview(sections,sourceEl,targetEl){
   if(!sections)return;
   dashboardPreviewRows=sections;dashboardPreviewSource=sourceEl;dashboardPreviewTarget=targetEl;
-  buildLayout(currentView,sections);
+  dashboardBuildLayoutWithFlip(sections);
   var source=$(sourceEl.id);if(source)source.style.opacity=".45";
 }
 function dashboardClearPreview(){
   if(!dashboardPreviewRows)return;
   dashboardPreviewRows=null;dashboardPreviewSource=null;dashboardPreviewTarget=null;dashboardPreviewZone=null;
-  buildLayout(currentView);
+  dashboardBuildLayoutWithFlip(null);
 }
 function dashboardSaveSections(sections,onSuccess,options){
   options=options||{};
