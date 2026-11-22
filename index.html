@@ -9767,7 +9767,7 @@ function buildLayout(view, previewSections){
     b=def?$(def.element_id):null;
     /* I box custom sono generati dal catalogo DB, non devono esistere
        come markup statico nell'HTML. */
-    if(!b && def && def.numeric_id && def.box_key){
+    if(!b && def && def.custom_box_id && def.box_key){
       createCustomBoxElement(def);
       b=$(def.element_id);
     }
@@ -10184,7 +10184,7 @@ function dashboardBoxRenderer(boxId, def){
       return renderers[rendererKey];
     }
   }
-  if(def && def.numeric_id && def.box_key && typeof loadCustomBoxTasks === "function"){
+  if(def && def.custom_box_id && def.box_key && typeof loadCustomBoxTasks === "function"){
     return function(){ loadCustomBoxTasks(def); };
   }
   return null;
@@ -10214,7 +10214,7 @@ function loadConfiguredViewBoxes(viewConfig){
           return String(box.element_id || "") === String(item.element_id);
         });
       }
-      if(def && def.numeric_id && def.box_key){
+      if(def && def.custom_box_id && def.box_key){
         /* I custom box devono avere il proprio contenitore DOM prima del
            fetch. Non affidare il caricamento al renderer generico: se il
            catalogo ha già creato il box nello stash, il renderer può essere
@@ -11170,7 +11170,7 @@ function openAddBoxPanel(anchor){
     return payload;
   }
   function finishCustomBoxCreation(box,saveGrants){
-      var def={id:box.box_id,element_id:box.element_id,title:box.title,view_type:(findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(currentView);})||{}).view_type||"shared",numeric_id:box.id,box_key:box.box_key,custom_family_id:box.family_id,custom_owner_user_id:box.owner_user_id,assignment_enabled:box.assignment_enabled,share_mode:box.share_mode,user_ids:box.user_ids||[],can_add_to_layout:1};
+      var def={id:box.box_id,element_id:box.element_id,title:box.title,view_type:(findItem(DASHBOARD_VIEWS,function(v){return String(v.id)===String(currentView);})||{}).view_type||"shared",custom_box_id:box.id,box_key:box.box_key,custom_family_id:box.family_id,custom_owner_user_id:box.owner_user_id,assignment_enabled:box.assignment_enabled,share_mode:box.share_mode,user_ids:box.user_ids||[],can_add_to_layout:1};
       function refresh(){
         DASHBOARD_BOXES.push(def);
         closeViewMenu();
@@ -11209,7 +11209,7 @@ function openAddBoxPanel(anchor){
         next.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
         dashboardSaveSections(next,function(){
           closeViewMenu();
-          if(def.numeric_id && def.box_key)loadCustomBoxTasks(def);
+          if(def.custom_box_id && def.box_key)loadCustomBoxTasks(def);
         },{activateReorder:false});
       };
       available.appendChild(button);
@@ -11341,7 +11341,7 @@ function openCustomBoxEditor(def, anchor){
   var editorReady=false;
   scope.disabled=true;save.disabled=true;
   usersRequest('GET','/custom-boxes?viewId='+encodeURIComponent(String(currentView)),null,function(err,data){
-    var found=!err&&data&&Array.isArray(data.boxes)?data.boxes.filter(function(x){return String(x.id)===String(def.numeric_id);})[0]:null;
+    var found=!err&&data&&Array.isArray(data.boxes)?data.boxes.filter(function(x){return String(x.id)===String(def.custom_box_id);})[0]:null;
     if(err||!found||['private','family','selected'].indexOf(found.share_mode)===-1){
       loadStatus.textContent=err?'Impossibile caricare la configurazione del box: '+err:'Configurazione del box non trovata o incompleta. Ricarica la dashboard e riprova.';
       loadStatus.hidden=false;
@@ -11354,7 +11354,7 @@ function openCustomBoxEditor(def, anchor){
     editorReady=true;save.disabled=false;loadStatus.hidden=true;
     renderCustomBoxUserChoices(users,ids,function(){positionCustomBoxPanel(panel,anchorRect);});updateUsers();
     positionCustomBoxPanel(panel,anchorRect);
-     usersRequest('GET','/custom-boxes/'+def.numeric_id+'/permissions',null,function(permissionErr,permissionData){
+     usersRequest('GET','/custom-boxes/'+def.custom_box_id+'/permissions',null,function(permissionErr,permissionData){
       if(permissionErr||!permissionData||!permissionData.ok)return;
       clear(grantRows);
       var capabilityLabels=[
@@ -11391,7 +11391,7 @@ function openCustomBoxEditor(def, anchor){
           payload.push(entry);
         }
         grantSave.disabled=true;
-        usersRequest('PUT','/custom-boxes/'+def.numeric_id+'/permissions',{permissions:payload},function(saveErr,saveData){
+        usersRequest('PUT','/custom-boxes/'+def.custom_box_id+'/permissions',{permissions:payload},function(saveErr,saveData){
           grantSave.disabled=false;
           if(saveErr||!saveData||!saveData.ok){alert(saveErr||(saveData&&saveData.error)||'Salvataggio autorizzazioni non riuscito.');return;}
           alert('Autorizzazioni salvate.');
@@ -11408,7 +11408,7 @@ function openCustomBoxEditor(def, anchor){
     save.disabled=true;
     function submitBoxUpdate(confirmed){
       if(confirmed)payload.confirm_visibility_change=true;
-      usersRequest('PUT','/custom-boxes/'+def.numeric_id,payload,function(err,data){
+      usersRequest('PUT','/custom-boxes/'+def.custom_box_id,payload,function(err,data){
         if(err||!data||!data.ok){save.disabled=false;alert(err||(data&&data.error)||'Modifica non riuscita.');return;}
         if(data.needs_confirmation){
           var names=(data.affected_users||[]).map(function(u){return u.name;});
@@ -11465,7 +11465,7 @@ function createCustomBoxElement(def){
 
   var box=mk("div","box","");
   box.id=def.element_id;
-  box.setAttribute("data-custom-box-id",String(def.numeric_id));
+  box.setAttribute("data-custom-box-id",String(def.custom_box_id));
 
   var heading=mk("div","section-heading","");
   heading.appendChild(mk("h2","",def.title || "Attività"));
@@ -11494,7 +11494,7 @@ function createCustomBoxElement(def){
     if(!description) return;
     if(description.length>500){alert("Massimo 500 caratteri.");return;}
     add.disabled=true;
-    usersRequest("POST","/custom-boxes/"+def.numeric_id+"/tasks",{description:description,view_id:currentView},function(err,data){
+    usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/tasks",{description:description,view_id:currentView},function(err,data){
       add.disabled=false;
       if(err||!data||!data.ok){alert(err||(data&&data.error)||"Salvataggio non riuscito.");return;}
       input.value="";
@@ -11509,7 +11509,7 @@ function createCustomBoxElement(def){
   box.appendChild(addRow);
 
   var list=mk("div","");
-  list.id="customTasks_"+def.numeric_id;
+  list.id="customTasks_"+def.custom_box_id;
   box.appendChild(list);
 
   var stash=$("stash");
@@ -11598,7 +11598,7 @@ function customTaskAssignControl(def,task){
   return {btn:btn,menu:menu};
 }
 function loadCustomBoxTasks(def){
-  var list=$("customTasks_"+def.numeric_id);
+  var list=$("customTasks_"+def.custom_box_id);
   if(!list)return;
   /* I renderer dei box custom vengono inizializzati anche durante il
      caricamento del catalogo, prima che setView() abbia scelto la vista.
@@ -11609,7 +11609,7 @@ function loadCustomBoxTasks(def){
     return;
   }
   list.textContent="Caricamento...";
-  usersRequest("GET","/custom-boxes/"+def.numeric_id+"/tasks?viewId="+encodeURIComponent(String(currentView)),null,function(err,data){
+  usersRequest("GET","/custom-boxes/"+def.custom_box_id+"/tasks?viewId="+encodeURIComponent(String(currentView)),null,function(err,data){
     if(err||!data||!data.ok){
       list.textContent=err||(data&&data.error)||"Errore caricamento";
       return;
@@ -13226,7 +13226,7 @@ function loadAuthorizedConfig(callback){
     DASHBOARD_BOXES.forEach(function(box){
       // Carica il renderer per tutti i box della famiglia: la visibilità
       // viene già filtrata dal dashboard-api in base alla vista consultata.
-      if(box.numeric_id && box.box_key && box.custom_family_id){
+      if(box.custom_box_id && box.box_key && box.custom_family_id){
         createCustomBoxElement(box);
       }
     });
