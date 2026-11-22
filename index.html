@@ -6392,9 +6392,7 @@ function itemRow(item, busy, onToggle, onDelete, extraBtn, assigneeClass){
   cb.onchange = onToggle;
   cell.appendChild(cb);
   row.appendChild(cell);
-  var textCell = mk("span", "todo-text");
-  var taskLabel = mk("span", item.done ? "task-label-done" : "", item.text);
-  textCell.appendChild(taskLabel);
+  var textCell = mk("span", item.done ? "todo-text done" : "todo-text", item.text);
   var assignedNames = assigneeLabel(item.assignees);
   if(assignedNames && assigneeClass !== null){
     textCell.appendChild(mk("span", assigneeClass || "recurring-task-owners", assignedNames));
@@ -6642,21 +6640,19 @@ function renderPersonalTodo() {
     (function(index) {
       var item = personalTodoItems[index];
 
-      var row = mk("div", "todo-row");
-
-      var checkbox = mk("input");
+      var row = mk("div", "todo recurring-task-row");
+      var cell = mk("span", "todo-check-cell");
+      var checkbox = mk("input", "todo-check");
       checkbox.type = "checkbox";
       checkbox.checked = Boolean(item.done);
       checkbox.disabled = personalTodoBusy;
-      checkbox.addEventListener("change", function() {
+      checkbox.setAttribute("aria-label", item.done ? "Segna come da fare" : "Segna come completata");
+      checkbox.onchange = function() {
         personalTodoChange(index);
-      });
-
-      var label = mk("span", "todo-text", item.text);
-      if (item.done) {
-        label.classList.add("done");
-      }
-      row.appendChild(checkbox);
+      };
+      cell.appendChild(checkbox);
+      row.appendChild(cell);
+      var label = mk("span", item.done ? "todo-text done" : "todo-text", item.text);
       row.appendChild(label);
       box.appendChild(row);
     })(i);
