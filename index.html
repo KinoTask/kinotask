@@ -11593,13 +11593,13 @@ function loadCustomBoxRenderer(def){
 function loadWeeklyDateCalendar(def){
   var host=$("customTasks_"+def.custom_box_id);if(!host)return;
   if(!currentView){host.textContent="Caricamento vista...";return;}
-  var offset=0,canEdit=false,canAssign=false,weekdays=[],entries=[];
+  var offset=0,showOverdue=false,canEdit=false,canAssign=false,weekdays=[],entries=[];
   function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
   function monday(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-(x.getDay()+6)%7);return x;}
   function shift(d,n){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x;}
   function label(d){return d.toLocaleDateString("it-IT",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});}
   function load(){
-    var today=monday(new Date()),start=shift(today,offset*7),end=shift(start,6);
+    var today=monday(new Date()),start=showOverdue?new Date(2000,0,1):shift(today,offset*7),end=showOverdue?shift(today,-1):shift(start,6);
     host.textContent="Caricamento calendario...";
     usersRequest("GET","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView)+"&from="+iso(start)+"&to="+iso(end),null,function(err,data){
       if(err||!data||!data.ok){host.textContent=err||(data&&data.error)||"Errore caricamento calendario";return;}
@@ -11611,7 +11611,8 @@ function loadWeeklyDateCalendar(def){
   function render(start,end){
     clear(host);
     var nav=mk("div","weekly-date-nav seg","");
-    [-2,-1,0,1,2].forEach(function(n){
+    var overdueButton=mk("button","seg-button"+(showOverdue?" sel":""),"ARRETRATI");overdueButton.type="button";overdueButton.onclick=function(){showOverdue=!showOverdue;load();};nav.appendChild(overdueButton);
+    if(!showOverdue)[-2,-1,0,1,2].forEach(function(n){
       var label=n===0?"QUESTA SETTIMANA":(n<0?"−"+Math.abs(n):"+"+n);
       var b=mk("button","seg-button"+(n===offset?" sel":""),label);b.type="button";
       b.setAttribute("aria-label",n===0?(offset===0?"Settimana corrente":"Torna a oggi"):(n<0?"Settimana precedente di "+Math.abs(n):"Settimana successiva di "+n));
@@ -11619,9 +11620,9 @@ function loadWeeklyDateCalendar(def){
       nav.appendChild(b);
     });
     host.appendChild(nav);
-    var rule=mk("div","small","Ricorrenza: "+(weekdays.length?weekdays.map(function(d){return ["dom","lun","mar","mer","gio","ven","sab"][d];}).join(", "):"nessun giorno configurato"));
+    var rule=mk("div","small",showOverdue?"Attività delle settimane precedenti non ancora completate.":"Ricorrenza: "+(weekdays.length?weekdays.map(function(d){return ["dom","lun","mar","mer","gio","ven","sab"][d];}).join(", "):"nessun giorno configurato"));
     host.appendChild(rule);
-    if(canEdit){
+    if(canEdit&&!showOverdue){
       var editRule=mk("button","","MODIFICA GIORNI");editRule.type="button";editRule.style.margin="6px 0";
       editRule.onclick=function(){
         var panel=mk("div","weekly-date-rule-editor","");panel.style.display="flex";panel.style.flexWrap="wrap";panel.style.gap="8px";panel.style.padding="7px 0";
@@ -11644,12 +11645,12 @@ function loadWeeklyDateCalendar(def){
     for(var d=new Date(start);d<=end;d=shift(d,1)){
       var key=iso(d),dow=d.getDay(),ex=map[key];
       if(ex&&ex.entry_type==="excluded")continue;
-      if(ex&&ex.entry_type==="override"){rows.push({source:key,date:ex.entry_date,entry:ex});continue;}
-      if(ex&&ex.entry_type==="extra"){rows.push({source:key,date:ex.entry_date,entry:ex});continue;}
-      if(weekdays.indexOf(dow)!==-1)rows.push({source:key,date:key,entry:ex||null});
+      if(ex&&ex.entry_type==="override"){if(!showOverdue||!ex.done)rows.push({source:key,date:ex.entry_date,entry:ex});continue;}
+      if(ex&&ex.entry_type==="extra"){if(!showOverdue||!ex.done)rows.push({source:key,date:ex.entry_date,entry:ex});continue;}
+      if(weekdays.indexOf(dow)!==-1&&(!showOverdue||!(ex&&ex.done)))rows.push({source:key,date:key,entry:ex||null});
     }
-    entries.forEach(function(e){if((e.entry_type==="extra"||e.entry_type==="override")&&e.entry_date>=iso(start)&&e.entry_date<=iso(end)&&!rows.some(function(r){return r.source===e.source_date;}))rows.push({source:e.source_date,date:e.entry_date,entry:e});});
-    rows=rows.filter(function(r){return r.date>=iso(start)&&r.date<=iso(end);});
+    entries.forEach(function(e){if((e.entry_type==="extra"||e.entry_type==="override")&&e.entry_date>=iso(start)&&e.entry_date<=iso(end)&&!rows.some(function(r){return r.source===e.source_date;})&&(!showOverdue||!e.done))rows.push({source:e.source_date,date:e.entry_date,entry:e});});
+    rows=rows.filter(function(r){return r.date>=iso(start)&&r.date<=iso(end)&&(!showOverdue||!r.entry||!r.entry.done);});
     rows.sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
     rows.forEach(function(row){
       var d=new Date(row.date+"T12:00:00"),entry=row.entry||{},line=mk("div","weekly-date-row","");
@@ -11730,7 +11731,7 @@ function loadWeeklyDateCalendar(def){
       }
       host.appendChild(line);
     });
-    if(canEdit){
+    if(canEdit&&!showOverdue){
       var add=mk("button","","+ AGGIUNGI DATA");add.type="button";add.style.marginTop="9px";
       add.onclick=function(){var value=prompt("Data aggiuntiva (AAAA-MM-GG)");if(!value)return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Data non aggiunta");load();});};host.appendChild(add);
     }
