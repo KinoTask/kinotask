@@ -11589,10 +11589,7 @@ function createCustomBoxElement(def){
 
   var stash=$("stash");
   if(stash)stash.appendChild(box);
-  if(def.box_kind==="weekly_dates"){
-    addRow.hidden=true;
-    loadWeeklyDateCalendar(def);
-  }else loadCustomBoxTasks(def);
+  loadCustomBoxRenderer(def);
 }
 
 
