@@ -9880,9 +9880,11 @@ function buildLayout(view, previewSections){
 
     var row=mk("div","row layout-row dashboard-layout-row dashboard-layout-columns");
     row.style.display="flex";row.style.alignItems="stretch";row.style.width="100%";
+    var visibleColumnCount=(section.columns||[]).filter(function(items){return items&&items.length;}).length;
     (section.columns||[]).forEach(function(items){
       var col=mk("div","col dashboard-layout-column");
-      col.style.width="50%";col.style.cssFloat="none";col.style.float="none";
+      var columnWidth=visibleColumnCount<=1?"100%":"50%";
+      col.style.width=columnWidth;col.style.flex="0 0 "+columnWidth;col.style.cssFloat="none";col.style.float="none";
       col.style.display="block";
       col.style.minWidth="0";col.style.boxSizing="border-box";col.style.padding="0 2px";
       (items||[]).forEach(function(item){appendBox(item,col);});
