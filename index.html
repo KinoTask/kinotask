@@ -587,13 +587,14 @@ input[type=checkbox] {
 .weekly-date-nav > button { min-height:32px; padding:7px 3px; font-size:.85em; }
 .weekly-date-nav > button { opacity:1!important; }
 .weekly-date-controls { display:flex; flex:0 0 auto; align-items:center; gap:5px; margin-left:auto; position:relative; white-space:nowrap; }
+.weekly-date-completion { position:relative; flex:0 0 auto; }
 .weekly-date-mark { min-width:76px; margin:0; padding:5px 6px; font-size:.68em; }
 .weekly-date-controls > button:not(.weekly-date-mark), .weekly-date-notes > button { display:inline-flex; align-items:center; justify-content:center; width:28px; min-width:28px; height:27px; margin:0; padding:2px; }
 .weekly-date-icon { font-size:16px; line-height:1; }
 .weekly-date-notes { display:flex; position:relative; align-items:center; }
 .weekly-date-notes > button.has-notes { font-weight:bold; border-width:2px; }
 .weekly-date-note-panel { position:absolute; z-index:8; top:100%; right:0; padding:5px; background:#fff; border:1px solid #888; border-radius:4px; }
-.weekly-done-menu { position:absolute; z-index:9; top:100%; right:75px; left:auto; width:160px; margin:4px 0 0; padding:6px; }
+.weekly-done-menu { position:absolute; z-index:9; top:100%; right:0; left:auto; width:160px; margin:4px 0 0; padding:6px; }
 .weekly-done-option { display:block; width:100%; margin:2px 0; padding:5px; text-align:left; }
 .weekly-date-note-panel textarea { font:inherit; font-size:.85em; }
 .weekly-date-notes button { font-size:.75em; padding:4px 8px; }
@@ -602,7 +603,7 @@ input[type=checkbox] {
 .weekly-date-label { font-weight:bold; text-transform:capitalize; }
 .weekly-date-number { font-size:.82em; font-weight:normal; color:#555; }
 .weekly-date-who { flex:0 0 auto; font-size:.68em; color:#555; text-align:right; }
-.weekly-date-mark { flex:0 0 auto; min-width:86px; margin:0; padding:5px 7px; font-size:.68em; }
+.weekly-date-mark { flex:0 0 auto; min-width:76px; margin:0; padding:5px 6px; font-size:.68em; }
 .weekly-date-mark:active { background:#000; color:#fff; }
 body.k .weekly-date-mark { min-width:68px; padding:5px 3px; }
 
@@ -11179,7 +11180,8 @@ function openAddBoxPanel(anchor){
       if(entry.done){var undo=mk("button","weekly-done-option","Annulla completamento");undo.type="button";undo.onclick=function(){usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,done:false},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Modifica non salvata");return;}load();});};doneMenu.appendChild(undo);}
       mark.onclick=function(){closeAssignMenus();doneMenu.classList.toggle("open");};
       if(entry.done&&entry.completed_by_name)mark.textContent="SVOLTO: "+String(entry.completed_by_name).toUpperCase();
-      controls.appendChild(mark);controls.appendChild(doneMenu);
+      var completionWrap=mk("div","weekly-date-completion","");
+      completionWrap.appendChild(mark);completionWrap.appendChild(doneMenu);controls.appendChild(completionWrap);
       if(canEdit){
         var noteWrap=mk("div","weekly-date-notes","");
         var noteButton=mk("button","weekly-note-button"+(entry.notes?" has-notes":""),"✎");noteButton.type="button";noteButton.title=entry.notes?"Apri annotazione":"Aggiungi annotazione";noteButton.setAttribute("aria-label",noteButton.title);
