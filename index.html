@@ -10437,7 +10437,8 @@ function setView(view, manual){
   var btns = $("viewMenuPanel").getElementsByTagName("button");
   
   for(var i = 0; i < btns.length; i++){
-    btns[i].classList.toggle("sel", btns[i].getAttribute("data-view") === view);
+    if(btns[i].getAttribute("data-view") === view) btns[i].classList.add("sel");
+    else btns[i].classList.remove("sel");
   }
 
   var personal = viewConfig.view_type === "personal";
@@ -11899,7 +11900,11 @@ function loadWeeklyDateCalendar(def){
         var assignSave=mk("button","","Salva");assignSave.type="button";
         var assignCancel=mk("button","","Annulla");assignCancel.type="button";
         assignActions.appendChild(assignSave);assignActions.appendChild(assignCancel);assignMenu.appendChild(assignActions);
-        assignButton.onclick=function(){closeAssignMenus();assignMenu.classList.toggle("open");};
+        assignButton.onclick=function(){
+          var isOpen=assignMenu.classList.contains("open");
+          closeAssignMenus();
+          if(!isOpen)assignMenu.classList.add("open");
+        };
         assignCancel.onclick=function(){assignMenu.classList.remove("open");};
         assignSave.onclick=function(){
           var ids=assignChecks.filter(function(c){return c.checked;}).map(function(c){return c.value;});
@@ -15256,8 +15261,10 @@ function endHandwrittenStroke(ev){
 }
 
 function updateHandwrittenToolButtons(){
-  $("notesPenButton").classList.toggle("active",handwrittenTool==="pen");
-  $("notesEraserButton").classList.toggle("active",handwrittenTool==="eraser");
+  if(handwrittenTool==="pen")$("notesPenButton").classList.add("active");
+  else $("notesPenButton").classList.remove("active");
+  if(handwrittenTool==="eraser")$("notesEraserButton").classList.add("active");
+  else $("notesEraserButton").classList.remove("active");
 }
 
 function saveHandwrittenNote(){
