@@ -11534,7 +11534,7 @@ function createCustomBoxElement(def){
     existingEdit.hidden=true;
     var existingAdd=existingBox.querySelector(".custom-box-add");
     if(existingAdd)existingAdd.hidden=true;
-    if(def.box_kind==="weekly_dates")loadWeeklyDateCalendar(def);else loadCustomBoxTasks(def);
+    loadCustomBoxRenderer(def);
     return;
   }
 
@@ -11595,6 +11595,22 @@ function createCustomBoxElement(def){
   }else loadCustomBoxTasks(def);
 }
 
+
+function loadCustomBoxRenderer(def){
+  // Il tipo viene verificato anche sul calendario D1: il catalogo della
+  // dashboard può provenire da una versione Worker non ancora aggiornata.
+  if(def.box_kind==="weekly_dates"){loadWeeklyDateCalendar(def);return;}
+  var now=new Date(),year=now.getFullYear();
+  var from=year+"-01-01",to=year+"-12-31";
+  usersRequest("GET","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView)+"&from="+from+"&to="+to,null,function(err,data){
+    if(!err&&data&&data.ok){
+      def.box_kind="weekly_dates";
+      var box=$(def.element_id),add=box&&box.querySelector(".custom-box-add");
+      if(add)add.hidden=true;
+      loadWeeklyDateCalendar(def);
+    }else loadCustomBoxTasks(def);
+  });
+}
 
 function loadWeeklyDateCalendar(def){
   var host=$("customTasks_"+def.custom_box_id);if(!host)return;
