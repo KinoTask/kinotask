@@ -686,6 +686,11 @@ body.k .weekly-date-mark {
   min-width:68px;
 }
 
+.agenda-config-edit{margin-left:auto;padding:4px 8px;font-size:11px;white-space:nowrap}
+.agenda-config-panel-row{display:flex;gap:6px;align-items:center;margin:6px 0}
+.agenda-config-panel-row select{flex:1;min-width:0;padding:8px;font:inherit}
+.agenda-config-panel-row button{padding:5px 8px}
+.agenda-config-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .google-calendar-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0 7px;font-size:.78em}
 .google-calendar-account{color:#555;overflow-wrap:anywhere}
 .google-calendar-select{flex:1 1 160px;min-width:0;max-width:100%;font:inherit;padding:5px;border:1px solid #777;background:#fff}
@@ -5479,8 +5484,8 @@ body.k .dashboard-layout-full > .col {
       <div class="section-heading">
         <h2 data-box-title="agenda"></h2>
         <div class="sync-label" id="agendaTimes"></div>
+        <button type="button" class="agenda-config-edit" id="agendaConfigEdit">MODIFICA</button>
       </div>
-      <div class="google-calendar-tools" id="agendaGoogleTools"></div>
       <div id="agenda">Caricamento...</div>
     </div>
 
@@ -6430,6 +6435,122 @@ function renderGoogleCalendarTools(scope, userId){
   });
 }
 
+
+function openSharedAgendaConfig(anchor){
+  var panel=$("dashboardAddBoxPanel");
+  if(!panel)return;
+  if(panel.parentNode!==document.body)document.body.appendChild(panel);
+  setHidden($("dashboardLayoutMenu"),true);
+  setHidden(panel,false);
+  clear(panel);
+  panel.style.position="fixed";
+  panel.style.zIndex="10050";
+  panel.style.width="390px";
+  panel.style.maxWidth="calc(100vw - 16px)";
+  panel.style.boxSizing="border-box";
+  panel.style.background="#fff";
+  panel.style.border="1px solid #999";
+  panel.style.borderRadius="5px";
+  panel.style.boxShadow="0 4px 18px rgba(0,0,0,.25)";
+  var anchorRect=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
+  var wrap=mk("div","","");
+  wrap.style.padding="10px";
+  wrap.style.display="flex";
+  wrap.style.flexDirection="column";
+  wrap.style.gap="8px";
+  wrap.appendChild(mk("div","","MODIFICA AGENDA CONDIVISA"));
+  wrap.appendChild(mk("div","small","Seleziona uno o più calendari Google da visualizzare nell'agenda condivisa."));
+  var account=mk("div","small","Caricamento account Google…");
+  wrap.appendChild(account);
+  var rows=mk("div","","");
+  wrap.appendChild(rows);
+  var add=mk("button","","+ AGGIUNGI CALENDARIO");
+  add.type="button";
+  add.disabled=true;
+  wrap.appendChild(add);
+  var status=mk("div","small","");
+  wrap.appendChild(status);
+  var actions=mk("div","agenda-config-actions","");
+  var save=mk("button","","SALVA MODIFICHE");
+  save.type="button";
+  save.disabled=true;
+  var back=mk("button","","INDIETRO");
+  back.type="button";
+  back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};
+  actions.appendChild(save);actions.appendChild(back);wrap.appendChild(actions);
+  panel.appendChild(wrap);
+  positionCustomBoxPanel(panel,anchorRect);
+  bindCustomBoxPanelPosition(panel,anchorRect);
+  var calendars=[], selected=[];
+  function renderRows(){
+    clear(rows);
+    selected.forEach(function(calendarId,index){
+      var line=mk("div","agenda-config-panel-row","");
+      var select=document.createElement("select");
+      calendars.forEach(function(cal){
+        var option=document.createElement("option");
+        option.value=cal.id;
+        option.textContent=cal.summary+(cal.primary?" (principale)":"");
+        select.appendChild(option);
+      });
+      select.value=calendarId;
+      select.onchange=function(){selected[index]=select.value;renderRows();};
+      line.appendChild(select);
+      var remove=mk("button","","−");
+      remove.type="button";remove.title="Rimuovi calendario";
+      remove.onclick=function(){if(selected.length>1){selected.splice(index,1);renderRows();}else{status.textContent="Deve rimanere almeno un calendario."; }};
+      line.appendChild(remove);
+      rows.appendChild(line);
+    });
+    add.disabled=!calendars.length||selected.length>=20||calendars.every(function(c){return selected.indexOf(c.id)!==-1;});
+    save.disabled=!selected.length;
+    positionCustomBoxPanel(panel,anchorRect);
+  }
+  add.onclick=function(){
+    var next=calendars.filter(function(c){return selected.indexOf(c.id)===-1;})[0];
+    if(!next)return;
+    selected.push(next.id);renderRows();
+  };
+  googleCalendarRequest("GET","/status?scope=family",null,function(statusErr,connection){
+    if(statusErr){account.textContent="Errore: "+statusErr;status.textContent="Impossibile leggere la connessione.";return;}
+    if(!connection||!connection.connected){
+      account.textContent="Google Calendar non collegato.";
+      var connect=mk("button","","COLLEGA GOOGLE CALENDAR");connect.type="button";
+      connect.onclick=function(){googleCalendarConnect("family",null);};
+      rows.appendChild(connect);
+      add.disabled=true;save.disabled=true;
+      return;
+    }
+    account.textContent="Google: "+(connection.email||"collegato");
+    googleCalendarRequest("GET","/calendars?scope=family",null,function(calErr,calData){
+      if(calErr||!calData||!Array.isArray(calData.calendars)){status.textContent=calErr||"Impossibile caricare i calendari.";return;}
+      calendars=calData.calendars;
+      googleCalendarRequest("GET","/sources?scope=family",null,function(sourceErr,sourceData){
+        if(sourceErr){status.textContent=sourceErr;return;}
+        selected=(sourceData&&Array.isArray(sourceData.sources)&&sourceData.sources.length)
+          ?sourceData.sources.map(function(x){return x.calendar_id;})
+          :["primary"];
+        if(!calendars.some(function(c){return c.id==="primary";})&&selected[0]==="primary"&&calendars.length)selected=[calendars[0].id];
+        renderRows();
+        add.disabled=false;
+        status.textContent="Puoi aggiungere fino a 20 calendari.";
+      });
+    });
+  });
+  save.onclick=function(){
+    var ids=selected.filter(function(id,index){return id&&selected.indexOf(id)===index;});
+    if(!ids.length){status.textContent="Seleziona almeno un calendario.";return;}
+    save.disabled=true;
+    googleCalendarRequest("POST","/sources",{scope:"family",sources:ids.map(function(id){return {calendar_id:id};})},function(err,data){
+      save.disabled=false;
+      if(err||!data||!data.ok){status.textContent=err||(data&&data.error)||"Salvataggio non riuscito.";return;}
+      setHidden(panel,true);
+      setHidden($("dashboardLayoutMenu"),false);
+      loadAgenda();
+    });
+  };
+}
+
 function loadUserAgenda(userId){
   var requestedView = String(currentView || "");
   var viewConfig = findItem(DASHBOARD_VIEWS, function(v){
@@ -6470,7 +6591,6 @@ function scheduleAgendaRefresh(){
 
 function loadAgenda(){
   scheduleAgendaRefresh();
-  renderGoogleCalendarTools("family", null);
   googleCalendarRequest("GET", "/events?scope=family", null, function(err, data){
     var hadAgenda = !!agendaData, changed = true;
     if(!err && data && Array.isArray(data.events)){
@@ -6486,6 +6606,9 @@ function loadAgenda(){
     if(!isSharedView(currentView)) safe(renderPersonalTasks);
   });
 }
+
+var agendaConfigEditButton=$("agendaConfigEdit");
+if(agendaConfigEditButton){agendaConfigEditButton.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openSharedAgendaConfig(agendaConfigEditButton);};}
 
 /* ==================================================
    6. COMPITI DEGLI EVENTI (righe "- compito" sotto "TODO:")
