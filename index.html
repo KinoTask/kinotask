@@ -5461,6 +5461,7 @@ body.k .dashboard-layout-full > .col {
     <div class="section-heading">
       <h2 data-box-title="personalRoutes"></h2>
       <div class="sync-label" id="personalRoutesTimes"></div>
+      <button type="button" class="agenda-config-edit" id="routesConfigEdit" hidden>MODIFICA</button>
     </div>
     <div id="personalRoutes"></div>
     <div class="small" id="personalRoutesStatus"></div>
@@ -5737,11 +5738,8 @@ var CONFIG = {
   base: "https://raw.githubusercontent.com/KinoTask/kinotask/main/",
   lat: 45.484, lon: 9.233,
   weatherMin: 5,
-  todoWorkerUrl: "https://todo-sync.kinotask.workers.dev"
-};
-CONFIG.routesUrl = function(userId){
- // return CONFIG.base + "routes_" + String(userId).toLowerCase() + ".json";
- return CONFIG.base + "routes.json";
+  todoWorkerUrl: "https://todo-sync.kinotask.workers.dev",
+  routesWorkerUrl: "https://routes-api.kinotask.workers.dev"
 };
 
 var MESI = ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
@@ -6605,6 +6603,9 @@ function loadAgenda(){
     if(!isSharedView(currentView)) safe(renderPersonalTasks);
   });
 }
+
+var routesConfigEditButton=$("routesConfigEdit");
+if(routesConfigEditButton){routesConfigEditButton.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openRoutesConfig(routesConfigEditButton);};}
 
 var agendaConfigEditButton=$("agendaConfigEdit");
 if(agendaConfigEditButton){agendaConfigEditButton.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openSharedAgendaConfig(agendaConfigEditButton);};}
@@ -8013,26 +8014,158 @@ var WEEKEND_ROUTES = [
   "Oggi l'unico appuntamento è con il tempo libero!"
 ];
 
+function routeUserIdForView(viewId){
+  for(var i=0;i<AUTH_PROFILES.length;i++){
+    if(String(AUTH_PROFILES[i].view_id)===String(viewId)) return String(AUTH_PROFILES[i].user_id);
+  }
+  return authProfile ? String(authProfile) : "";
+}
+
+function routesRequest(method,path,body,callback){
+  if(!authToken){callback("Sessione non autenticata");return;}
+  var options={method:method,headers:{"Authorization":"Bearer "+authToken,"Accept":"application/json"}};
+  if(body!==null&&body!==undefined){options.headers["Content-Type"]="application/json";options.body=JSON.stringify(body);}
+  fetch(CONFIG.routesWorkerUrl+path,options).then(function(response){
+    return response.json().catch(function(){return {};}).then(function(data){
+      if(!response.ok||!data||data.ok===false) throw new Error(data&&data.error?data.error:"Errore Routes API HTTP "+response.status);
+      callback(null,data);
+    });
+  }).catch(function(error){callback(error&&error.message?error.message:String(error));});
+}
+
 function loadRoutes(userId){
   userId = userId || currentView;
-
-  if(!userId || isSharedView(userId)){
-    return;
-  }
-
-  var url = CONFIG.routesUrl(userId);
-  var file = "routes_" + String(userId).toLowerCase() + ".json";
-
-  getJson([url, CONFIG.base + file, file], function(err, d){
-    if(!err && d && d.routes){
-      routesData = d;
-      routesErr = false;
-      routesSyncedAt = new Date();
-    } else {
-      routesErr = true;
-    }
-
+  if(!userId || isSharedView(userId)) return;
+  var targetUserId=routeUserIdForView(userId);
+  if(!targetUserId||!authToken){routesErr=true;safe(renderRoutes);return;}
+  routesRequest("GET","/today?user_id="+encodeURIComponent(targetUserId),null,function(err,data){
+    if(!err&&data&&data.routes){routesData=data;routesErr=false;routesSyncedAt=new Date();}
+    else routesErr=true;
     safe(renderRoutes);
+  });
+}
+
+
+function openRoutesConfig(anchor){
+  var userId=routeUserIdForView(currentView);
+  if(!userId){showErr("Non riesco a identificare l'utente della vista.");return;}
+  var panel=$("dashboardAddBoxPanel");
+  if(!panel)return;
+  if(panel.parentNode!==document.body)document.body.appendChild(panel);
+  setHidden($("dashboardLayoutMenu"),true);
+  setHidden(panel,false);
+  clear(panel);
+  panel.style.position="fixed";
+  panel.style.zIndex="10050";
+  panel.style.width="min(620px, calc(100vw - 16px))";
+  panel.style.maxWidth="calc(100vw - 16px)";
+  panel.style.maxHeight="calc(100vh - 24px)";
+  panel.style.overflowY="auto";
+  panel.style.boxSizing="border-box";
+  panel.style.background="#fff";
+  panel.style.border="1px solid #999";
+  panel.style.borderRadius="5px";
+  panel.style.boxShadow="0 4px 18px rgba(0,0,0,.25)";
+  var anchorRect=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
+  var wrap=mk("div","","");
+  wrap.style.padding="12px";
+  wrap.style.display="flex";
+  wrap.style.flexDirection="column";
+  wrap.style.gap="9px";
+  wrap.appendChild(mk("div","","MODIFICA SPOSTAMENTI"));
+  wrap.appendChild(mk("div","small","Configura i percorsi ricorrenti. I tempi con traffico vengono calcolati automaticamente da Google Routes."));
+  var rows=mk("div","","");wrap.appendChild(rows);
+  var status=mk("div","small","Caricamento configurazione…");wrap.appendChild(status);
+  var actions=mk("div","agenda-config-actions","");
+  var add=mk("button","","+ AGGIUNGI PERCORSO");add.type="button";
+  var save=mk("button","","SALVA MODIFICHE");save.type="button";save.disabled=true;
+  var back=mk("button","","INDIETRO");back.type="button";
+  back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};
+  actions.appendChild(add);actions.appendChild(save);actions.appendChild(back);wrap.appendChild(actions);
+  panel.appendChild(wrap);
+  positionCustomBoxPanel(panel,anchorRect);
+  bindCustomBoxPanelPosition(panel,anchorRect);
+  var routeRows=[];
+  var dayOptions=[{value:1,label:"Lun"},{value:2,label:"Mar"},{value:3,label:"Mer"},{value:4,label:"Gio"},{value:5,label:"Ven"},{value:6,label:"Sab"},{value:0,label:"Dom"}];
+  function makeInput(parent,label,value,type,placeholder){
+    var field=mk("label","route-config-field","");
+    field.style.display="flex";field.style.flexDirection="column";field.style.gap="3px";field.style.minWidth="0";
+    field.appendChild(mk("span","small",label));
+    var input=document.createElement("input");input.type=type||"text";input.value=value||"";
+    input.placeholder=placeholder||"";input.style.width="100%";input.style.minWidth="0";input.style.boxSizing="border-box";input.style.padding="7px";
+    field.appendChild(input);parent.appendChild(field);return input;
+  }
+  function renderRows(){
+    clear(rows);
+    routeRows.forEach(function(data,index){
+      var card=mk("div","route-config-card","");
+      card.style.border="1px solid #d8d1c5";card.style.borderRadius="6px";card.style.padding="9px";card.style.marginBottom="8px";
+      var head=mk("div","","");head.style.display="flex";head.style.alignItems="center";head.style.justifyContent="space-between";head.style.gap="8px";
+      head.appendChild(mk("strong","","Percorso "+(index+1)));
+      var remove=mk("button","","RIMUOVI");remove.type="button";remove.onclick=function(){routeRows.splice(index,1);renderRows();};
+      head.appendChild(remove);card.appendChild(head);
+      var grid=mk("div","","");grid.style.display="grid";grid.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";grid.style.gap="7px";
+      data.originLabel=makeInput(grid,"Partenza · nome",data.origin_label,"text","Casa");
+      data.originAddress=makeInput(grid,"Indirizzo di partenza",data.origin_address,"text","Via, numero, città");
+      data.destinationLabel=makeInput(grid,"Arrivo · nome",data.destination_label,"text","Lavoro");
+      data.destinationAddress=makeInput(grid,"Indirizzo di arrivo",data.destination_address,"text","Via, numero, città");
+      card.appendChild(grid);
+      card.appendChild(mk("div","small","Giorni della settimana"));
+      var days=mk("div","","");days.style.display="flex";days.style.flexWrap="wrap";days.style.gap="8px";days.style.margin="4px 0 8px";
+      data.dayChecks=[];
+      dayOptions.forEach(function(day){
+        var label=mk("label","","");label.style.display="inline-flex";label.style.alignItems="center";label.style.gap="3px";
+        var cb=document.createElement("input");cb.type="checkbox";cb.value=String(day.value);cb.checked=(data.days||[]).indexOf(day.value)!==-1;
+        label.appendChild(cb);label.appendChild(document.createTextNode(day.label));days.appendChild(label);data.dayChecks.push(cb);
+      });
+      card.appendChild(days);
+      var timing=mk("div","","");timing.style.display="grid";timing.style.gridTemplateColumns="minmax(110px,1fr) minmax(150px,1.5fr)";timing.style.gap="8px";
+      data.targetTime=makeInput(timing,"Orario",data.target_time||"08:00","time","");
+      var modeField=mk("label","route-config-field","");modeField.style.display="flex";modeField.style.flexDirection="column";modeField.style.gap="3px";
+      modeField.appendChild(mk("span","small","L'orario indica"));
+      data.targetMode=document.createElement("select");data.targetMode.style.padding="7px";data.targetMode.style.width="100%";
+      [{value:"departure",label:"Ora di partenza"},{value:"arrival",label:"Ora di arrivo"}].forEach(function(item){var option=document.createElement("option");option.value=item.value;option.textContent=item.label;data.targetMode.appendChild(option);});
+      data.targetMode.value=data.target_mode||"arrival";modeField.appendChild(data.targetMode);timing.appendChild(modeField);card.appendChild(timing);
+      rows.appendChild(card);
+    });
+    status.textContent=routeRows.length?"Configura i giorni e l'orario di ogni percorso.":"Nessun percorso: premi + AGGIUNGI PERCORSO.";
+    save.disabled=false;
+    positionCustomBoxPanel(panel,anchorRect);
+  }
+  function newRoute(){
+    routeRows.push({id:crypto.randomUUID(),origin_label:"",origin_address:"",destination_label:"",destination_address:"",target_mode:"arrival",target_time:"08:00",days:[]});
+    renderRows();
+  }
+  add.onclick=function(){newRoute();};
+  save.onclick=function(){
+    var payload=routeRows.map(function(data){
+      return {
+        id:data.id,
+        origin_label:data.originLabel.value.trim(),
+        origin_address:data.originAddress.value.trim(),
+        destination_label:data.destinationLabel.value.trim(),
+        destination_address:data.destinationAddress.value.trim(),
+        target_mode:data.targetMode.value,
+        target_time:data.targetTime.value,
+        days:data.dayChecks.filter(function(cb){return cb.checked;}).map(function(cb){return Number(cb.value);})
+      };
+    });
+    save.disabled=true;status.textContent="Salvataggio…";
+    routesRequest("POST","/config?user_id="+encodeURIComponent(userId),{routes:payload},function(err){
+      save.disabled=false;
+      if(err){status.textContent="Errore: "+err;return;}
+      setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);
+      loadRoutes(currentView);
+    });
+  };
+  routesRequest("GET","/config?user_id="+encodeURIComponent(userId),null,function(err,data){
+    if(err){status.textContent="Errore nel caricamento: "+err;save.disabled=true;return;}
+    routeRows=(data.routes||[]).map(function(route){return {
+      id:route.id,origin_label:route.origin_label,origin_address:route.origin_address,
+      destination_label:route.destination_label,destination_address:route.destination_address,
+      target_mode:route.target_mode,target_time:route.target_time,days:route.days||[]
+    };});
+    if(!routeRows.length)newRoute();else renderRows();
   });
 }
 
@@ -8047,12 +8180,6 @@ function renderRoutes(){
   setText($("personalRoutesStatus"), routesErr ? "Tempi non raggiungibili." : "");
 
   var day = toRome(Date.now()).getUTCDay();
-
-  if(day === 0 || day === 6){
-    box.appendChild(mk("div", "weekend-message", pickPhrase(WEEKEND_ROUTES)));
-    scheduleAlign();
-    return;
-  }
 
   if(!routesData || routesData.day !== GIORNI_JSON[day] || !routesData.routes){
     box.appendChild(mk("div", "rt", "Percorsi non ancora calcolati per oggi."));
@@ -8084,7 +8211,9 @@ function renderRoutes(){
     box.appendChild(line);
   }
 
-  if(!found){ box.appendChild(mk("div", "rt", "Nessun percorso disponibile per oggi.")); }
+  if(!found){ box.appendChild(mk("div", "rt", "I tempi vengono calcolati automaticamente nelle due ore precedenti all'orario configurato.")); }
+  var editButton=$("routesConfigEdit");
+  if(editButton) editButton.hidden=!authToken;
   scheduleAlign();
 }
 
