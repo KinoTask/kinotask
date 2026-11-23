@@ -12238,7 +12238,7 @@ function loadWeeklyDateCalendar(def){
       addOverdue.onclick=function(){
         var value=prompt("Data dell'arretrato (AAAA-MM-GG)");
         if(!value)return;
-        if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)||iso(new Date(value+"T12:00:00"))!==value){alert("Inserisci una data valida nel formato AAAA-MM-GG.");return;}
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(value)||iso(new Date(value+"T12:00:00"))!==value){alert("Inserisci una data valida nel formato AAAA-MM-GG.");return;}
         if(value<iso(start)||value>iso(end)){alert("La data deve rientrare nel periodo degli arretrati visualizzato (massimo 3 mesi, fino a 15 giorni fa).");return;}
         var existing=null;
         for(var entryIndex=0;entryIndex<entries.length;entryIndex++){
