@@ -10686,10 +10686,14 @@ function setView(view, manual){
      montano il box ma non risolvono la chiave del renderer. */
   if(isMountedInActiveView($("personalTodoBox"))) safe(personalTodoConnect, "personalTodoConnect");
 
-  /* I task W/I/C mostrati nelle viste personali provengono dall'Agenda Famiglia.
-     Ridisegnali subito con agendaData già caricata: non devono aspettare il
-     refresh periodico al minuto successivo. */
-  if(personal) safe(renderPersonalTasks, "renderPersonalTasks");
+  /* I task W/I/C arrivano dall'Agenda Famiglia: al cambio vista rilegge
+     subito agenda.json, così non rimangono per minuti i task della vista
+     precedente o una copia non aggiornata del calendario. */
+  if(personal){
+    var personalTasksHost = $("personalTasks");
+    if(personalTasksHost) setText(personalTasksHost, "Aggiornamento compiti dall'Agenda Famiglia...");
+    safe(loadAgenda, "loadAgenda");
+  }
 
   closeViewMenu();
   scheduleAlign();
