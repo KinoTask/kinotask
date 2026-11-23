@@ -176,7 +176,7 @@ function renderSwitch(){
   for(var i=0;i<views.length;i++){
     (function(v){
       var b=node("button","user-button"+(String(v.id)===String(currentView)?" active":""),v.view_type==="shared"?(v.title||"Famiglia"):(v.title||v.name||"Utente"));
-      b.type="button";b.onclick=function(){manualUntil=new Date().getTime()+10*60*1000;setView(v.id,false);};nav.appendChild(b);
+      b.type="button";b.onclick=function(){setView(v.id,true);};nav.appendChild(b);
     })(views[i]);
   }
 }
@@ -305,9 +305,12 @@ function loadGenericCustom(box,seq,viewId){
   xhr("GET",url,null,function(err,data){
     if(seq!==loadSequence)return;
     if(err||!data||!data.ok){if(err!=="Errore HTTP 403"&&err!=="Errore HTTP 404")addError((box.title||"Box custom")+": "+(err||(data&&data.error)||"non disponibile"));}
-    else (data.tasks||[]).forEach(function(task){
-      addTask("general",{text:task.description,done:!!task.done,source:box.title||"Box custom",toggle:function(done,cb){xhr("PATCH",CUSTOM_API+"/custom-tasks/"+encodeURIComponent(task.id),{done:done,view_id:viewId},cb);}});
-    });
+    else {
+      var canEdit=!data.permissions||typeof data.permissions.can_edit_tasks!=="boolean"||data.permissions.can_edit_tasks;
+      (data.tasks||[]).forEach(function(task){
+        addTask("general",{text:task.description,done:!!task.done,editable:canEdit,source:box.title||"Box custom",toggle:function(done,cb){xhr("PATCH",CUSTOM_API+"/custom-tasks/"+encodeURIComponent(task.id),{done:done,view_id:viewId},cb);}});
+      });
+    }
     renderLists(seq);
   });
 }
@@ -319,6 +322,7 @@ function loadWeeklyCustom(box,seq,date){
     var weekdays=data.weekdays||[];if(typeof weekdays==="string"){try{weekdays=JSON.parse(weekdays);}catch(e){weekdays=[];}}
     weekdays=Array.isArray(weekdays)?weekdays.map(Number):[];
     var entries=Array.isArray(data.entries)?data.entries:[];
+    var canEdit=!data.permissions||typeof data.permissions.can_edit_tasks!=="boolean"||data.permissions.can_edit_tasks;
     var sourceEntry=null,extras=[];
     entries.forEach(function(entry){
       var source=String(entry.source_date||"").slice(0,10),target=String(entry.entry_date||source).slice(0,10);
@@ -328,16 +332,16 @@ function loadWeeklyCustom(box,seq,date){
     var dow=new Date(date+"T12:00:00").getDay();
     if(sourceEntry&&sourceEntry.entry_type==="excluded"){}
     else if(sourceEntry&&(sourceEntry.entry_type==="extra"||sourceEntry.entry_type==="override")){
-      if(String(sourceEntry.entry_date||"").slice(0,10)===date)appendWeeklyTask(box,sourceEntry.source_date,date,sourceEntry,seq);
+      if(String(sourceEntry.entry_date||"").slice(0,10)===date)appendWeeklyTask(box,sourceEntry.source_date,date,sourceEntry,seq,canEdit);
     }else if(weekdays.indexOf(dow)!==-1){
-      appendWeeklyTask(box,date,date,sourceEntry,seq);
+      appendWeeklyTask(box,date,date,sourceEntry,seq,canEdit);
     }
-    extras.forEach(function(entry){appendWeeklyTask(box,entry.source_date,String(entry.entry_date||date).slice(0,10),entry,seq);});
+    extras.forEach(function(entry){appendWeeklyTask(box,entry.source_date,String(entry.entry_date||date).slice(0,10),entry,seq,canEdit);});
     renderLists(seq);
   });
 }
-function appendWeeklyTask(box,sourceDate,date,entry,seq){
-  addTask("daily",{text:box.title||"Attività calendario",done:!!(entry&&entry.done),source:box.title||"Calendario",toggle:function(done,cb){
+function appendWeeklyTask(box,sourceDate,date,entry,seq,canEdit){
+  addTask("daily",{text:box.title||"Attività calendario",done:!!(entry&&entry.done),editable:canEdit!==false,source:box.title||"Calendario",toggle:function(done,cb){
     var url=CUSTOM_API+"/custom-boxes/"+encodeURIComponent(box.custom_box_id)+"/weekly-dates?viewId="+encodeURIComponent(currentView);
     xhr("PATCH",url,{source_date:String(sourceDate).slice(0,10),date:String(date).slice(0,10),done:done},cb);
   }});
@@ -375,7 +379,7 @@ function renderSection(id,items){
   if(!items.length){host.appendChild(node("div","empty","Nessuna attività."));return;}
   items.forEach(function(item){
     var row=node("label","task-row"+(item.done?" done":""));
-    var cb=document.createElement("input");cb.type="checkbox";cb.checked=!!item.done;cb.disabled=!!item.busy;
+    var cb=document.createElement("input");cb.type="checkbox";cb.checked=!!item.done;cb.disabled=!!item.busy||item.editable===false;
     cb.onchange=function(){
       var next=cb.checked;cb.disabled=true;
       item.toggle(next,function(err){
