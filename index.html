@@ -6335,6 +6335,22 @@ function saveGoogleCalendarSelection(scope, userId, calendarId, callback){
   });
 }
 
+function googleCalendarDisconnect(scope, userId, button){
+  if(!window.confirm("Scollegare Google Calendar da questa famiglia? Le selezioni dei calendari verranno rimosse.")) return;
+  if(button) button.disabled = true;
+  googleCalendarRequest("POST", "/disconnect", {}, function(err){
+    if(err){
+      if(button) button.disabled = false;
+      showErr(err);
+      return;
+    }
+    googleCalendarToolsCache = {};
+    renderGoogleCalendarTools(scope, userId);
+    if(scope === "family") loadAgenda();
+    else loadUserAgenda(userId);
+  });
+}
+
 function renderGoogleCalendarTools(scope, userId){
   var host = $(scope === "family" ? "agendaGoogleTools" : "userAgendaGoogleTools");
   if(!host || !authToken) return;
@@ -6358,6 +6374,10 @@ function renderGoogleCalendarTools(scope, userId){
       return;
     }
     host.appendChild(mk("span", "google-calendar-account", "Google: " + (status.email || "collegato")));
+    var disconnect = mk("button", "google-calendar-disconnect", "SCOLLEGA GOOGLE CALENDAR");
+    disconnect.type = "button";
+    disconnect.onclick = function(){ googleCalendarDisconnect(scope, userId, disconnect); };
+    host.appendChild(disconnect);
     googleCalendarRequest("GET", "/calendars", null, function(calErr, data){
       if(calErr || !data || !Array.isArray(data.calendars) || !host.parentNode) return;
       var select = document.createElement("select");
