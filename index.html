@@ -6263,7 +6263,23 @@ function renderAgenda(){
   }
   setTimes($("agendaTimes"), parseIso(agendaData.generated_at || agendaData.updated_at),
            agendaSyncedAt, agendaErr, 3 * 3600000);
-  buildAgenda(box, agendaData.events || [], agendaSt, function(){ safe(renderAgenda); },
+  var visibleEvents = agendaData.events || [];
+  if(!isSharedView(currentView)){
+    var currentUser = null;
+    for(var i = 0; i < USERS.length; i++){
+      if(String(USERS[i].view_id) === String(currentView)){ currentUser = USERS[i]; break; }
+    }
+    var owner = currentUser ? String(currentUser.task_owner || "").trim().toUpperCase() : "";
+    if(owner){
+      var prefix = owner + " -";
+      visibleEvents = visibleEvents.filter(function(event){
+        return String(event.title || "").trim().toUpperCase().indexOf(prefix) === 0;
+      });
+    } else {
+      visibleEvents = [];
+    }
+  }
+  buildAgenda(box, visibleEvents, agendaSt, function(){ safe(renderAgenda); },
               {tasks: isSharedView(currentView), click: true, period: false});
 }
 
