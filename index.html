@@ -8089,7 +8089,7 @@ function openRoutesConfig(anchor){
   var dayOptions=[{value:1,label:"Lun"},{value:2,label:"Mar"},{value:3,label:"Mer"},{value:4,label:"Gio"},{value:5,label:"Ven"},{value:6,label:"Sab"},{value:0,label:"Dom"}];
   function makeInput(parent,label,value,type,placeholder){
     var field=mk("label","route-config-field","");
-    field.style.display="flex";field.style.flexDirection="column";field.style.gap="3px";field.style.minWidth="0";
+    field.style.display="flex";field.style.flexDirection="column";field.style.gap="3px";field.style.minWidth="140px";field.style.flex="1 1 45%";
     field.appendChild(mk("span","small",label));
     var input=document.createElement("input");input.type=type||"text";input.value=value||"";
     input.placeholder=placeholder||"";input.style.width="100%";input.style.minWidth="0";input.style.boxSizing="border-box";input.style.padding="7px";
@@ -8104,7 +8104,7 @@ function openRoutesConfig(anchor){
       head.appendChild(mk("strong","","Percorso "+(index+1)));
       var remove=mk("button","","RIMUOVI");remove.type="button";remove.onclick=function(){routeRows.splice(index,1);renderRows();};
       head.appendChild(remove);card.appendChild(head);
-      var grid=mk("div","","");grid.style.display="grid";grid.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";grid.style.gap="7px";
+      var grid=mk("div","","");grid.style.display="flex";grid.style.flexWrap="wrap";grid.style.gap="7px";
       data.originLabel=makeInput(grid,"Partenza · nome",data.origin_label,"text","Casa");
       data.originAddress=makeInput(grid,"Indirizzo di partenza",data.origin_address,"text","Via, numero, città");
       data.destinationLabel=makeInput(grid,"Arrivo · nome",data.destination_label,"text","Lavoro");
@@ -8124,10 +8124,10 @@ function openRoutesConfig(anchor){
         cb.onchange=function(){data.days=data.dayChecks.filter(function(x){return x.checked;}).map(function(x){return Number(x.value);});};
       });
       card.appendChild(days);
-      var timing=mk("div","","");timing.style.display="grid";timing.style.gridTemplateColumns="minmax(110px,1fr) minmax(150px,1.5fr)";timing.style.gap="8px";
+      var timing=mk("div","","");timing.style.display="flex";timing.style.flexWrap="wrap";timing.style.gap="8px";
       data.targetTime=makeInput(timing,"Orario",data.target_time||"08:00","time","");
       data.targetTime.onchange=function(){data.target_time=this.value;};
-      var modeField=mk("label","route-config-field","");modeField.style.display="flex";modeField.style.flexDirection="column";modeField.style.gap="3px";
+      var modeField=mk("label","route-config-field","");modeField.style.display="flex";modeField.style.flexDirection="column";modeField.style.gap="3px";modeField.style.flex="1 1 180px";
       modeField.appendChild(mk("span","small","L'orario indica"));
       data.targetMode=document.createElement("select");data.targetMode.style.padding="7px";data.targetMode.style.width="100%";
       [{value:"departure",label:"Ora di partenza"},{value:"arrival",label:"Ora di arrivo"}].forEach(function(item){var option=document.createElement("option");option.value=item.value;option.textContent=item.label;data.targetMode.appendChild(option);});
