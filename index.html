@@ -8172,6 +8172,8 @@ function openRoutesConfig(anchor){
 function renderRoutes(){
   var box = $("personalRoutes");
   if(!box){ return; }
+  var editButton=$("routesConfigEdit");
+  if(editButton) editButton.hidden=!authToken;
   clear(box);
 
   setTimes($("personalRoutesTimes"),
@@ -8208,12 +8210,12 @@ function renderRoutes(){
     line.appendChild(title);
     line.appendChild(mk("div", "",
       "partenza " + hhmmRome(dep) + " arrivo " + hhmmRome(arr) + " · " + d.duration_minutes + " min"));
+    line.appendChild(mk("div", "small",
+      (d.mode === "arrival" ? "Arrivare entro " : "Partire alle ") + (d.target_time || "")));
     box.appendChild(line);
   }
 
   if(!found){ box.appendChild(mk("div", "rt", "I tempi vengono calcolati automaticamente nelle due ore precedenti all'orario configurato.")); }
-  var editButton=$("routesConfigEdit");
-  if(editButton) editButton.hidden=!authToken;
   scheduleAlign();
 }
 
