@@ -96,12 +96,12 @@ function getRomeDayFromDateTime(s){var ms=Date.parse(String(s||""));if(!isFinite
 function todayNumFromMs(ms){var r=toRome(ms);return Math.round(Date.UTC(r.getUTCFullYear(),r.getUTCMonth(),r.getUTCDate())/86400000);}
 function xhr(method,url,body,callback,timeout){
   var x=new XMLHttpRequest(),done=false;
-  function finish(err,data){if(done)return;done=true;if(callback)callback(err,data);}
+  function finish(err,data,status){if(done)return;done=true;if(callback)callback(err,data,status);}
   try{x.open(method,url,true);}catch(e){finish("Richiesta non avviata",null);return;}
   x.timeout=timeout||20000;
   if(authToken)x.setRequestHeader("Authorization","Bearer "+authToken);
   if(body!==null)x.setRequestHeader("Content-Type","application/json");
-  x.onreadystatechange=function(){if(x.readyState!==4)return;var d=null;try{d=JSON.parse(x.responseText);}catch(e){}if(x.status>=200&&x.status<300)finish(null,d);else finish(d&&d.error?d.error:"Errore HTTP "+x.status,d);};
+  x.onreadystatechange=function(){if(x.readyState!==4)return;var d=null;try{d=JSON.parse(x.responseText);}catch(e){}if(x.status>=200&&x.status<300)finish(null,d,x.status);else finish(d&&d.error?d.error:"Errore HTTP "+x.status,d,x.status);};
   x.onerror=function(){finish("Errore di connessione",null);};
   x.ontimeout=function(){finish("Timeout",null);};
   try{x.send(body===null?null:JSON.stringify(body));}catch(e){finish("Errore di invio",null);}
