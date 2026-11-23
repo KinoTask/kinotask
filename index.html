@@ -5705,15 +5705,15 @@ body.k .dashboard-layout-full > .col {
    ================================================== */
 var q = window.location.search;
 
-var AUTH_API_URL = "https://auth-api.iletarta-633.workers.dev";
-var USERS_API_URL = "https://users-api.iletarta-633.workers.dev";
+var AUTH_API_URL = "https://auth-api.kinotask.workers.dev";
+var USERS_API_URL = "https://users-api.kinotask.workers.dev";
 // Durante il rollout mantiene compatibilità con users-api; dopo il deploy del Worker dedicato basta cambiare questo URL.
-var CUSTOM_BOX_API_URL = "https://custom-box-api.iletarta-633.workers.dev";
-var DASHBOARD_API_URL = "https://dashboard-api.iletarta-633.workers.dev";
-var SHOPPING_API_URL = "https://amazon-shopping-api.iletarta-633.workers.dev";
-var FAMILY_SHOPPING_API_URL = "https://shopping-api.iletarta-633.workers.dev";
-var HANDWRITTEN_NOTES_API_URL = "https://handwritten-notes-api.iletarta-633.workers.dev";
-var GOOGLE_CALENDAR_API_URL = "https://google-calendar-api.iletarta-633.workers.dev";
+var CUSTOM_BOX_API_URL = "https://custom-box-api.kinotask.workers.dev";
+var DASHBOARD_API_URL = "https://dashboard-api.kinotask.workers.dev";
+var SHOPPING_API_URL = "https://amazon-shopping-api.kinotask.workers.dev";
+var FAMILY_SHOPPING_API_URL = "https://shopping-api.kinotask.workers.dev";
+var HANDWRITTEN_NOTES_API_URL = "https://handwritten-notes-api.kinotask.workers.dev";
+var GOOGLE_CALENDAR_API_URL = "https://google-calendar-api.kinotask.workers.dev";
 
 var authToken = "";
 var authUserType = "";
@@ -5732,7 +5732,7 @@ var CONFIG = {
   base: "https://raw.githubusercontent.com/KinoTask/kinotask/main/",
   lat: 45.484, lon: 9.233,
   weatherMin: 5,
-  todoWorkerUrl: "https://todo-sync.iletarta-633.workers.dev"
+  todoWorkerUrl: "https://todo-sync.kinotask.workers.dev"
 };
 CONFIG.routesUrl = function(userId){
  // return CONFIG.base + "routes_" + String(userId).toLowerCase() + ".json";
