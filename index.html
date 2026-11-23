@@ -6257,7 +6257,7 @@ function renderAgenda(){
   var box = $("agenda");
   clear(box);
   if(!agendaData){
-    setText(box, agendaErr ? "Agenda non disponibile (file non raggiungibile)." : "Caricamento...");
+    setText(box, agendaErr ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
     return;
   }
   setTimes($("agendaTimes"), parseIso(agendaData.generated_at || agendaData.updated_at),
@@ -6273,7 +6273,7 @@ function renderUserAgenda(){
   clear(box);
 
   if(!userData){
-    setText(box, userErr ? "Agenda non disponibile." : "Caricamento...");
+    setText(box, userErr ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
     return;
   }
 
