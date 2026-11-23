@@ -5461,9 +5461,9 @@ body.k .dashboard-layout-full > .col {
     <div class="section-heading">
       <h2 data-box-title="personalRoutes"></h2>
       <div class="sync-label" id="personalRoutesTimes"></div>
-      <button type="button" class="agenda-config-edit" id="routesConfigEdit" hidden>MODIFICA</button>
+      
     </div>
-    <div id="personalRoutes"></div>
+    <div class="google-calendar-tools" id="routesConnectionTools"></div>\n    <div id="personalRoutes"></div>
     <div class="small" id="personalRoutesStatus"></div>
   </div>
 
@@ -8180,8 +8180,39 @@ function openRoutesConfig(anchor){
 function renderRoutes(){
   var box = $("personalRoutes");
   if(!box){ return; }
-  var editButton=$("routesConfigEdit");
-  if(editButton) editButton.hidden=!authToken;
+  var tools=$("routesConnectionTools");
+  if(tools && authToken){
+    clear(tools);
+    var userId=routeUserIdForView(currentView);
+    if(userId){
+      setText(tools,"Verifica collegamento…");
+      routesRequest("GET","/status?user_id="+encodeURIComponent(userId),null,function(err,status){
+        if(!tools || !tools.parentNode) return;
+        clear(tools);
+        if(err){ setText(tools,"Spostamenti: "+err); return; }
+        if(status && status.connected){
+          tools.appendChild(mk("span","google-calendar-account","Spostamenti collegati · "+(status.route_count||0)+" percorsi"));
+          var manage=mk("button","google-calendar-save","GESTISCI");
+          manage.type="button";manage.onclick=function(){openRoutesConfig(manage);};
+          var disconnect=mk("button","google-calendar-disconnect","SCOLLEGA");
+          disconnect.type="button";
+          disconnect.onclick=function(){
+            if(!window.confirm("Scollegare gli spostamenti da questo profilo? I percorsi saranno disattivati, non eliminati.")) return;
+            disconnect.disabled=true;
+            routesRequest("POST","/disconnect?user_id="+encodeURIComponent(userId),{},function(e){
+              if(e){disconnect.disabled=false;showErr(e);return;}
+              routesData=null;renderRoutes();
+            });
+          };
+          tools.appendChild(manage);tools.appendChild(disconnect);
+        }else{
+          var connect=mk("button","google-calendar-connect","COLLEGA SPOSTAMENTI");
+          connect.type="button";connect.onclick=function(){openRoutesConfig(connect);};
+          tools.appendChild(connect);
+        }
+      });
+    }
+  }
   clear(box);
 
   setTimes($("personalRoutesTimes"),
