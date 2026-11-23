@@ -6354,7 +6354,7 @@ function saveGoogleCalendarSelection(scope, userId, calendarId, callback){
 }
 
 function googleCalendarDisconnect(scope, userId, button){
-  if(!window.confirm("Scollegare Google Calendar da questa famiglia? Le selezioni dei calendari verranno rimosse.")) return;
+  if(!window.confirm(scope === "family" ? "Scollegare Google Calendar dall’agenda condivisa?" : "Scollegare Google Calendar dall’Agenda Personale?")) return;
   if(button) button.disabled = true;
   googleCalendarRequest("POST", "/disconnect", {scope: scope, user_id: userId || undefined}, function(err){
     if(err){
