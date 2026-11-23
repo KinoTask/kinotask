@@ -6313,8 +6313,10 @@ function googleCalendarRequest(method, path, body, callback){
   x.send(body === null ? null : JSON.stringify(body));
 }
 
-function googleCalendarConnect(){
-  googleCalendarRequest("GET", "/connect", null, function(err, data){
+function googleCalendarConnect(scope, userId){
+  var query = "?scope=" + encodeURIComponent(scope || "family");
+  if(userId) query += "&user_id=" + encodeURIComponent(userId);
+  googleCalendarRequest("GET", "/connect" + query, null, function(err, data){
     if(err || !data || !data.authorization_url){
       showErr(err || "Impossibile avviare il collegamento Google");
       return;
@@ -6338,7 +6340,7 @@ function saveGoogleCalendarSelection(scope, userId, calendarId, callback){
 function googleCalendarDisconnect(scope, userId, button){
   if(!window.confirm("Scollegare Google Calendar da questa famiglia? Le selezioni dei calendari verranno rimosse.")) return;
   if(button) button.disabled = true;
-  googleCalendarRequest("POST", "/disconnect", {}, function(err){
+  googleCalendarRequest("POST", "/disconnect", {scope: scope, user_id: userId || undefined}, function(err){
     if(err){
       if(button) button.disabled = false;
       showErr(err);
@@ -6358,7 +6360,7 @@ function renderGoogleCalendarTools(scope, userId){
   if(googleCalendarToolsCache[ownerKey] && host.getAttribute("data-owner-key") === ownerKey) return;
   host.setAttribute("data-owner-key", ownerKey);
   clear(host);
-  googleCalendarRequest("GET", "/status", null, function(err, status){
+  googleCalendarRequest("GET", "/status?scope=" + encodeURIComponent(scope) + (userId ? "&user_id=" + encodeURIComponent(userId) : ""), null, function(err, status){
     if(!host || !host.parentNode) return;
     clear(host);
     if(err){
@@ -6368,7 +6370,7 @@ function renderGoogleCalendarTools(scope, userId){
     if(!status || !status.connected){
       var connect = mk("button", "google-calendar-connect", "COLLEGA GOOGLE CALENDAR");
       connect.type = "button";
-      connect.onclick = googleCalendarConnect;
+      connect.onclick = function(){ googleCalendarConnect(scope, userId); };
       host.appendChild(connect);
       googleCalendarToolsCache[ownerKey] = true;
       return;
@@ -6378,11 +6380,11 @@ function renderGoogleCalendarTools(scope, userId){
     disconnect.type = "button";
     disconnect.onclick = function(){ googleCalendarDisconnect(scope, userId, disconnect); };
     host.appendChild(disconnect);
-    googleCalendarRequest("GET", "/calendars", null, function(calErr, data){
+    googleCalendarRequest("GET", "/calendars?scope=" + encodeURIComponent(scope) + (userId ? "&user_id=" + encodeURIComponent(userId) : ""), null, function(calErr, data){
       if(calErr || !data || !Array.isArray(data.calendars) || !host.parentNode) return;
       var select = document.createElement("select");
       select.className = "google-calendar-select";
-      var selectedId = scope === "family" ? status.family_calendar_id : status.personal_calendar_id;
+      var selectedId = status.calendar_id;
       data.calendars.forEach(function(cal){
         var option = document.createElement("option");
         option.value = cal.id;
