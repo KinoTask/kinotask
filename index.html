@@ -586,16 +586,18 @@ input[type=checkbox] {
 .weekly-date-nav {
   display:flex!important;
   width:100%;
+  max-width:100%;
+  box-sizing:border-box;
   min-height:38px;
   flex:0 0 auto;
-  flex-wrap:nowrap;
+  flex-wrap:wrap!important;
   align-items:stretch;
   gap:5px;
   margin:5px 0 10px;
 }
 .weekly-date-nav > button {
   display:block;
-  flex:1 1 0;
+  flex:1 1 28%;
   width:auto;
   min-width:0;
   height:38px;
@@ -4518,8 +4520,10 @@ body.k .view-switcher {
 body.k .view-switcher-title { display:none!important; }
 body.k .view-switcher-buttons {
   display:flex!important; align-items:center!important;
+  flex-wrap:wrap!important;
   width:100%!important; max-width:100%!important; padding:3px!important;
-  white-space:nowrap!important; overflow-x:auto!important; overflow-y:hidden!important;
+  white-space:normal!important; overflow:visible!important;
+  box-sizing:border-box!important;
 }
 body.k .view-switcher-order-button {
   display:flex!important;
@@ -4530,7 +4534,7 @@ body.k .view-switcher-order-button {
   min-width:34px!important;
   height:34px!important;
   min-height:34px!important;
-  margin-left:auto!important;
+  margin:1px 2px 1px auto!important;
   padding:0!important;
   line-height:1!important;
   text-align:center!important;
@@ -5199,6 +5203,10 @@ body.k .dashboard-layout-row {
 }
 body.k .dashboard-layout-columns {
   display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  margin-right:0!important;
+  padding-right:0!important;
   overflow:hidden!important;
 }
 body.k .dashboard-layout-columns > .dashboard-layout-column {
@@ -5217,6 +5225,11 @@ body.k .dashboard-layout-columns > .dashboard-layout-column:first-child {
 }
 body.k .dashboard-layout-columns > .dashboard-layout-column:last-child {
   padding-right:0!important;
+}
+body.k .dashboard-layout-columns > .dashboard-layout-column:last-child > .box {
+  margin-right:0!important;
+  width:100%!important;
+  max-width:100%!important;
 }
 body.k .dashboard-layout-columns > .dashboard-layout-column:only-child {
   float:none!important;
@@ -6356,17 +6369,27 @@ function parseTasks(desc){
   for(i = 0; i < lines.length; i++){
     line = lines[i].replace(/^\s+|\s+$/g, "");
     if(/^TODO:$/i.test(line)){ started = true; continue; }
-    if((hasMarker && !started) || !line){ continue; }
+    if(!line){ continue; }
 
-    if(/^[-*]\s+/.test(line)){
-      line = line.replace(/^[-*]\s+/, "");
-      if(line){
-        m = line.match(/^([A-Za-z])\s*:\s*(.*)$/);
-        tasks.push(line);
-        owners.push(m ? m[1].toUpperCase() : "");
-      }
-    } else {
+    /* Supporta i task dell'Agenda Famiglia nel formato "W - ...", "I - ..."
+       e "C - ...", anche senza elenco puntato o intestazione TODO. */
+    var taskLine = line.replace(/^[-*]\s+/, "");
+    m = taskLine.match(/^([A-Za-z])\s*[-:]\s*(.+)$/);
+    if(m){
+      tasks.push(m[1].toUpperCase() + ": " + m[2]);
+      owners.push(m[1].toUpperCase());
+      continue;
+    }
+
+    if((hasMarker && !started) || !/^[-*]\s+/.test(line)){
       details.push(line);
+      continue;
+    }
+
+    line = line.replace(/^[-*]\s+/, "");
+    if(line){
+      tasks.push(line);
+      owners.push("");
     }
   }
   return {tasks: tasks, owners: owners, details: details.join("\n")};
@@ -10016,7 +10039,8 @@ function buildLayout(view, previewSections){
     }
     /* Appunti è un'azione della toolbar, non un contenitore di layout:
        ignora le associazioni D1 storiche che lo riportano come box. */
-    if(def && String(def.element_id || "") === "handwrittenNotesBox"){
+    if(item.element_id === "handwrittenNotesBox" ||
+       (def && String(def.element_id || "") === "handwrittenNotesBox")){
       return;
     }
     /* I box standard hanno contenitori HTML statici. Non esiste un
@@ -10652,6 +10676,9 @@ function setView(view, manual){
     while(el && el !== activeHost) el = el.parentNode;
     return el === activeHost;
   }
+  /* L'Agenda Famiglia è condivisa tra le viste: ridisegnala dopo lo spostamento
+     del box, così non resta il contenuto della vista precedente. */
+  if(isMountedInActiveView($("agendaBox"))) safe(renderAgenda, "renderAgenda");
   if(isMountedInActiveView($("familyShoppingBox"))) safe(loadFamilyShoppingList, "loadFamilyShoppingList");
   if(isMountedInActiveView($("recurringTasksBox"))) safe(loadRecurringTasks, "loadRecurringTasks");
   /* Fallback anche per la To-do personale: alcune associazioni D1 legacy
@@ -11674,7 +11701,14 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
     check.type="checkbox";
     check.value=String(user.id);
     check.checked=!!selected[String(user.id)];
-    check.style.flex="0 0 auto";
+    check.style.display="inline-block";
+    check.style.visibility="visible";
+    check.style.opacity="1";
+    check.style.appearance="auto";
+    check.style.webkitAppearance="checkbox";
+    check.style.width="16px";
+    check.style.height="16px";
+    check.style.flex="0 0 16px";
     check.style.margin="0";
     label.appendChild(check);
     label.appendChild(document.createTextNode(user.name));
@@ -12057,7 +12091,11 @@ function loadWeeklyDateCalendar(def){
       };
       host.appendChild(editRule);
     }
-    var map={};entries.forEach(function(e){map[e.source_date]=e;});
+    function dateKey(value){
+      var key=String(value||"");
+      return /^\d{4}-\d{2}-\d{2}/.test(key)?key.slice(0,10):key;
+    }
+    var map={};entries.forEach(function(e){map[dateKey(e.source_date)]=e;});
     var rows=[];
     for(var d=new Date(start);d<=end;d=shift(d,1)){
       var key=iso(d),dow=d.getDay(),ex=map[key];
@@ -12067,15 +12105,16 @@ function loadWeeklyDateCalendar(def){
       if(weekdays.indexOf(dow)!==-1&&(!showOverdue||!(ex&&ex.done)))rows.push({source:key,date:key,entry:ex||null});
     }
     entries.forEach(function(e){
-      var entryDate=e.entry_date||e.source_date;
-      if((e.entry_type==="extra"||e.entry_type==="override")&&entryDate>=iso(start)&&entryDate<=iso(end)&&!rows.some(function(r){return r.source===e.source_date;})&&(!showOverdue||!e.done))
-        rows.push({source:e.source_date,date:entryDate,entry:e});
+      var entryDate=dateKey(e.entry_date||e.source_date);
+      var sourceDate=dateKey(e.source_date);
+      if((e.entry_type==="extra"||e.entry_type==="override")&&entryDate>=iso(start)&&entryDate<=iso(end)&&!rows.some(function(r){return dateKey(r.source)===sourceDate;})&&(!showOverdue||!e.done))
+        rows.push({source:sourceDate,date:entryDate,entry:e});
     });
-    rows=rows.filter(function(r){return r.date>=iso(start)&&r.date<=iso(end)&&(!showOverdue||!r.entry||!r.entry.done);});
+    rows=rows.filter(function(r){var key=dateKey(r.date||r.source);return key>=iso(start)&&key<=iso(end)&&(!showOverdue||!r.entry||!r.entry.done);});
     rows.sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
     rows.forEach(function(row){
-      var dateValue=String(row.date||row.source||"");
-      if(/^\d{4}-\d{2}-\d{2}/.test(dateValue))dateValue=dateValue.slice(0,10);
+      var dateValue=dateKey(row.date||row.source);
+      row.date=dateValue;
       var d=new Date(dateValue+"T12:00:00");
       if(isNaN(d.getTime())){
         dateValue=String(row.source||"");
