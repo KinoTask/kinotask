@@ -8015,8 +8015,8 @@ var WEEKEND_ROUTES = [
 ];
 
 function routeUserIdForView(viewId){
-  for(var i=0;i<AUTH_PROFILES.length;i++){
-    if(String(AUTH_PROFILES[i].view_id)===String(viewId)) return String(AUTH_PROFILES[i].user_id);
+  for(var i=0;i<USERS.length;i++){
+    if(String(USERS[i].view_id)===String(viewId)) return String(USERS[i].id);
   }
   return authProfile ? String(authProfile) : "";
 }
