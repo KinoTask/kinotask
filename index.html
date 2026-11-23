@@ -5751,6 +5751,7 @@ var DASHBOARD_BOXES = [];
 var currentView = null;
 var viewManualUntil = 0;
 var AUTH_PERMISSIONS = [];
+var googleCalendarToolsCache = {};
 
 function canManageRecurringTasks(){
   var role = String(authUserType || "").toLowerCase();
@@ -6337,6 +6338,9 @@ function saveGoogleCalendarSelection(scope, userId, calendarId, callback){
 function renderGoogleCalendarTools(scope, userId){
   var host = $(scope === "family" ? "agendaGoogleTools" : "userAgendaGoogleTools");
   if(!host || !authToken) return;
+  var ownerKey = scope + ":" + String(userId || "");
+  if(googleCalendarToolsCache[ownerKey] && host.getAttribute("data-owner-key") === ownerKey) return;
+  host.setAttribute("data-owner-key", ownerKey);
   clear(host);
   googleCalendarRequest("GET", "/status", null, function(err, status){
     if(!host || !host.parentNode) return;
@@ -6350,6 +6354,7 @@ function renderGoogleCalendarTools(scope, userId){
       connect.type = "button";
       connect.onclick = googleCalendarConnect;
       host.appendChild(connect);
+      googleCalendarToolsCache[ownerKey] = true;
       return;
     }
     host.appendChild(mk("span", "google-calendar-account", "Google: " + (status.email || "collegato")));
@@ -6369,15 +6374,20 @@ function renderGoogleCalendarTools(scope, userId){
       save.type = "button";
       save.onclick = function(){
         save.disabled = true;
+        googleCalendarToolsCache[ownerKey] = false;
         saveGoogleCalendarSelection(scope, userId, select.value, function(saveErr){
           save.disabled = false;
           if(saveErr) showErr(saveErr);
-          else if(scope === "family") loadAgenda();
-          else loadUserAgenda(userId);
+          else {
+            renderGoogleCalendarTools(scope, userId);
+            if(scope === "family") loadAgenda();
+            else loadUserAgenda(userId);
+          }
         });
       };
       host.appendChild(select);
       host.appendChild(save);
+      googleCalendarToolsCache[ownerKey] = true;
     });
   });
 }
