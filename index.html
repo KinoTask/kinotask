@@ -8109,6 +8109,10 @@ function openRoutesConfig(anchor){
       data.originAddress=makeInput(grid,"Indirizzo di partenza",data.origin_address,"text","Via, numero, città");
       data.destinationLabel=makeInput(grid,"Arrivo · nome",data.destination_label,"text","Lavoro");
       data.destinationAddress=makeInput(grid,"Indirizzo di arrivo",data.destination_address,"text","Via, numero, città");
+      data.originLabel.oninput=function(){data.origin_label=this.value;};
+      data.originAddress.oninput=function(){data.origin_address=this.value;};
+      data.destinationLabel.oninput=function(){data.destination_label=this.value;};
+      data.destinationAddress.oninput=function(){data.destination_address=this.value;};
       card.appendChild(grid);
       card.appendChild(mk("div","small","Giorni della settimana"));
       var days=mk("div","","");days.style.display="flex";days.style.flexWrap="wrap";days.style.gap="8px";days.style.margin="4px 0 8px";
@@ -8117,15 +8121,19 @@ function openRoutesConfig(anchor){
         var label=mk("label","","");label.style.display="inline-flex";label.style.alignItems="center";label.style.gap="3px";
         var cb=document.createElement("input");cb.type="checkbox";cb.value=String(day.value);cb.checked=(data.days||[]).indexOf(day.value)!==-1;
         label.appendChild(cb);label.appendChild(document.createTextNode(day.label));days.appendChild(label);data.dayChecks.push(cb);
+        cb.onchange=function(){data.days=data.dayChecks.filter(function(x){return x.checked;}).map(function(x){return Number(x.value);});};
       });
       card.appendChild(days);
       var timing=mk("div","","");timing.style.display="grid";timing.style.gridTemplateColumns="minmax(110px,1fr) minmax(150px,1.5fr)";timing.style.gap="8px";
       data.targetTime=makeInput(timing,"Orario",data.target_time||"08:00","time","");
+      data.targetTime.onchange=function(){data.target_time=this.value;};
       var modeField=mk("label","route-config-field","");modeField.style.display="flex";modeField.style.flexDirection="column";modeField.style.gap="3px";
       modeField.appendChild(mk("span","small","L'orario indica"));
       data.targetMode=document.createElement("select");data.targetMode.style.padding="7px";data.targetMode.style.width="100%";
       [{value:"departure",label:"Ora di partenza"},{value:"arrival",label:"Ora di arrivo"}].forEach(function(item){var option=document.createElement("option");option.value=item.value;option.textContent=item.label;data.targetMode.appendChild(option);});
-      data.targetMode.value=data.target_mode||"arrival";modeField.appendChild(data.targetMode);timing.appendChild(modeField);card.appendChild(timing);
+      data.targetMode.value=data.target_mode||"arrival";
+      data.targetMode.onchange=function(){data.target_mode=this.value;};
+      modeField.appendChild(data.targetMode);timing.appendChild(modeField);card.appendChild(timing);
       rows.appendChild(card);
     });
     status.textContent=routeRows.length?"Configura i giorni e l'orario di ogni percorso.":"Nessun percorso: premi + AGGIUNGI PERCORSO.";
@@ -8133,7 +8141,7 @@ function openRoutesConfig(anchor){
     positionCustomBoxPanel(panel,anchorRect);
   }
   function newRoute(){
-    routeRows.push({id:crypto.randomUUID(),origin_label:"",origin_address:"",destination_label:"",destination_address:"",target_mode:"arrival",target_time:"08:00",days:[]});
+    routeRows.push({id:"",origin_label:"",origin_address:"",destination_label:"",destination_address:"",target_mode:"arrival",target_time:"08:00",days:[]});
     renderRows();
   }
   add.onclick=function(){newRoute();};
