@@ -8109,7 +8109,7 @@ function openRoutesConfig(anchor){
   var add=mk("button","route-config-add","+ AGGIUNGI PERCORSO");add.type="button";
   var save=mk("button","route-config-save","SALVA MODIFICHE");save.type="button";save.disabled=true;
   var back=mk("button","route-config-back","CHIUDI");back.type="button";
-  back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};
+  back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),true);};
   actions.appendChild(add);actions.appendChild(save);actions.appendChild(back);wrap.appendChild(actions);
   panel.appendChild(wrap);
   positionCustomBoxPanel(panel,anchorRect);
@@ -8197,7 +8197,7 @@ function openRoutesConfig(anchor){
     routesRequest("POST","/config?user_id="+encodeURIComponent(userId),{routes:payload},function(err){
       save.disabled=false;
       if(err){status.textContent="Errore: "+err;return;}
-      setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);
+      setHidden(panel,true);setHidden($("dashboardLayoutMenu"),true);
       loadRoutes(currentView);
     });
   };
