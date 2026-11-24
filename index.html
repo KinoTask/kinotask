@@ -102,6 +102,10 @@ h3 {
 
 /* Intestazione box e sincronizzazione */
 
+.section-heading .sync-label{display:inline-block!important;position:static!important;float:none!important;flex:0 1 auto!important;min-width:0!important;margin:0 26px 0 auto!important;padding:0!important;text-align:right!important;white-space:nowrap!important;line-height:1.2!important;font-size:.65em!important;color:#888!important;}
+.section-heading .box-refresh{display:block!important;position:absolute!important;top:-6px!important;right:0!important;left:auto!important;z-index:1!important;}
+
+
 .section-heading-title {
   flex:0 1 auto;
   min-width:0;
@@ -15059,126 +15063,87 @@ function showLoggedOut(message){
 }
 
 function initBoxRefresh() {
-
   var boxes = [];
   var catalog = DASHBOARD_BOXES || [];
   for(var catalogIndex = 0; catalogIndex < catalog.length; catalogIndex++){
     var catalogBox = catalog[catalogIndex];
     if(!catalogBox || !catalogBox.element_id) continue;
     var loader = dashboardBoxRenderer(String(catalogBox.id), catalogBox);
-    if(typeof loader === "function"){
-      boxes.push({id:catalogBox.element_id,load:loader});
-    }
+    if(typeof loader === "function") boxes.push({id:catalogBox.element_id,load:loader});
   }
 
-  for (var i = 0; i < boxes.length; i++) {
-
+  for(var i = 0; i < boxes.length; i++){
     var box = $(boxes[i].id);
-
-    if (!box) {
-      continue;
-    }
-
+    if(!box) continue;
     var headings = box.getElementsByClassName("section-heading");
-
-    if (!headings.length) {
-      continue;
-    }
-
+    if(!headings.length) continue;
     var heading = headings[0];
-	heading.style.position = "relative";
+    heading.style.position = "relative";
 
-    /* Riutilizza l'eventuale pulsante già presente: su Kindle va comunque
-       spostato nel footer, anche se era stato creato in precedenza nell'header. */
     var button = heading.getElementsByClassName("box-refresh")[0] ||
       box.getElementsByClassName("box-refresh")[0];
     var isNewButton = !button;
-
-    if (!button) {
-      button = mk("button", "box-refresh", "↻");
-    }
+    if(!button) button = mk("button", "box-refresh", "↻");
 
     button.type = "button";
     button.title = "Aggiorna";
     button.setAttribute("aria-label", "Aggiorna");
-
-	button.style.position = "absolute";
-	button.style.top = "-6px";
-	button.style.right = "0";
-	button.style.margin = "0";
+    button.style.position = "absolute";
+    button.style.top = "-6px";
+    button.style.right = "0";
+    button.style.left = "auto";
+    button.style.margin = "0";
     button.style.padding = "0 2px";
+    button.style.width = "22px";
+    button.style.minWidth = "22px";
+    button.style.height = "26px";
     button.style.fontSize = "20px";
     button.style.lineHeight = "1";
     button.style.background = "transparent";
     button.style.border = "none";
     button.style.color = "#000";
     button.style.cursor = "pointer";
+    button.style.zIndex = "1";
 
-    if (isNewButton) (function (loader, btn) {
-
+    if(isNewButton) (function(loader, btn){
       var busy = false;
-
-      btn.addEventListener("click", function () {
-
-        if (busy) {
-          return;
-        }
-
+      btn.addEventListener("click", function(){
+        if(busy) return;
         busy = true;
         btn.disabled = true;
         btn.textContent = "…";
-
-        try {
-          loader();
-        } catch (e) {
-          console.error("Errore refresh:", e);
-        }
-
-        setTimeout(function () {
+        try { loader(); } catch(e){ console.error("Errore refresh:", e); }
+        setTimeout(function(){
           busy = false;
           btn.disabled = false;
           btn.textContent = "↻";
         }, 1500);
-
       });
-
     })(boxes[i].load, button);
 
-    /* Orari e refresh sono sempre nel footer del box, su PC e Kindle:
-       restano affiancati e non interferiscono con il titolo. */
+    /* Le etichette restano nell'intestazione, subito a sinistra della rotella. */
     var footer = box.getElementsByClassName("box-meta-footer")[0];
-    if (!footer) {
-      footer = mk("div", "box-meta-footer");
-      box.appendChild(footer);
+    var labels = [];
+    var sources = [heading, footer, box];
+    for(var sourceIndex = 0; sourceIndex < sources.length; sourceIndex++){
+      var source = sources[sourceIndex];
+      if(!source) continue;
+      var found = source.getElementsByClassName("sync-label");
+      while(found.length){
+        var label = found[0];
+        if(labels.indexOf(label) < 0) labels.push(label);
+        /* Evita di intercettare etichette annidate dentro altri box. */
+        if(label.parentNode === source) break;
+        source = label.parentNode;
+        if(!source || !source.getElementsByClassName) break;
+        found = source.getElementsByClassName("sync-label");
+      }
     }
-    if (window.MutationObserver && !box._metaFooterObserver) {
-      box._metaFooterObserver = new MutationObserver(function(){
-        var currentFooter = box.getElementsByClassName("box-meta-footer")[0];
-        if (currentFooter && currentFooter.parentNode === box &&
-            box.lastChild !== currentFooter) {
-          box.appendChild(currentFooter);
-        }
-      });
-      box._metaFooterObserver.observe(box, {childList:true});
+    for(var labelIndex = 0; labelIndex < labels.length; labelIndex++){
+      heading.appendChild(labels[labelIndex]);
     }
-    if (footer.parentNode === box && box.lastChild !== footer) {
-      box.appendChild(footer);
-    }
-    var timeLabels = heading.getElementsByClassName("sync-label");
-    while (timeLabels.length) footer.appendChild(timeLabels[0]);
-    button.style.position = "static";
-    button.style.top = "auto";
-    button.style.right = "auto";
-    button.style.left = "auto";
-    button.style.order = "0";
-    button.style.flex = "0 0 30px";
-    button.style.width = "30px";
-    button.style.minWidth = "30px";
-    button.style.height = "30px";
-    button.style.margin = "0";
-    button.style.padding = "0";
-    footer.appendChild(button);
-
+    heading.appendChild(button);
+    if(footer && footer.parentNode) footer.parentNode.removeChild(footer);
   }
 }
 
