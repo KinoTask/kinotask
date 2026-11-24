@@ -20,11 +20,11 @@ main{padding:10px 12px 18px}
 .task-section{margin:0 0 15px}
 .section-title{font-size:21px;font-weight:800;letter-spacing:.5px;margin:0 0 8px;padding:7px 8px;border-bottom:2px solid #111}
 .task-list{display:block}
-.task-row{display:flex;align-items:flex-start;gap:10px;padding:8px 3px;border-bottom:1px solid #bbb;font-size:21px;line-height:1.25;min-height:44px}
+.task-row{display:flex;align-items:center;gap:10px;padding:8px 3px;border-bottom:1px solid #bbb;font-size:21px;line-height:1.25;min-height:44px}
 .task-row input{flex:0 0 25px;width:25px;height:25px;margin:1px 0 0;accent-color:#111}
 .task-text{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
 .task-row.done .task-text{text-decoration:line-through;color:#555}
-.task-source{display:block;font-size:13px;line-height:1.2;color:#555;margin-top:2px}
+.task-source{display:block;flex:0 0 auto;max-width:34%;font-size:13px;line-height:1.2;color:#555;text-align:right;margin-left:8px;overflow-wrap:anywhere}
 .empty,.status{font-size:17px;padding:9px 3px;color:#444}
 .status.error{font-weight:bold;color:#111}
 #refreshButton{display:block;width:100%;padding:11px;margin:8px 0 0;border:2px solid #111;background:#fff;color:#111;font-size:17px;font-weight:bold}
@@ -77,7 +77,7 @@ var CUSTOM_API="https://custom-box-api.kinotask.workers.dev";
 var RAW_BASE="https://raw.githubusercontent.com/KinoTask/kinotask/main/";
 var authToken="",views=[],users=[],boxes=[],currentView=null,manualUntil=0;
 var dailyItems=[],generalItems=[],loadErrors=[],loadSequence=0;
-var refreshTimer=null,scheduleTimer=null;
+var refreshTimer=null,scheduleTimer=null,renderTimer=null;
 var MONTHS=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
 var DAYS=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
 function $(id){return document.getElementById(id);}
@@ -116,14 +116,15 @@ function getJson(url,callback){
 }
 function authRequest(method,path,body,callback){xhr(method,AUTH_API+path,body,callback);}
 function saveSession(data){
-  authToken=data.token;try{localStorage.setItem("dashboardAuthToken",authToken);localStorage.setItem("dashboardAuthProfile",String(data.user_id||""));localStorage.setItem("dashboardAuthSessionId",String(data.session_id||""));localStorage.setItem("dashboardAuthUserType",String(data.user_type||""));localStorage.setItem("dashboardAuthUserName",String(data.user_name||""));}catch(e){}
+  authToken=data.token;try{localStorage.setItem("dashboardAuthToken",authToken);localStorage.setItem("dashboardAuthProfile",String(data.user_id||""));localStorage.setItem("dashboardAuthSessionId",String(data.session_id||""));localStorage.setItem("dashboardAuthUserType",String(data.user_type||""));localStorage.setItem("dashboardAuthUserName",String(data.user_name||""));localStorage.setItem("kinotaskFamily",$("familyName").value);localStorage.setItem("kinotaskLastUser",$("userName").value);}catch(e){}
+  try{document.cookie="kinotask_auth="+encodeURIComponent(authToken)+"; max-age=2592000; path=/; SameSite=Lax";}catch(e){}
 }
 function showLogin(message){
   $("app").style.display="none";$("loginPanel").style.display="block";$("loginError").textContent=message||"";
 }
 function startSession(){
   authRequest("POST","/session/verify",null,function(err,data){
-    if(err||!data||!data.ok){try{localStorage.removeItem("dashboardAuthToken");}catch(e){}authToken="";showLogin("Sessione non valida. Accedi nuovamente.");return;}
+    if(err||!data||!data.ok){authToken="";showLogin("Sessione non valida. Accedi nuovamente.");return;}
     authToken=localStorage.getItem("dashboardAuthToken")||authToken;
     loadConfig();
   });
@@ -149,8 +150,8 @@ function loadConfig(){
     var initial=getScheduledView();if(!initial){for(var i=0;i<views.length;i++)if(views[i].view_type==="shared"){initial=views[i].id;break;}}
     if(!initial&&views.length)initial=views[0].id;
     setView(initial,false);
-    if(!scheduleTimer)scheduleTimer=setInterval(checkSchedule,15000);
-    if(!refreshTimer)refreshTimer=setInterval(loadAll,60000);
+    if(!scheduleTimer)scheduleTimer=setInterval(checkSchedule,60000);
+    if(!refreshTimer)refreshTimer=setInterval(loadAll,300000);
   });
 }
 function findView(id){for(var i=0;i<views.length;i++)if(String(views[i].id)===String(id))return views[i];return null;}
@@ -369,10 +370,13 @@ function parseEventTasks(description){
 }
 function renderLists(seq){
   if(seq!==loadSequence)return;
-  renderSection("dailyList",dailyItems);
-  renderSection("generalList",generalItems);
-  $("loadStatus").textContent=loadErrors.length?loadErrors.join(" · "):"Aggiornato alle "+p2(toRome(new Date().getTime()).getUTCHours())+":"+p2(toRome(new Date().getTime()).getUTCMinutes());
-  if(loadErrors.length)$("loadStatus").className="status error";else $("loadStatus").className="status";
+  if(renderTimer)clearTimeout(renderTimer);
+  renderTimer=setTimeout(function(){renderTimer=null;if(seq!==loadSequence)return;
+    renderSection("dailyList",dailyItems);
+    renderSection("generalList",generalItems);
+    $("loadStatus").textContent=loadErrors.length?loadErrors.join(" · "):"Aggiornato alle "+p2(toRome(new Date().getTime()).getUTCHours())+":"+p2(toRome(new Date().getTime()).getUTCMinutes());
+    if(loadErrors.length)$("loadStatus").className="status error";else $("loadStatus").className="status";
+  },120);
 }
 function renderSection(id,items){
   var host=$(id);clear(host);
@@ -389,14 +393,16 @@ function renderSection(id,items){
     };
     row.appendChild(cb);
     var textWrap=node("span","task-text",item.text);
-    if(item.source)textWrap.appendChild(node("span","task-source",item.source));
-    row.appendChild(textWrap);host.appendChild(row);
+    row.appendChild(textWrap);
+    if(item.source)row.appendChild(node("span","task-source",item.source));
+    host.appendChild(row);
   });
 }
-function logout(){authRequest("POST","/logout",null,function(){try{localStorage.removeItem("dashboardAuthToken");}catch(e){}authToken="";showLogin("Sessione terminata.");});}
+function logout(){authRequest("POST","/logout",null,function(){try{localStorage.removeItem("dashboardAuthToken");localStorage.removeItem("dashboardAuthProfile");localStorage.removeItem("dashboardAuthSessionId");document.cookie="kinotask_auth=; max-age=0; path=/";}catch(e){}authToken="";showLogin("Sessione terminata.");});}
 $("loginForm").onsubmit=login;
 $("refreshButton").onclick=loadAll;
-try{authToken=localStorage.getItem("dashboardAuthToken")||"";}catch(e){}
+try{authToken=localStorage.getItem("dashboardAuthToken")||"";if(!$("familyName").value)$("familyName").value=localStorage.getItem("kinotaskFamily")||"Spanasmella";$("userName").value=localStorage.getItem("kinotaskLastUser")||"";}catch(e){}
+if(!authToken){try{var cm=document.cookie.match(/(?:^|;\\s*)kinotask_auth=([^;]+)/);if(cm)authToken=decodeURIComponent(cm[1]);}catch(e){}}
 if(authToken)startSession();else showLogin("");
 </script>
 </body>
