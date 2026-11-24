@@ -10850,7 +10850,8 @@ function dashboardCalculateSections(sourceEl,targetEl,clientX,clientY,baseSectio
     // Il bordo sinistro/destro seleziona la colonna di destinazione:
     // consente pile indipendenti, ad esempio due box a sinistra e uno a destra.
     sections[sourceLoc.section].columns[sourceLoc.column].splice(sourceLoc.item,1);
-    sections=dashboardCleanupSections(sections);
+    // Non ripulire le colonne vuote prima dell'inserimento: la sezione
+    // di destinazione deve mantenere i propri indici durante lo spostamento.
     targetLoc=dashboardFindItemLocation(sections,targetId);
     if(!targetLoc)return null;
     var destinationColumn=xr<.35?0:1;
