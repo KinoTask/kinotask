@@ -12652,19 +12652,27 @@ function loadCustomBoxRenderer(def){
 }
 
 function openWeeklyDatePicker(initialValue,title,onConfirm,trigger){
-  var host=trigger&&trigger.parentNode?trigger.parentNode:document.body;
-  var previous=host.querySelector(".weekly-date-picker-popover");
-  if(previous&&previous.parentNode)previous.parentNode.removeChild(previous);
-  if(host!==document.body){host.style.position="relative";}
+  var old=document.querySelector(".weekly-date-picker-popover");
+  if(old&&old.parentNode)old.parentNode.removeChild(old);
   var pop=mk("div","weekly-date-picker-popover","");
-  pop.style.position=host===document.body?"fixed":"absolute";
+  pop.style.position="fixed";
   pop.style.zIndex="10060";pop.style.background="#fff";pop.style.border="1px solid #9aaab5";
   pop.style.borderRadius="7px";pop.style.boxShadow="0 4px 14px rgba(0,0,0,.2)";
   pop.style.padding="9px";pop.style.width="230px";pop.style.maxWidth="calc(100vw - 24px)";
-  pop.style.boxSizing="border-box";pop.style.left=host===document.body?"12px":"0";
-  pop.style.top=host===document.body?"80px":"calc(100% + 5px)";
+  pop.style.boxSizing="border-box";
+  var viewportWidth=document.documentElement.clientWidth||window.innerWidth||320;
+  var left=12,top=80;
+  if(trigger&&trigger.getBoundingClientRect){
+    var rect=trigger.getBoundingClientRect();
+    left=Math.max(12,Math.min(rect.left,viewportWidth-242));
+    top=rect.bottom+5;
+    if(top+150>(window.innerHeight||document.documentElement.clientHeight||600)){
+      top=Math.max(8,rect.top-155);
+    }
+  }
+  pop.style.left=left+"px";pop.style.top=top+"px";
   var dateInput=document.createElement("input");dateInput.type="date";
-  dateInput.value=/^\d{4}-\d{2}-\d{2}$/.test(String(initialValue||""))?String(initialValue):iso(new Date());
+  dateInput.value=/^\\d{4}-\\d{2}-\\d{2}$/.test(String(initialValue||""))?String(initialValue):iso(new Date());
   dateInput.style.display="block";dateInput.style.width="100%";dateInput.style.boxSizing="border-box";
   dateInput.style.padding="7px";dateInput.style.fontSize="14px";
   var actions=mk("div","route-config-footer","");actions.style.marginTop="7px";
@@ -12673,7 +12681,7 @@ function openWeeklyDatePicker(initialValue,title,onConfirm,trigger){
   var cancelButton=mk("button","route-config-back","ANNULLA");cancelButton.type="button";
   cancelButton.onclick=function(){if(pop.parentNode)pop.parentNode.removeChild(pop);};
   actions.appendChild(confirmButton);actions.appendChild(cancelButton);
-  pop.appendChild(dateInput);pop.appendChild(actions);host.appendChild(pop);
+  pop.appendChild(dateInput);pop.appendChild(actions);document.body.appendChild(pop);
   try{if(dateInput.showPicker)dateInput.showPicker();else dateInput.focus();}catch(ignore){dateInput.focus();}
 }
 function loadWeeklyDateCalendar(def){
