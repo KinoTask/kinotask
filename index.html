@@ -11200,6 +11200,8 @@ function dashboardBoxRenderer(boxId, def){
   for(var rk = 0; rk < rendererKeys.length; rk++){
     var rendererKey = String(rendererKeys[rk] || "");
     if(rendererKey && typeof renderers[rendererKey] === "function"){
+      /* Un renderer standard è valido soltanto se il catalogo UI contiene il relativo template. */
+      if(!DASHBOARD_BOX_TEMPLATES || typeof DASHBOARD_BOX_TEMPLATES[rendererKey] !== "string") return null;
       return renderers[rendererKey];
     }
   }
@@ -12310,9 +12312,8 @@ function openAddBoxPanel(anchor){
     /* I box standard vengono caricati senza dipendere dall'API dei custom.
        "both" significa disponibile sia nelle viste condivise sia personali. */
     var standardCandidates=(DASHBOARD_BOXES||[]).filter(function(b){
-      /* Appunti è un'azione globale nella toolbar, non un box di layout. */
-      if(!b || b.id==="handwrittenNotes" || b.element_id==="handwrittenNotesBox" ||
-         b.custom_family_id || Number(b.can_add_to_layout)!==1 || present[b.id])return false;
+      /* Il catalogo D1 decide quali box possono essere aggiunti al layout. */
+      if(!b || b.custom_family_id || Number(b.can_add_to_layout)!==1 || present[b.id])return false;
       return String(b.view_type)==="both" || String(b.view_type)===String(view.view_type);
     });
     standardCandidates.forEach(appendAvailableBox);
