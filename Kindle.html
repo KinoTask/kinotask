@@ -124,7 +124,7 @@ function showLogin(message){
 }
 function startSession(){
   authRequest("POST","/session/verify",null,function(err,data){
-    if(err||!data||!data.ok){authToken="";showLogin("Sessione non valida. Accedi nuovamente.");return;}
+    if(err||!data||!data.ok){try{localStorage.removeItem("dashboardAuthToken");document.cookie="kinotask_auth=; max-age=0; path=/";}catch(e){}authToken="";showLogin("Sessione non valida. Accedi nuovamente.");return;}
     authToken=localStorage.getItem("dashboardAuthToken")||authToken;
     loadConfig();
   });
@@ -401,8 +401,8 @@ function renderSection(id,items){
 function logout(){authRequest("POST","/logout",null,function(){try{localStorage.removeItem("dashboardAuthToken");localStorage.removeItem("dashboardAuthProfile");localStorage.removeItem("dashboardAuthSessionId");document.cookie="kinotask_auth=; max-age=0; path=/";}catch(e){}authToken="";showLogin("Sessione terminata.");});}
 $("loginForm").onsubmit=login;
 $("refreshButton").onclick=loadAll;
-try{authToken=localStorage.getItem("dashboardAuthToken")||"";if(!$("familyName").value)$("familyName").value=localStorage.getItem("kinotaskFamily")||"Spanasmella";$("userName").value=localStorage.getItem("kinotaskLastUser")||"";}catch(e){}
-if(!authToken){try{var cm=document.cookie.match(/(?:^|;\\s*)kinotask_auth=([^;]+)/);if(cm)authToken=decodeURIComponent(cm[1]);}catch(e){}}
+try{authToken=localStorage.getItem("dashboardAuthToken")||"";$("familyName").value=localStorage.getItem("kinotaskFamily")||"Spanasmella";$("userName").value=localStorage.getItem("kinotaskLastUser")||"";}catch(e){}
+if(!authToken){try{var cm=document.cookie.match(/(?:^|;\s*)kinotask_auth=([^;]+)/);if(cm)authToken=decodeURIComponent(cm[1]);}catch(e){}}
 if(authToken)startSession();else showLogin("");
 </script>
 </body>
