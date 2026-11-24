@@ -20,11 +20,11 @@ main{padding:10px 12px 18px}
 .task-section{margin:0 0 15px}
 .section-title{font-size:21px;font-weight:800;letter-spacing:.5px;margin:0 0 8px;padding:7px 8px;border-bottom:2px solid #111}
 .task-list{display:block}
-.task-row{display:flex;align-items:center;gap:10px;padding:8px 3px;border-bottom:1px solid #bbb;font-size:21px;line-height:1.25;min-height:44px}
+.task-row{display:flex;position:relative;align-items:center;gap:10px;padding:8px 3px;border-bottom:1px solid #bbb;font-size:21px;line-height:1.25;min-height:44px}
 .task-row input{flex:0 0 25px;width:25px;height:25px;margin:1px 0 0;accent-color:#111}
-.task-text{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.task-text{flex:1 1 auto;min-width:0;padding-right:34%;box-sizing:border-box;overflow-wrap:anywhere}
 .task-row.done .task-text{text-decoration:line-through;color:#555}
-.task-source{display:block;flex:0 0 auto;align-self:flex-start;max-width:32%;font-size:12px;line-height:1.2;color:#555;text-align:right;margin-left:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-source{position:absolute;top:8px;right:3px;display:block;width:32%;max-width:32%;font-size:12px;line-height:1.2;color:#555;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .empty,.status{font-size:17px;padding:9px 3px;color:#444}
 .status.error{font-weight:bold;color:#111}
 #refreshButton{display:block;width:100%;padding:11px;margin:8px 0 0;border:2px solid #111;background:#fff;color:#111;font-size:17px;font-weight:bold}
