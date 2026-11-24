@@ -5974,8 +5974,10 @@ function safe(f, nome){
   try {
     f();
   } catch(e){
-    showErr("Errore in " + nome + ": " +
-      (e && e.message ? e.message : String(e)));
+    var label=nome || (f && f.name) || "funzione anonima";
+    var detail=e && e.message ? e.message : String(e);
+    var stack=e && e.stack ? String(e.stack).split("\n").slice(0,4).join(" | ") : "";
+    showErr("Errore in " + label + ": " + detail + (stack ? " [" + stack + "]" : ""));
   }
 }
 
