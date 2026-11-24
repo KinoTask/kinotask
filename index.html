@@ -6894,7 +6894,10 @@ function openEventTasks(ev){
 function renderPersonalTasks(){
   renderPersonalGlobalTasks();
 
+  /* La sincronizzazione dell'agenda famiglia può terminare mentre è attiva
+     una vista che non contiene il box dei compiti personali. */
   var box = $("personalTasks");
+  if(!box){ return; }
   clear(box);
 
   var currentUser = null;
