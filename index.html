@@ -12949,8 +12949,13 @@ function loadWeeklyDateCalendar(def){
       var label=n===0?"QUESTA SETTIMANA":(n<0?"−"+Math.abs(n):"+"+n);
       var button=mk("button","seg-button"+(!showOverdue&&n===offset?" sel":""),label);button.type="button";
       button.setAttribute("aria-label",n===0?(offset===0?"Settimana corrente":"Torna a oggi"):(n<0?"Settimana precedente di "+Math.abs(n):"Settimana successiva di "+n));
-      var weekOffset=n;
-      button.onclick=function(){showOverdue=false;if(weekOffset===0){if(offset!==0){offset=0;load();}else load();return;}offset=weekOffset;load();};
+      button.onclick=(function(weekOffset){
+        return function(){
+          showOverdue=false;
+          offset=weekOffset;
+          load();
+        };
+      })(n);
       nav.appendChild(button);
     }
     host.appendChild(nav);
