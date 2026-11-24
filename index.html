@@ -2665,7 +2665,7 @@ body:not(.k) .recurring-task-time {
   min-width:0;
   padding:2px 7px;
   border-radius:8px;
-  background:#1B1B1A;
+  background:#783B4A;
   color:#fff;
   font-size:12px;
 }
@@ -3136,7 +3136,7 @@ body.k .recurring-task-time {
   min-width:0;
   padding:2px 7px;
   border-radius:8px;
-  background:#1B1B1A;
+  background:#783B4A;
   color:#fff;
   font-size:12px;
 }
@@ -5442,6 +5442,18 @@ body.k .dashboard-layout-full > .col {
   width:100%!important;
   max-width:100%!important;
   box-sizing:border-box!important;
+}
+
+/* Uniforma i pulsanti calendario alle altre azioni del calendario date. */
+.weekly-date-action-button,
+.weekly-date-actions > div > button,
+.weekly-date-edit-button{
+  border-radius:6px!important;
+}
+/* Colore agenda per le etichette orario delle attività ricorrenti. */
+.recurring-task-time{
+  background:#783B4A!important;
+  color:#fff!important;
 }
 </style>
 </head>
@@ -12393,10 +12405,13 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
 }
 function customBoxSelectedUserIds(host){
   if(!host)return [];
-  var checks=host.querySelectorAll('input[type="checkbox"]');
+  /* Le pillole sono la fonte autorevole della selezione: non leggere lo
+     stato dei checkbox interni, nascosti per compatibilità CSS/browser. */
+  var choices=host.querySelectorAll('button.custom-box-user-choice[aria-pressed="true"]');
   var ids=[];
-  for(var i=0;i<checks.length;i++){
-    if(checks[i].checked)ids.push(String(checks[i].value));
+  for(var i=0;i<choices.length;i++){
+    var check=choices[i].querySelector('input[type="checkbox"]');
+    if(check&&check.value)ids.push(String(check.value));
   }
   return ids;
 }
