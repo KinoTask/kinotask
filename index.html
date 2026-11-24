@@ -337,21 +337,32 @@ input[type=checkbox] {
   clip:auto!important;
   transform:none!important;
 }
-#dashboardAddBoxPanel .custom-box-user-choice input[type="checkbox"]{
-  appearance:none!important;
-  -webkit-appearance:none!important;
-  box-sizing:border-box!important;
-  width:14px!important;height:14px!important;min-width:14px!important;
-  flex:0 0 14px!important;
-  border:1px solid #697780!important;
-  border-radius:3px!important;
+#dashboardAddBoxPanel button.custom-box-user-choice{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  padding:6px 8px!important;
+  border:1px solid #d5dee4!important;
+  border-radius:6px!important;
   background:#fff!important;
-  padding:0!important;
+  color:#202a30!important;
+  box-shadow:none!important;
+  font-family:inherit!important;
+  font-size:.8em!important;
+  font-weight:normal!important;
+  line-height:1.2!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  position:relative!important;
+  z-index:2!important;
 }
-.custom-box-user-choice input[type="checkbox"]:checked{
-  background-color:#783B4A!important;
-  border:1px solid #5d2938!important;
-  background-image:none!important;
+#dashboardAddBoxPanel button.custom-box-user-choice[aria-pressed="true"]{
+  border-color:#783B4A!important;
+  background:#f8eef1!important;
 }
 
 
@@ -12310,49 +12321,67 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
     return;
   }
   users.forEach(function(user){
-    /* Label HTML nativa: il browser gestisce direttamente il click sia sul
-       quadratino sia sul nome, senza dipendere da handler sul contenitore. */
-    var label=document.createElement("label");
-    label.className="custom-box-user-choice";
-    label.style.display="inline-flex";
-    label.style.alignItems="center";
-    label.style.justifyContent="flex-start";
-    label.style.gap="5px";
-    label.style.margin="0";
-    label.style.padding="6px 8px";
-    label.style.border="1px solid #d5dee4";
-    label.style.borderRadius="6px";
-    label.style.background="#fff";
-    label.style.fontSize=".8em";
-    label.style.cursor="pointer";
-    label.style.position="relative";
-    label.style.zIndex="1";
+    /* Ogni scelta è un vero pulsante: il click non dipende dall'associazione
+       label/checkbox, che nei browser coinvolti non sta funzionando. */
+    var button=document.createElement("button");
+    button.type="button";
+    button.className="custom-box-user-choice";
+    button.style.display="inline-flex";
+    button.style.alignItems="center";
+    button.style.justifyContent="flex-start";
+    button.style.gap="6px";
+    button.style.margin="0";
+    button.style.padding="6px 8px";
+    button.style.border="1px solid #d5dee4";
+    button.style.borderRadius="6px";
+    button.style.background="#fff";
+    button.style.color="#202a30";
+    button.style.fontFamily="inherit";
+    button.style.fontSize=".8em";
+    button.style.fontWeight="normal";
+    button.style.lineHeight="1.2";
+    button.style.cursor="pointer";
+    button.style.position="relative";
+    button.style.zIndex="2";
+    button.style.pointerEvents="auto";
     var check=document.createElement("input");
     check.type="checkbox";
-    check.disabled=false;
     check.value=String(user.id);
     check.checked=!!selected[String(user.id)];
-    check.style.display="inline-block";
-    check.style.visibility="visible";
-    check.style.opacity="1";
-    check.style.pointerEvents="auto";
-    check.style.appearance="none";
-    check.style.webkitAppearance="none";
-    check.style.boxSizing="border-box";
-    check.style.width="14px";
-    check.style.height="14px";
-    check.style.minWidth="14px";
-    check.style.flex="0 0 14px";
-    check.style.border="1px solid #697780";
-    check.style.borderRadius="3px";
-    check.style.backgroundColor="#fff";
-    check.style.accentColor="#783B4A";
-    check.style.margin="0";
-    check.style.padding="0";
-    label.appendChild(check);
-    label.appendChild(document.createTextNode(user.name));
-    check.onchange=function(){if(typeof onChange==="function")onChange();};
-    host.appendChild(label);
+    check.tabIndex=-1;
+    check.setAttribute("aria-hidden","true");
+    check.style.display="none";
+    var mark=document.createElement("span");
+    mark.className="custom-box-user-choice-mark";
+    mark.textContent=check.checked?"✓":"";
+    mark.style.display="inline-flex";
+    mark.style.alignItems="center";
+    mark.style.justifyContent="center";
+    mark.style.boxSizing="border-box";
+    mark.style.width="15px";
+    mark.style.height="15px";
+    mark.style.minWidth="15px";
+    mark.style.border="1px solid #697780";
+    mark.style.borderRadius="3px";
+    mark.style.background=check.checked?"#783B4A":"#fff";
+    mark.style.color="#fff";
+    mark.style.fontSize="11px";
+    mark.style.fontWeight="bold";
+    var name=document.createElement("span");
+    name.textContent=user.name;
+    button.setAttribute("aria-pressed",check.checked?"true":"false");
+    button.appendChild(check);
+    button.appendChild(mark);
+    button.appendChild(name);
+    button.onclick=function(ev){
+      if(ev&&ev.preventDefault)ev.preventDefault();
+      check.checked=!check.checked;
+      button.setAttribute("aria-pressed",check.checked?"true":"false");
+      mark.textContent=check.checked?"✓":"";
+      mark.style.background=check.checked?"#783B4A":"#fff";
+      if(typeof onChange==="function")onChange();
+    };
+    host.appendChild(button);
   });
 }
 function customBoxSelectedUserIds(host){
