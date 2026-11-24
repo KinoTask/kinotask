@@ -12209,7 +12209,9 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
   if(!host)return;
   clear(host);
   host.style.display="flex";
-  host.style.flexDirection="column";
+  host.style.flexDirection="row";
+  host.style.flexWrap="wrap";
+  host.style.alignItems="center";
   host.style.gap="6px";
   var selected={};
   (Array.isArray(selectedIds)?selectedIds:[]).forEach(function(id){selected[String(id)]=true;});
@@ -12220,12 +12222,17 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
     return;
   }
   users.forEach(function(user){
-    var label=mk("label","custom-box-share-user","");
-    label.style.display="flex";
+    var label=mk("label","custom-box-user-choice","");
+    label.style.display="inline-flex";
     label.style.alignItems="center";
     label.style.justifyContent="flex-start";
-    label.style.gap="7px";
+    label.style.gap="5px";
     label.style.margin="0";
+    label.style.padding="6px 8px";
+    label.style.border="1px solid #d5dee4";
+    label.style.borderRadius="6px";
+    label.style.background="#fff";
+    label.style.fontSize=".8em";
     label.style.cursor="pointer";
     var check=document.createElement("input");
     check.type="checkbox";
@@ -12236,10 +12243,12 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
     check.style.opacity="1";
     check.style.appearance="auto";
     check.style.webkitAppearance="checkbox";
-    check.style.width="16px";
-    check.style.height="16px";
-    check.style.flex="0 0 16px";
+    check.style.width="15px";
+    check.style.height="15px";
+    check.style.minWidth="15px";
+    check.style.flex="0 0 15px";
     check.style.margin="0";
+    check.style.padding="0";
     label.appendChild(check);
     label.appendChild(document.createTextNode(user.name));
     host.appendChild(label);
