@@ -302,7 +302,7 @@ input[type=checkbox] {
 #dashboardAddBoxPanel .custom-box-editor-section-title{font-size:.76em;font-weight:800;letter-spacing:.05em;color:#000;margin:0 0 9px;text-transform:uppercase;}
 .weekly-date-rule-editor button,.weekly-date-rule-button{display:inline-flex!important;align-items:center;justify-content:center;width:auto!important;vertical-align:middle;margin:6px 8px 6px 0!important;border-radius:6px!important;padding:6px 9px!important;font-size:.75em!important;font-weight:700!important;background:#29495b!important;color:#fff!important;border:1px solid #29495b!important;}
 .weekly-date-rule-editor button:disabled{opacity:.55;}
-.weekly-date-edit-button{background:#29495b!important;color:#fff!important;border:1px solid #29495b!important;border-radius:6px!important;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.weekly-date-edit-button{background:#fff!important;color:#29495b!important;border:1px solid #9aaab5!important;border-radius:6px!important;box-shadow:0 1px 2px rgba(0,0,0,.08);}
 #agendaGoogleTools .google-calendar-disconnect,#userAgendaGoogleTools .google-calendar-disconnect{border-radius:6px;padding:6px 9px;font-size:.75em;font-weight:700;background:#fff;border:1px solid #9aaab5;color:#29495b;}
 
 
@@ -11959,33 +11959,23 @@ function openAddBoxPanel(anchor){
   title.style.fontWeight="bold";
   title.style.textAlign="center";
   wrap.appendChild(title);
-  var availableTitle=mk("div","","BOX DISPONIBILI");
-  availableTitle.style.fontWeight="bold";
-  availableTitle.style.fontSize="13px";
-  wrap.appendChild(availableTitle);
+  var availableTitle=mk("div","custom-box-editor-section-title","BOX DISPONIBILI");
   var available=mk("div","","");
   available.style.display="flex";
   available.style.flexDirection="column";
   available.style.gap="5px";
-  wrap.appendChild(available);
-  var customTitle=mk("div","","BOX CUSTOM");
-  customTitle.style.fontWeight="bold";
-  customTitle.style.fontSize="13px";
-  customTitle.style.marginTop="8px";
-  wrap.appendChild(customTitle);
+  var customTitle=mk("div","custom-box-editor-section-title","BOX CUSTOM");
   var name=document.createElement("input");
   name.type="text";name.placeholder="Nome della tasklist";name.maxLength=80;
   name.style.width="100%";name.style.boxSizing="border-box";name.style.padding="9px";
-  wrap.appendChild(name);
   var boxKind=document.createElement("select");
   boxKind.style.width="100%";boxKind.style.padding="9px";
   [["tasklist","Tasklist personalizzata"],["weekly_dates","Calendario date settimanali"]].forEach(function(item){var opt=document.createElement("option");opt.value=item[0];opt.textContent=item[1];boxKind.appendChild(opt);});
-  wrap.appendChild(boxKind);
   var weekdaysPanel=mk("div","custom-weekly-days","");
   var overdueEnabled=document.createElement("input");overdueEnabled.type="checkbox";overdueEnabled.checked=true;
   var overdueLabel=mk("label","custom-weekly-overdue-option","");overdueLabel.style.display="flex";overdueLabel.style.alignItems="center";overdueLabel.style.gap="7px";overdueLabel.style.margin="7px 0";
   overdueLabel.appendChild(overdueEnabled);overdueLabel.appendChild(document.createTextNode("Gestire gli arretrati (massimo 3 mesi)"));
-  overdueLabel.hidden=true;wrap.appendChild(overdueLabel);
+  overdueLabel.hidden=true;
   weekdaysPanel.style.display="none";weekdaysPanel.style.flexWrap="wrap";weekdaysPanel.style.gap="8px";
   var weekdayChecks=[];
   ["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"].forEach(function(day,index){
@@ -11993,21 +11983,20 @@ function openAddBoxPanel(anchor){
     var check=document.createElement("input");check.type="checkbox";check.value=String((index+1)%7);weekdayChecks.push(check);
     label.appendChild(check);label.appendChild(document.createTextNode(day));weekdaysPanel.appendChild(label);
   });
-  wrap.appendChild(weekdaysPanel);
   boxKind.onchange=function(){weekdaysPanel.style.display=boxKind.value==="weekly_dates"?"flex":"none";overdueLabel.hidden=boxKind.value!=="weekly_dates";assignmentLabel.hidden=boxKind.value==="weekly_dates";positionCustomBoxPanel(panel,addAnchorRect,true);};
   var scope=document.createElement("select");
   scope.style.width="100%";scope.style.padding="9px";
   [['family','Condivisa con tutta la famiglia'],['selected','Condivisa con utenti specifici'],['private','Privata']].forEach(function(item){var opt=document.createElement("option");opt.value=item[0];opt.textContent=item[1];scope.appendChild(opt);});
 
-  wrap.appendChild(mk("div","","COLLABORATORI (possono collaborare e ricevere assegnazioni)"));
-  var shareUsers=mk("div","custom-box-share-users","");shareUsers.style.display="none";shareUsers.style.flexDirection="column";shareUsers.style.gap="6px";wrap.appendChild(shareUsers);
+  var collaboratorsTitle=mk("div","custom-box-editor-section-title","COLLABORATORI (possono collaborare e ricevere assegnazioni)");
+  var shareUsers=mk("div","custom-box-share-users","");shareUsers.style.display="none";shareUsers.style.flexDirection="column";shareUsers.style.gap="6px";
   renderCustomBoxUserChoices(shareUsers,[],function(){positionCustomBoxPanel(panel,addAnchorRect,true);});
   setHidden(shareUsers,scope.value!=="selected");
   var visibilityScope=document.createElement("select");visibilityScope.style.width="100%";visibilityScope.style.padding="9px";
   [["family","Visibile a tutta la famiglia"],["selected","Visibile solo agli utenti selezionati"]].forEach(function(item){var opt=document.createElement("option");opt.value=item[0];opt.textContent=item[1];visibilityScope.appendChild(opt);});
-  wrap.appendChild(mk("div","","VISIBILITÀ (chi può vedere box e attività)"));
+  var visibilityTitle=mk("div","custom-box-editor-section-title","VISIBILITÀ (chi può vedere box e attività)");
 
-  var visibleUsers=mk("div","custom-box-visible-users","");visibleUsers.style.display="none";visibleUsers.style.flexDirection="column";visibleUsers.style.gap="6px";wrap.appendChild(visibleUsers);
+  var visibleUsers=mk("div","custom-box-visible-users","");visibleUsers.style.display="none";visibleUsers.style.flexDirection="column";visibleUsers.style.gap="6px";
   var defaultVisible=[];
   if(scope.value!=="family"){
     var ownerMatches=(USERS||[]).filter(function(u){
@@ -12025,14 +12014,14 @@ function openAddBoxPanel(anchor){
   var assignment=document.createElement("input");assignment.type="checkbox";assignment.disabled=scope.value==="private";
   var assignmentLabel=mk("label","","");
   assignmentLabel.style.display="flex";assignmentLabel.style.alignItems="center";assignmentLabel.style.gap="7px";
-  assignmentLabel.style.marginTop="8px";assignmentLabel.style.paddingTop="10px";assignmentLabel.style.borderTop="1px solid #ccc";
+  assignmentLabel.style.margin="4px 0";assignmentLabel.style.padding="4px 0";
   assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode("Abilita assegnazione delle attività"));
   wrap.appendChild(assignmentLabel);
   var createGrantPanel=mk("div","custom-box-create-permissions","");
-  createGrantPanel.style.borderTop="1px solid #ccc";createGrantPanel.style.paddingTop="9px";
+  createGrantPanel.style.borderTop="1px solid #ccc";createGrantPanel.style.paddingTop="12px";createGrantPanel.style.marginTop="12px";
   createGrantPanel.appendChild(mk("div","","AUTORIZZAZIONI PER GLI UTENTI CONDIVISI"));
   var createGrantRows=mk("div","custom-box-create-permission-rows","");createGrantPanel.appendChild(createGrantRows);
-  createGrantPanel.hidden=true;wrap.appendChild(createGrantPanel);
+  createGrantPanel.hidden=true;
   var createGrantCapabilities=[
     ["can_edit_box","Modificare il box"],
     ["can_add_tasks","Aggiungere attività"],
@@ -12070,7 +12059,19 @@ function openAddBoxPanel(anchor){
     });
     positionCustomBoxPanel(panel,addAnchorRect,true);
   }
-  /* Ora pannello, capability e funzione sono tutti inizializzati. */
+  /* Ogni area di AGGIUNGI BOX è autonoma, come nell'editor MODIFICA BOX. */
+  function addBoxSection(sectionTitle,nodes){
+    var section=mk("div","custom-box-editor-section","");
+    section.appendChild(mk("div","custom-box-editor-section-title",sectionTitle));
+    nodes.forEach(function(node){if(node)section.appendChild(node);});
+    wrap.appendChild(section);
+    return section;
+  }
+  addBoxSection("BOX DISPONIBILI",[available]);
+  addBoxSection("IMPOSTAZIONI GENERALI",[name,boxKind,overdueLabel,weekdaysPanel]);
+  addBoxSection("COLLABORATORI",[scope,shareUsers]);
+  addBoxSection("VISIBILITÀ",[visibilityScope,visibleUsers]);
+  addBoxSection("ASSEGNAZIONI E AUTORIZZAZIONI",[assignmentLabel,createGrantPanel]);
   renderCreateGrantRows();
   var create=mk("button","","CREA BOX");create.type="button";
   create.onclick=function(){
@@ -12137,6 +12138,10 @@ function openAddBoxPanel(anchor){
         });
       }else refresh();
   }
+  var customSection=mk("div","custom-box-editor-section","");
+  customSection.appendChild(customTitle);
+  customSection.appendChild(mk("div","small","Crea un box personalizzato con le impostazioni qui sotto."));
+  wrap.appendChild(customSection);
   wrap.appendChild(create);
   var back=mk("button","","INDIETRO");back.type="button";back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};wrap.appendChild(back);
   panel.appendChild(wrap);
@@ -12617,7 +12622,9 @@ function loadWeeklyDateCalendar(def){
     var rule=mk("div","small",showOverdue?"Attività delle settimane precedenti non ancora completate.":"Ricorrenza: "+(weekdays.length?weekdays.map(function(d){return ["dom","lun","mar","mer","gio","ven","sab"][d];}).join(", "):"nessun giorno configurato"));
     host.appendChild(rule);
     if(canEdit&&!showOverdue){
-      var editRule=mk("button","weekly-date-rule-button","MODIFICA GIORNI");editRule.type="button";editRule.style.margin="6px 0";
+      var ruleToolbar=mk("div","weekly-date-rule-toolbar","");
+      ruleToolbar.style.display="flex";ruleToolbar.style.flexWrap="wrap";ruleToolbar.style.alignItems="center";ruleToolbar.style.gap="6px";
+      var editRule=mk("button","weekly-date-rule-button","MODIFICA GIORNI");editRule.type="button";
       editRule.onclick=function(){
         /* Riutilizza un solo editor: click ripetuti non devono accumulare righe. */
         var existingEditor=host.querySelector(".weekly-date-rule-editor");
@@ -12634,9 +12641,10 @@ function loadWeeklyDateCalendar(def){
           save.disabled=true;
           usersRequest("PUT","/custom-boxes/"+def.custom_box_id+"/weekly-dates",{weekdays:selected},function(e,r){if(e||!r||!r.ok){save.disabled=false;alert(e||(r&&r.error)||"Regola non salvata");return;}load();});
         };
-        panel.appendChild(save);host.insertBefore(panel,editRule);
+        panel.appendChild(save);host.insertBefore(panel,ruleToolbar);
       };
-      host.appendChild(editRule);
+      ruleToolbar.appendChild(editRule);
+      host.appendChild(ruleToolbar);
     }
     function dateKey(value){
       var key=String(value||"");
@@ -12737,7 +12745,7 @@ function loadWeeklyDateCalendar(def){
         }
         if(canEdit){
         var noteWrap=mk("div","weekly-date-notes","");
-        var hasDateNote=!!String(entry.notes||"").trim();var noteButton=mk("button","weekly-note-button"+(hasDateNote?" has-notes":""),hasDateNote?"🗒️":"📝");noteButton.type="button";noteButton.title=hasDateNote?"Apri annotazione":"Aggiungi annotazione";noteButton.setAttribute("aria-label",noteButton.title);
+        var hasDateNote=!!String(entry.notes||"").trim();var noteButton=mk("button","weekly-note-button"+(hasDateNote?" has-notes":""),hasDateNote?"📝":"🗒️");noteButton.type="button";noteButton.title=hasDateNote?"Apri annotazione":"Aggiungi annotazione";noteButton.setAttribute("aria-label",noteButton.title);
         var notePanel=mk("div","weekly-date-note-panel","");notePanel.style.display="none";notePanel.style.width="250px";notePanel.style.maxWidth="calc(100vw - 32px)";notePanel.style.boxSizing="border-box";
         var noteInput=document.createElement("textarea");noteInput.rows=2;noteInput.maxLength=2000;noteInput.placeholder="Scrivi un'annotazione...";noteInput.value=entry.notes||"";
         noteInput.style.display="block";noteInput.style.width="100%";noteInput.style.maxWidth="100%";noteInput.style.height="3.6em";noteInput.style.minHeight="3.6em";noteInput.style.boxSizing="border-box";noteInput.style.margin="2px 0 5px";
@@ -12806,7 +12814,7 @@ function loadWeeklyDateCalendar(def){
     }
     if(canEdit&&!showOverdue){
       var add=mk("button","weekly-date-rule-button","+ AGGIUNGI DATA");add.type="button";add.style.marginTop="9px";
-      add.onclick=function(){var value=prompt("Data aggiuntiva (AAAA-MM-GG)");if(!value)return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Data non aggiunta");load();});};host.appendChild(add);
+      add.onclick=function(){var value=prompt("Data aggiuntiva (AAAA-MM-GG)");if(!value)return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Data non aggiunta");load();});};ruleToolbar.appendChild(add);
     }
   }
   load();
