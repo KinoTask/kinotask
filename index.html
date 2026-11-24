@@ -12609,6 +12609,24 @@ function loadCustomBoxRenderer(def){
   });
 }
 
+function openWeeklyDatePicker(initialValue,title,onConfirm){
+  var overlay=mk("div","overlay"),panel=mk("div","panel"),head=mk("div","overlay-head"),body=mk("div","");
+  head.appendChild(mk("h2","",title||"Seleziona una data"));
+  var close=mk("button","","ANNULLA");close.type="button";
+  close.onclick=function(){if(overlay.parentNode)overlay.parentNode.removeChild(overlay);};
+  head.appendChild(close);
+  var dateInput=document.createElement("input");dateInput.type="date";
+  dateInput.value=/^\d{4}-\d{2}-\d{2}$/.test(String(initialValue||""))?String(initialValue):iso(new Date());
+  dateInput.style.display="block";dateInput.style.width="100%";dateInput.style.boxSizing="border-box";
+  dateInput.style.padding="10px";dateInput.style.margin="12px 0";dateInput.style.fontSize="16px";
+  var actions=mk("div","route-config-footer","");
+  var confirmButton=mk("button","route-config-save","CONFERMA");confirmButton.type="button";
+  confirmButton.onclick=function(){if(!dateInput.value){alert("Seleziona una data.");return;}var value=dateInput.value;if(overlay.parentNode)overlay.parentNode.removeChild(overlay);onConfirm(value);};
+  var cancelButton=mk("button","route-config-back","ANNULLA");cancelButton.type="button";cancelButton.onclick=close.onclick;
+  actions.appendChild(confirmButton);actions.appendChild(cancelButton);
+  body.appendChild(dateInput);body.appendChild(actions);panel.appendChild(head);panel.appendChild(body);overlay.appendChild(panel);document.body.appendChild(overlay);
+  try{if(dateInput.showPicker)dateInput.showPicker();else dateInput.focus();}catch(ignore){dateInput.focus();}
+}
 function loadWeeklyDateCalendar(def){
   var host=$("customTasks_"+def.custom_box_id);if(!host)return;
   if(!currentView){host.textContent="Caricamento vista...";return;}
@@ -12795,7 +12813,8 @@ function loadWeeklyDateCalendar(def){
         if(!actionWrap){actionWrap=mk("div","weekly-date-actions","");line.appendChild(actionWrap);}
         var dateWasModified=String(row.date)!==String(row.source);
         var edit=mk("button","weekly-date-action-button weekly-date-edit-button"+(dateWasModified?" has-date-change":""),"📅");edit.type="button";edit.title=dateWasModified?"Data modificata":"Modifica data";
-        edit.onclick=function(){var next=prompt("Nuova data (AAAA-MM-GG)",row.date);if(!next)return;if(!/^\d{4}-\d{2}-\d{2}$/.test(next)){alert("Formato data non valido");return;}usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_date:next,entry_type:"override"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
+        edit.onclick=function(){openWeeklyDatePicker(row.date,"Modifica data",function(next){usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_date:next,entry_type:"override"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});});};
+
         actionWrap.appendChild(edit);
         var exclude=mk("button","weekly-date-action-button weekly-date-exclude-button","🗑");exclude.type="button";exclude.title="Escludi questa data";
         exclude.onclick=function(){if(!confirm("Escludere questa data?"))return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_type:"excluded"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
@@ -12825,30 +12844,24 @@ function loadWeeklyDateCalendar(def){
       overdueActions.appendChild(completeAll);
       var addOverdue=mk("button","","AGGIUNGI UN ARRETRATO");addOverdue.type="button";
       addOverdue.onclick=function(){
-        var value=prompt("Data dell'arretrato (AAAA-MM-GG)");
-        if(!value)return;
-        if(!/^\d{4}-\d{2}-\d{2}$/.test(value)||iso(new Date(value+"T12:00:00"))!==value){alert("Inserisci una data valida nel formato AAAA-MM-GG.");return;}
-        if(value<iso(start)||value>iso(end)){alert("La data deve rientrare nel periodo degli arretrati visualizzato (massimo 3 mesi, fino a 15 giorni fa).");return;}
-        var existing=null;
-        for(var entryIndex=0;entryIndex<entries.length;entryIndex++){
-          if(String(entries[entryIndex].source_date||"").slice(0,10)===value){existing=entries[entryIndex];break;}
-        }
-        var day=new Date(value+"T12:00:00").getDay();
-        if(existing&&!existing.done){alert("Per questa data esiste già un'attività nel calendario.");return;}
-        if(!existing&&weekdays.indexOf(day)!==-1){alert("Questa data è già prevista dalla regola settimanale.");return;}
-        addOverdue.disabled=true;
-        usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:existing&&existing.entry_type==="override"?"override":"extra"},function(e,r){
-          addOverdue.disabled=false;
-          if(e||!r||!r.ok){alert(e||(r&&r.error)||"Arretrato non aggiunto");return;}
-          load();
+        openWeeklyDatePicker(iso(new Date()),"Aggiungi un arretrato",function(value){
+          if(value<iso(start)||value>iso(end)){alert("La data deve rientrare nel periodo degli arretrati visualizzato (massimo 3 mesi, fino a 15 giorni fa).");return;}
+          var existing=null;
+          for(var entryIndex=0;entryIndex<entries.length;entryIndex++){if(String(entries[entryIndex].source_date||"").slice(0,10)===value){existing=entries[entryIndex];break;}}
+          var day=new Date(value+"T12:00:00").getDay();
+          if(existing&&!existing.done){alert("Per questa data esiste già un'attività nel calendario.");return;}
+          if(!existing&&weekdays.indexOf(day)!==-1){alert("Questa data è già prevista dalla regola settimanale.");return;}
+          addOverdue.disabled=true;
+          usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:existing&&existing.entry_type==="override"?"override":"extra"},function(e,r){addOverdue.disabled=false;if(e||!r||!r.ok){alert(e||(r&&r.error)||"Arretrato non aggiunto");return;}load();});
         });
       };
+
       overdueActions.appendChild(addOverdue);
       host.appendChild(overdueActions);
     }
     if(canEdit&&!showOverdue){
       var add=mk("button","weekly-date-rule-button","+ AGGIUNGI DATA");add.type="button";add.style.marginTop="9px";
-      add.onclick=function(){var value=prompt("Data aggiuntiva (AAAA-MM-GG)");if(!value)return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Data non aggiunta");load();});};ruleToolbar.appendChild(add);
+      add.onclick=function(){openWeeklyDatePicker(iso(new Date()),"Aggiungi una data",function(value){usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Data non aggiunta");load();});});};ruleToolbar.appendChild(add);
     }
   }
   load();
