@@ -277,6 +277,26 @@ input[type=checkbox] {
 #dashboardAddBoxPanel .route-config-footer button{padding:9px 10px;}
 #dashboardAddBoxPanel .route-config-back{background:#fff;border-color:#c5d0d7;color:#46545d;}
 
+/* Titoli di menu e sezioni sempre neri, indipendentemente dal colore del pannello. */
+.route-config-panel-title,.route-config-card-head strong,.route-config-section-title,
+#dashboardAddBoxPanel .custom-box-editor-title,#dashboardAddBoxPanel>div>div,
+#viewMenuPanel .user-management-panel>div:first-child,
+#viewMenuPanel .user-management-panel strong{color:#000!important;}
+#dashboardAddBoxPanel .custom-box-editor-title{font-size:18px;font-weight:700;letter-spacing:.2px;padding-bottom:8px;border-bottom:1px solid #d5dde2;}
+#dashboardAddBoxPanel .custom-weekly-days label{color:#202a30;}
+#dashboardAddBoxPanel button{border:1px solid #aebdc6;border-radius:7px;background:#f7f9fa;color:#1f2d35;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.06);}
+#dashboardAddBoxPanel button:hover,#viewMenuPanel button:hover{background:#eaf0f3;}
+#dashboardAddBoxPanel button:disabled{opacity:.55;cursor:default;}
+#dashboardAddBoxPanel .route-config-save,#dashboardAddBoxPanel button[id*="save"]{background:#e8eef2;color:#111;border-color:#9eafb9;}
+#viewMenuPanel .user-management-panel{background:#fff;border:1px solid #c7d1d7;border-radius:9px;padding:14px!important;gap:12px!important;}
+#viewMenuPanel .user-management-item{border:1px solid #b9c6ce!important;border-radius:9px!important;padding:11px!important;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+#viewMenuPanel .user-management-item>div:nth-child(2)>div:first-child{color:#000;font-weight:700;}
+#viewMenuPanel .user-management-panel button,#viewMenuPanel .add-user-panel button{border:1px solid #aebdc6;border-radius:7px;background:#f7f9fa;color:#17232a;font-weight:600;}
+#viewMenuPanel .user-management-panel input{min-height:38px;border:1px solid #c5d0d7;border-radius:6px;padding:8px;}
+#viewMenuPanel .user-management-panel .small{color:#505b62;}
+#viewMenuPanel .user-management-panel [style*="border-top"]{border-color:#c7d1d7!important;}
+
+
 /* ==================================================
    3. HEADER
    ================================================== */
@@ -10420,6 +10440,9 @@ function closeViewMenu(){
   if(panel){
     setHidden(panel, true);
     panel.setAttribute("hidden","hidden");
+    /* Ogni chiusura riporta il menu al livello iniziale: riaprendo
+       l'hamburger non deve riapparire l'ultima sottoschermata. */
+    if(typeof renderViewMenu==="function")renderViewMenu();
   }
   var toggle=$("viewMenuToggle");
   if(toggle)toggle.setAttribute("aria-expanded", "false");
@@ -12236,7 +12259,8 @@ function openCustomBoxEditor(def, anchor){
   /* Posiziona il pannello accanto al box, senza coprire il pulsante che lo apre. */
   var anchorRect=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
   var wrap=mk('div','','');wrap.style.padding='10px';wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.gap='9px';
-  wrap.appendChild(mk('div','','MODIFICA BOX'));
+  var editorTitle=mk('div','custom-box-editor-title','MODIFICA BOX');
+  wrap.appendChild(editorTitle);
   var name=document.createElement('input');name.type='text';name.maxLength=80;name.value=def.title||'';name.placeholder='Nome del box';name.style.padding='9px';name.style.width='100%';name.style.boxSizing='border-box';wrap.appendChild(name);
   var boxKind=document.createElement('select');boxKind.style.padding='9px';boxKind.style.width='100%';
   [['tasklist','Tasklist personalizzata'],['weekly_dates','Calendario date settimanali']].forEach(function(item){var opt=document.createElement('option');opt.value=item[0];opt.textContent=item[1];boxKind.appendChild(opt);});
@@ -12572,6 +12596,9 @@ function loadWeeklyDateCalendar(def){
     if(canEdit&&!showOverdue){
       var editRule=mk("button","","MODIFICA GIORNI");editRule.type="button";editRule.style.margin="6px 0";
       editRule.onclick=function(){
+        /* Riutilizza un solo editor: click ripetuti non devono accumulare righe. */
+        var existingEditor=host.querySelector(".weekly-date-rule-editor");
+        if(existingEditor){existingEditor.remove();return;}
         var panel=mk("div","weekly-date-rule-editor","");panel.style.display="flex";panel.style.flexWrap="wrap";panel.style.gap="8px";panel.style.padding="7px 0";
         var checks=[];
         ["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"].forEach(function(day,index){
@@ -12581,9 +12608,10 @@ function loadWeeklyDateCalendar(def){
         });
         var save=mk("button","","SALVA");save.type="button";save.onclick=function(){
           var selected=checks.filter(function(c){return c.checked;}).map(function(c){return Number(c.value);});
-          usersRequest("PUT","/custom-boxes/"+def.custom_box_id+"/weekly-dates",{weekdays:selected},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Regola non salvata");return;}load();});
+          save.disabled=true;
+          usersRequest("PUT","/custom-boxes/"+def.custom_box_id+"/weekly-dates",{weekdays:selected},function(e,r){if(e||!r||!r.ok){save.disabled=false;alert(e||(r&&r.error)||"Regola non salvata");return;}load();});
         };
-        panel.appendChild(save);host.insertBefore(panel,host.children[2]);
+        panel.appendChild(save);host.insertBefore(panel,editRule);
       };
       host.appendChild(editRule);
     }
@@ -14136,6 +14164,7 @@ function initViewMenu(){
 
 	toggle.onclick = function(){
 		var open = panel.hasAttribute("hidden");
+        renderViewMenu();
 		setHidden(panel, !open);
 		toggle.setAttribute("aria-expanded", open ? "true" : "false");
 	};
