@@ -12631,7 +12631,7 @@ function openCustomBoxEditor(def, anchor){
     var title=name.value.trim();if(!title){alert('Inserisci il nome del box.');name.focus();return;}
     var selectedEditDays=editWeekdayChecks.filter(function(c){return c.checked;}).map(function(c){return Number(c.value);});
     if(boxKind.value==='weekly_dates'&&!selectedEditDays.length){alert('Seleziona almeno un giorno della settimana.');return;}
-    var payload={title:title,box_kind:boxKind.value,weekdays:selectedEditDays,assignment_enabled:boxKind.value!=='weekly_dates'&&scope.value!=='private'&&assignment.checked,scope:scope.value,user_ids:scope.value==='selected'?customBoxSelectedUserIds(users):[],visibility_mode:visibilityScope.value,visible_user_ids:visibilityScope.value==='selected'?customBoxSelectedUserIds(visibleUsers):[],view_id:currentView};
+    var payload={title:title,box_kind:boxKind.value,weekdays:selectedEditDays,assignment_enabled:scope.value!=='private'&&assignment.checked,scope:scope.value,user_ids:scope.value==='selected'?customBoxSelectedUserIds(users):[],visibility_mode:visibilityScope.value,visible_user_ids:visibilityScope.value==='selected'?customBoxSelectedUserIds(visibleUsers):[],view_id:currentView};
     if(scope.value==='selected'&&!payload.user_ids.length){alert('Seleziona almeno un collaboratore.');return;}
     if(visibilityScope.value==='selected'&&!payload.visible_user_ids.length){alert('Seleziona almeno un utente che può vedere il box.');return;}
     save.disabled=true;
