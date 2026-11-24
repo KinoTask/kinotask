@@ -283,7 +283,9 @@ input[type=checkbox] {
 #viewMenuPanel .user-management-panel>div:first-child,
 #viewMenuPanel .user-management-panel strong{color:#000!important;}
 #dashboardAddBoxPanel .custom-box-editor-title{font-size:18px;font-weight:700;letter-spacing:.2px;padding-bottom:8px;border-bottom:1px solid #d5dde2;}
-#dashboardAddBoxPanel .custom-weekly-days{margin-top:10px!important;gap:10px 14px!important;}\n#dashboardAddBoxPanel .custom-weekly-days label{display:inline-flex!important;align-items:center;gap:7px!important;margin:2px 4px 2px 0;padding:3px 5px;color:#202a30;}\n#dashboardAddBoxPanel .custom-weekly-days input[type=checkbox]{width:16px!important;height:16px!important;min-width:16px;flex:0 0 16px;border-radius:5px!important;}
+#dashboardAddBoxPanel .custom-weekly-days{margin-top:10px!important;gap:10px 14px!important;}
+#dashboardAddBoxPanel .custom-weekly-days label{display:inline-flex!important;align-items:center;gap:7px!important;margin:2px 4px 2px 0;padding:3px 5px;color:#202a30;}
+#dashboardAddBoxPanel .custom-weekly-days input[type=checkbox]{width:16px!important;height:16px!important;min-width:16px;flex:0 0 16px;border-radius:5px!important;}
 #dashboardAddBoxPanel button{border:1px solid #aebdc6;border-radius:7px;background:#f7f9fa;color:#1f2d35;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.06);}
 #dashboardAddBoxPanel button:hover,#viewMenuPanel button:hover{background:#eaf0f3;}
 #dashboardAddBoxPanel button:disabled{opacity:.55;cursor:default;}
@@ -6684,7 +6686,8 @@ if(agendaConfigEditButton){agendaConfigEditButton.onclick=function(ev){if(ev){ev
    6. COMPITI DEGLI EVENTI (righe "- compito" sotto "TODO:")
    ================================================== */
 function parseTasks(desc){
-  var lines = String(desc || "").split(/\r?\n/);
+  var lines = String(desc || "").split(/\r?
+/);
   var tasks = [], owners = [], details = [];
   var hasMarker = false, started = false, i, line, m;
 
@@ -6718,7 +6721,8 @@ function parseTasks(desc){
       owners.push("");
     }
   }
-  return {tasks: tasks, owners: owners, details: details.join("\n")};
+  return {tasks: tasks, owners: owners, details: details.join("
+")};
 }
 
 function eventTasksQuery(id){ return "?list=event-tasks&eventId=" + encodeURIComponent(id); }
@@ -10852,7 +10856,11 @@ function showCustomBoxRemovalChoice(callback){
   header.appendChild(title);
   var message=document.createElement("div");
   message.style.cssText="margin-bottom:14px;white-space:pre-line;line-height:1.5;font:16px/1.5 'Trebuchet MS',Arial,sans-serif;";
-  message.textContent="Il box sparirà soltanto dalla vista corrente.\n\nSÌ: nascondi in questa vista.\nNO: archivia per tutta la famiglia.\nANNULLA: non fare nulla.";
+  message.textContent="Il box sparirà soltanto dalla vista corrente.
+
+SÌ: nascondi in questa vista.
+NO: archivia per tutta la famiglia.
+ANNULLA: non fare nulla.";
   var actions=document.createElement("div");
   actions.style.cssText="display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;";
   function addChoice(label,value){
@@ -12088,7 +12096,9 @@ function openAddBoxPanel(anchor){
         var count=Number(data.archived&&data.archived.task_count||0);
         var message="Nello storico è già presente un box \""+(data.archived.title||value)+"\"";
         message+=count ? " con "+count+" attività." : ".";
-        message+="\n\nVuoi ripristinare il vecchio box con tutte le sue attività?";
+        message+="
+
+Vuoi ripristinare il vecchio box con tutte le sue attività?";
         showArchivedCustomBoxChoice(message,function(choice){
           if(choice===null){create.disabled=false;return;}
           payload.reuse_archived=true;
@@ -12435,7 +12445,9 @@ function openCustomBoxEditor(def, anchor){
         if(data.needs_confirmation){
           var names=(data.affected_users||[]).map(function(u){return u.name;});
           var msg='Attenzione: il box non sarà più visibile a '+names.join(', ')+'.';
-          msg+='\n\nI task assegnati a queste persone resteranno salvati, ma non compariranno più nelle loro viste personali. Vuoi continuare?';
+          msg+='
+
+I task assegnati a queste persone resteranno salvati, ma non compariranno più nelle loro viste personali. Vuoi continuare?';
           if(!confirm(msg)){save.disabled=false;return;}
           submitBoxUpdate(true);return;
         }
