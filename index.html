@@ -5363,6 +5363,13 @@ body.k #dashboardToolbar #dashboardReorderButton,
 body.k #dashboardToolbar #dashboardCancelReorderButton {
   display:none!important;
 }
+
+/* La barra operativa non deve comparire nelle schermate pubbliche di accesso. */
+body:has(#welcomePage:not([hidden])) #dashboardToolbar,
+body:has(#loginPage:not([hidden])) #dashboardToolbar {
+  display:none!important;
+}
+
 </style>
 
 <style>#dashboardToolbar #dashboardReorderButton{background:#edf4ff;border:1px solid #9bbce5;color:#174a7e;white-space:nowrap;}#dashboardToolbar #dashboardReorderButton[hidden]{display:none!important;}.dashboard-layout-row{width:100%;box-sizing:border-box;}.dashboard-layout-row>.col{margin:0!important;}@media(max-width:800px){#dashboardToolbar #dashboardReorderButton{padding:5px 6px;font-size:11px;}}</style>
