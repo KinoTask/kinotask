@@ -12310,7 +12310,7 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
     return;
   }
   users.forEach(function(user){
-    var label=mk("label","custom-box-user-choice","");
+    var label=mk("div","custom-box-user-choice","");
     label.style.display="inline-flex";
     label.style.alignItems="center";
     label.style.justifyContent="flex-start";
@@ -12343,7 +12343,15 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
     check.style.margin="0";
     check.style.padding="0";
     label.appendChild(check);
-    label.appendChild(document.createTextNode(user.name));
+    var name=document.createElement("span");
+    name.textContent=user.name;
+    name.style.cursor="pointer";
+    name.addEventListener("click",function(event){
+      if(event&&event.preventDefault)event.preventDefault();
+      check.checked=!check.checked;
+      if(typeof onChange==="function")onChange();
+    });
+    label.appendChild(name);
     host.appendChild(label);
     check.addEventListener("change",function(){if(typeof onChange==="function")onChange();});
   });
