@@ -10609,7 +10609,7 @@ function buildLayout(view, previewSections){
   var hasSectionItems=Array.isArray(vc.sections)&&vc.sections.some(function(section){
     return (section.columns||[]).some(function(col){return (col.items||[]).length>0;});
   });
-  sections=previewSections || (hasSectionItems
+  sections=previewSections || dashboardGetSections() || (hasSectionItems
     ? vc.sections.map(function(section){return {type:section.type,columns:(section.columns||[]).map(function(col){return (col.items||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(item){return {box_id:item.box_id,is_public:item.is_public};});})};})
     : dashboardLegacyRowsToSections(vc.rows||[]));
   /* Le sezioni consecutive a colonne formano un'unica coppia di pile:
@@ -10730,6 +10730,30 @@ function buildLayout(view, previewSections){
 var dashboardReorderActive=false, dashboardReorderOriginalRows=null;
 var dashboardPointerId=null,dashboardPointerStart=null,dashboardPointerTimer=null,dashboardPointerDragging=false,dashboardPointerSource=null,dashboardPointerX=0,dashboardPointerY=0,dashboardPreviewZone=null;
 var dashboardPreviewRows=null,dashboardPreviewSource=null,dashboardPreviewTarget=null;
+var dashboardLastPortraitMode=dashboardIsPortraitMobile();
+if(!window._dashboardOrientationHandler){
+  window._dashboardOrientationHandler=true;
+  function dashboardRefreshForOrientation(){
+    var nextPortrait=dashboardIsPortraitMobile();
+    if(nextPortrait===dashboardLastPortraitMode)return;
+    dashboardLastPortraitMode=nextPortrait;
+    if(currentView!==null&&currentView!==undefined)setTimeout(function(){setView(currentView,false);},100);
+  }
+  window.addEventListener("resize",dashboardRefreshForOrientation);
+  window.addEventListener("orientationchange",function(){setTimeout(dashboardRefreshForOrientation,150);});
+}
+if(!window._dashboardGlobalPointerHandlers){
+  window._dashboardGlobalPointerHandlers=true;
+  document.addEventListener("pointermove",dashboardPointerMove,true);
+  document.addEventListener("pointerup",dashboardPointerUp,true);
+  document.addEventListener("pointercancel",function(ev){
+    if(dashboardPointerId!==null&&ev.pointerId===dashboardPointerId){
+      clearTimeout(dashboardPointerTimer);dashboardPointerTimer=null;dashboardClearPreview();
+      if(dashboardPointerSource)dashboardPointerSource.style.opacity="1";
+      dashboardPointerId=null;dashboardPointerStart=null;dashboardPointerDragging=false;dashboardPointerSource=null;
+    }
+  },true);
+}
 
 function dashboardBoxId(el){
   if(!el)return null;
@@ -10785,9 +10809,22 @@ function dashboardFindBoxAt(x,y){
   return el&&el!==document.body?el:null;
 }
 function dashboardCloneSections(sections){return JSON.parse(JSON.stringify(sections||[]));}
+function dashboardIsPortraitMobile(){
+  return !IS_KINDLE && window.matchMedia && window.matchMedia("(max-width:600px) and (orientation:portrait)").matches;
+}
+function dashboardPortraitStorageKey(view){return "kinotask-layout-portrait-v1-"+String(view);}
+function dashboardReadPortraitSections(view){
+  if(!dashboardIsPortraitMobile())return null;
+  try{var raw=window.localStorage.getItem(dashboardPortraitStorageKey(view));if(!raw)return null;var parsed=JSON.parse(raw);return Array.isArray(parsed)?parsed:null;}catch(ignore){return null;}
+}
+function dashboardWritePortraitSections(view,sections){
+  try{window.localStorage.setItem(dashboardPortraitStorageKey(view),JSON.stringify(sections));return true;}catch(ignore){return false;}
+}
 function dashboardGetSections(){
   var vc=findItem(DASHBOARD_VIEWS||[],function(v){return String(v.id)===String(currentView);});
   if(!vc)return null;
+  var portraitSections=dashboardReadPortraitSections(currentView);
+  if(portraitSections)return dashboardCloneSections(portraitSections);
   var hasSectionItems=Array.isArray(vc.sections)&&vc.sections.some(function(section){
     return (section.columns||[]).some(function(col){return (col.items||[]).length>0;});
   });
@@ -10949,6 +10986,14 @@ function dashboardClearPreview(){
 }
 function dashboardSaveSections(sections,onSuccess,options){
   if(IS_KINDLE)return;
+  if(dashboardIsPortraitMobile()){
+    if(!dashboardWritePortraitSections(currentView,sections)){alert("Non riesco a salvare il layout verticale su questo dispositivo. Verifica lo spazio disponibile nel browser.");buildLayout(currentView);return;}
+    dashboardReorderActive=true;dashboardBuildLayoutWithFlip(sections);
+    var portraitBtn=$("dashboardReorderButton");if(portraitBtn){portraitBtn.disabled=false;portraitBtn.textContent="FINE";}
+    var portraitCancel=$("dashboardCancelReorderButton");if(portraitCancel)portraitCancel.disabled=false;
+    if(typeof onSuccess==="function")onSuccess();
+    return;
+  }
   options=options||{};
   var activateReorder=options.activateReorder!==false;
   var btn=$("dashboardReorderButton");if(btn){btn.disabled=true;btn.textContent="SALVATAGGIO…";}
@@ -10977,7 +11022,11 @@ function dashboardPointerMove(ev){
   if(dashboardPointerId===null||ev.pointerId!==dashboardPointerId)return;
   dashboardPointerX=ev.clientX;dashboardPointerY=ev.clientY;
   if(!dashboardPointerDragging){
-    if(Math.abs(ev.clientX-dashboardPointerStart.x)>12||Math.abs(ev.clientY-dashboardPointerStart.y)>12){clearTimeout(dashboardPointerTimer);dashboardPointerTimer=null;return;}
+    if(Math.abs(ev.clientX-dashboardPointerStart.x)>10||Math.abs(ev.clientY-dashboardPointerStart.y)>10){
+      clearTimeout(dashboardPointerTimer);dashboardPointerTimer=null;
+      dashboardPointerDragging=true;
+      if(dashboardPointerSource){dashboardPointerSource.style.opacity=".45";dashboardPointerSource.style.cursor="grabbing";}
+    }
   }
   if(!dashboardPointerDragging)return;
   var target=dashboardFindBoxAt(ev.clientX,ev.clientY);
@@ -11136,14 +11185,16 @@ function applyDashboardReorderMode(){
       if(ev.target&&ev.target.closest&&ev.target.closest(".dashboard-box-remove-control"))return;
       if(ev.button!==undefined&&ev.button!==0)return;
       dashboardPointerId=ev.pointerId;dashboardPointerStart={x:ev.clientX,y:ev.clientY};
-      dashboardPointerSource=box;dashboardPointerDragging=false;
-      dashboardPointerTimer=setTimeout(function(){if(dashboardPointerId===ev.pointerId){dashboardPointerDragging=true;box.style.opacity=".45";box.style.cursor="grabbing";}},ev.pointerType==="touch"?500:0);
+      dashboardPointerSource=box;dashboardPointerDragging=ev.pointerType!=="touch";
+      if(dashboardPointerDragging){box.style.opacity=".45";box.style.cursor="grabbing";}
+      dashboardPointerTimer=null;
       try{box.setPointerCapture(ev.pointerId);}catch(ignore){}
       if(ev.pointerType!=="touch")ev.preventDefault();
+      else if(ev.cancelable)ev.preventDefault();
     };})(el):null;
-    el.onpointermove=dashboardReorderActive?dashboardPointerMove:null;
-    el.onpointerup=dashboardReorderActive?dashboardPointerUp:null;
-    el.onpointercancel=dashboardReorderActive?function(ev){if(dashboardPointerId===ev.pointerId){clearTimeout(dashboardPointerTimer);dashboardPointerTimer=null;dashboardClearPreview();if(dashboardPointerSource)dashboardPointerSource.style.opacity="1";dashboardPointerId=null;dashboardPointerStart=null;dashboardPointerDragging=false;dashboardPointerSource=null;}}:null;
+    el.onpointermove=null;
+    el.onpointerup=null;
+    el.onpointercancel=null;
   }
 }
 function canManageDashboardLayout(viewPermission){
