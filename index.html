@@ -14684,7 +14684,7 @@ function authRequest(method, path, body, callback){
 
 function usersRequest(method, path, body, callback){
   var x = new XMLHttpRequest();
-  var apiBase = /^\/(?:custom-boxes|custom-tasks|family-users)(?:\/|$)/.test(path)
+  var apiBase = /^\/(?:custom-boxes|custom-tasks|family-users)(?:[/?]|$)/.test(path)
     ? CUSTOM_BOX_API_URL
     : USERS_API_URL;
   x.open(method, apiBase + path, true);
