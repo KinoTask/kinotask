@@ -12646,7 +12646,7 @@ function loadWeeklyDateCalendar(def){
         }
         if(canEdit){
         var noteWrap=mk("div","weekly-date-notes","");
-        var noteButton=mk("button","weekly-note-button"+(entry.notes?" has-notes":""),"📝");noteButton.type="button";noteButton.title=entry.notes?"Apri annotazione":"Aggiungi annotazione";noteButton.setAttribute("aria-label",noteButton.title);
+        var hasDateNote=!!String(entry.notes||"").trim();var noteButton=mk("button","weekly-note-button"+(hasDateNote?" has-notes":""),hasDateNote?"🗒️":"📝");noteButton.type="button";noteButton.title=hasDateNote?"Apri annotazione":"Aggiungi annotazione";noteButton.setAttribute("aria-label",noteButton.title);
         var notePanel=mk("div","weekly-date-note-panel","");notePanel.style.display="none";notePanel.style.width="250px";notePanel.style.maxWidth="calc(100vw - 32px)";notePanel.style.boxSizing="border-box";
         var noteInput=document.createElement("textarea");noteInput.rows=2;noteInput.maxLength=2000;noteInput.placeholder="Scrivi un'annotazione...";noteInput.value=entry.notes||"";
         noteInput.style.display="block";noteInput.style.width="100%";noteInput.style.maxWidth="100%";noteInput.style.height="3.6em";noteInput.style.minHeight="3.6em";noteInput.style.boxSizing="border-box";noteInput.style.margin="2px 0 5px";
@@ -12698,12 +12698,13 @@ function loadWeeklyDateCalendar(def){
         if(value<iso(start)||value>iso(end)){alert("La data deve rientrare nel periodo degli arretrati visualizzato (massimo 3 mesi, fino a 15 giorni fa).");return;}
         var existing=null;
         for(var entryIndex=0;entryIndex<entries.length;entryIndex++){
-          if(entries[entryIndex].source_date===value){existing=entries[entryIndex];break;}
+          if(String(entries[entryIndex].source_date||"").slice(0,10)===value){existing=entries[entryIndex];break;}
         }
         var day=new Date(value+"T12:00:00").getDay();
-        if(existing||weekdays.indexOf(day)!==-1){alert("Per questa data esiste già un'attività nel calendario.");return;}
+        if(existing&&!existing.done){alert("Per questa data esiste già un'attività nel calendario.");return;}
+        if(!existing&&weekdays.indexOf(day)!==-1){alert("Questa data è già prevista dalla regola settimanale.");return;}
         addOverdue.disabled=true;
-        usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){
+        usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:existing&&existing.entry_type==="override"?"override":"extra"},function(e,r){
           addOverdue.disabled=false;
           if(e||!r||!r.ok){alert(e||(r&&r.error)||"Arretrato non aggiunto");return;}
           load();
