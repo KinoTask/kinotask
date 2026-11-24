@@ -12407,11 +12407,13 @@ function customBoxSelectedUserIds(host){
   if(!host)return [];
   /* Le pillole sono la fonte autorevole della selezione: non leggere lo
      stato dei checkbox interni, nascosti per compatibilità CSS/browser. */
-  var choices=host.querySelectorAll('button.custom-box-user-choice[aria-pressed="true"]');
+  var choices=host.getElementsByTagName("button");
   var ids=[];
   for(var i=0;i<choices.length;i++){
-    var check=choices[i].querySelector('input[type="checkbox"]');
-    if(check&&check.value)ids.push(String(check.value));
+    if(!choices[i].className||(" "+choices[i].className+" ").indexOf(" custom-box-user-choice ")<0)continue;
+    if(choices[i].getAttribute("aria-pressed")!=="true")continue;
+    var checks=choices[i].getElementsByTagName("input");
+    if(checks.length&&checks[0].value)ids.push(String(checks[0].value));
   }
   return ids;
 }
