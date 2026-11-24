@@ -8192,8 +8192,8 @@ function renderRoutes(){
         if(err){ setText(tools,"Spostamenti: "+err); return; }
         if(status && status.connected){
           tools.appendChild(mk("span","google-calendar-account","Spostamenti collegati · "+(status.route_count||0)+" percorsi"));
-          var manage=mk("button","google-calendar-save","GESTISCI");
-          manage.type="button";manage.onclick=function(){openRoutesConfig(manage);};
+          var modify=mk("button","google-calendar-save","MODIFICA");
+          modify.type="button";modify.onclick=function(){openRoutesConfig(modify);};
           var disconnect=mk("button","google-calendar-disconnect","SCOLLEGA");
           disconnect.type="button";
           disconnect.onclick=function(){
@@ -8204,10 +8204,23 @@ function renderRoutes(){
               routesData=null;renderRoutes();
             });
           };
-          tools.appendChild(manage);tools.appendChild(disconnect);
+          tools.appendChild(modify);tools.appendChild(disconnect);
         }else{
-          var connect=mk("button","google-calendar-connect","COLLEGA SPOSTAMENTI");
-          connect.type="button";connect.onclick=function(){openRoutesConfig(connect);};
+          var connect=mk("button","google-calendar-connect","COLLEGA");
+          connect.type="button";
+          connect.onclick=function(){
+            connect.disabled=true;
+            routesRequest("POST","/connect?user_id="+encodeURIComponent(userId),{},function(err,data){
+              if(err){connect.disabled=false;showErr(err);return;}
+              if(data && Number(data.route_count)>0){
+                routesData=null;
+                loadRoutes(currentView);
+                renderRoutes();
+              }else{
+                openRoutesConfig(connect);
+              }
+            });
+          };
           tools.appendChild(connect);
         }
       });
