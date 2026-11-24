@@ -304,6 +304,32 @@ input[type=checkbox] {
 .weekly-date-rule-editor button:disabled{opacity:.55;}
 .weekly-date-edit-button{background:#fff!important;color:#29495b!important;border:1px solid #9aaab5!important;border-radius:6px!important;box-shadow:0 1px 2px rgba(0,0,0,.08);}
 #agendaGoogleTools .google-calendar-disconnect,#userAgendaGoogleTools .google-calendar-disconnect{border-radius:6px;padding:6px 9px;font-size:.75em;font-weight:700;background:#fff;border:1px solid #9aaab5;color:#29495b;}
+.weekly-date-notes > button.has-notes,
+.weekly-date-assignment > button.has-assignment,
+.weekly-date-edit-button.has-date-change{
+  background:#dceaf3!important;
+  border-color:#8eafc2!important;
+  color:#29495b!important;
+}
+#dashboardAddBoxPanel .custom-box-user-choice input[type="checkbox"],
+#dashboardAddBoxPanel .custom-box-editor-section input[type="checkbox"]{
+  display:inline-block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  appearance:checkbox!important;
+  -webkit-appearance:checkbox!important;
+  accent-color:#29495b;
+  width:16px!important;
+  height:16px!important;
+  min-width:16px!important;
+  flex:0 0 16px!important;
+  margin:0!important;
+  padding:0!important;
+  position:static!important;
+  clip:auto!important;
+  transform:none!important;
+}
+
 
 
 /* ==================================================
@@ -12366,13 +12392,15 @@ function openCustomBoxEditor(def, anchor){
     editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';
     scope.disabled=false;
     var ruleYear=(new Date()).getFullYear();
-    usersRequest('GET','/custom-boxes/'+def.custom_box_id+'/weekly-dates?viewId='+encodeURIComponent(currentView)+'&from='+ruleYear+'-01-01&to='+ruleYear+'-12-31',null,function(ruleErr,ruleData){
-      if(!ruleErr&&ruleData&&ruleData.ok){
-        def.box_kind='weekly_dates';boxKind.value='weekly_dates';editWeekdays.style.display='flex';
-        editWeekdayChecks.forEach(function(c){c.checked=(ruleData.weekdays||[]).indexOf(Number(c.value))!==-1;});
-        updateUsers();positionCustomBoxPanel(panel,anchorRect);
-      }
-    });
+    if(boxKind.value==='weekly_dates'){
+      usersRequest('GET','/custom-boxes/'+def.custom_box_id+'/weekly-dates?viewId='+encodeURIComponent(currentView)+'&from='+ruleYear+'-01-01&to='+ruleYear+'-12-31',null,function(ruleErr,ruleData){
+        if(!ruleErr&&ruleData&&ruleData.ok){
+          editWeekdays.style.display='flex';
+          editWeekdayChecks.forEach(function(c){c.checked=(ruleData.weekdays||[]).indexOf(Number(c.value))!==-1;});
+          updateUsers();positionCustomBoxPanel(panel,anchorRect);
+        }
+      });
+    }
     editorReady=true;save.disabled=false;loadStatus.hidden=true;
     /* Usa l'elenco live del Worker: gli ID delle checkbox devono provenire
        dalla stessa tabella users usata per salvare la visibilità in D1. */
@@ -12715,7 +12743,8 @@ function loadWeeklyDateCalendar(def){
         if(canAssign){
         var assigned=[];try{assigned=JSON.parse(entry.assigned_user_ids||"[]").map(String);}catch(ignore){assigned=[];}
         var assignWrap=mk("div","weekly-date-assignment","");assignWrap.style.display="flex";assignWrap.style.position="relative";assignWrap.style.alignItems="center";
-        var assignButton=mk("button","todo-assign","👥");assignButton.type="button";assignButton.title="Assegna la data";assignButton.style.width="32px";assignButton.style.minWidth="32px";assignButton.style.height="30px";assignButton.style.padding="2px";assignButton.style.margin="0";assignButton.style.fontSize="17px";
+        var hasAssignments=assigned.length>0;
+        var assignButton=mk("button","todo-assign weekly-date-assignment-button"+(hasAssignments?" has-assignment":""),"👥");assignButton.type="button";assignButton.title="Assegna la data";assignButton.style.width="32px";assignButton.style.minWidth="32px";assignButton.style.height="30px";assignButton.style.padding="2px";assignButton.style.margin="0";assignButton.style.fontSize="17px";
         var assignMenu=mk("div","todo-assign-menu","");assignMenu.style.position="absolute";assignMenu.style.top="100%";assignMenu.style.left="0";assignMenu.style.zIndex="10";assignMenu.style.width="190px";assignMenu.style.margin="4px 0 0";
         assignMenu.appendChild(mk("div","todo-assign-title","Assegna a:"));
         var assignOptions=mk("div","todo-assign-options",""),assignChecks=[];
@@ -12749,7 +12778,7 @@ function loadWeeklyDateCalendar(def){
         }
         if(canEdit){
         var noteWrap=mk("div","weekly-date-notes","");
-        var hasDateNote=!!String(entry.notes||"").trim();var noteButton=mk("button","weekly-note-button"+(hasDateNote?" has-notes":""),hasDateNote?"📝":"🗒️");noteButton.type="button";noteButton.title=hasDateNote?"Apri annotazione":"Aggiungi annotazione";noteButton.setAttribute("aria-label",noteButton.title);
+        var hasDateNote=!!String(entry.notes||"").trim();var noteButton=mk("button","weekly-note-button"+(hasDateNote?" has-notes":""),"📝");noteButton.type="button";noteButton.title=hasDateNote?"Apri annotazione":"Aggiungi annotazione";noteButton.setAttribute("aria-label",noteButton.title);
         var notePanel=mk("div","weekly-date-note-panel","");notePanel.style.display="none";notePanel.style.width="250px";notePanel.style.maxWidth="calc(100vw - 32px)";notePanel.style.boxSizing="border-box";
         var noteInput=document.createElement("textarea");noteInput.rows=2;noteInput.maxLength=2000;noteInput.placeholder="Scrivi un'annotazione...";noteInput.value=entry.notes||"";
         noteInput.style.display="block";noteInput.style.width="100%";noteInput.style.maxWidth="100%";noteInput.style.height="3.6em";noteInput.style.minHeight="3.6em";noteInput.style.boxSizing="border-box";noteInput.style.margin="2px 0 5px";
@@ -12764,7 +12793,8 @@ function loadWeeklyDateCalendar(def){
       if(canEdit){
         var actionWrap=line.querySelector(".weekly-date-actions");
         if(!actionWrap){actionWrap=mk("div","weekly-date-actions","");line.appendChild(actionWrap);}
-        var edit=mk("button","weekly-date-action-button weekly-date-edit-button","📅");edit.type="button";edit.title="Modifica data";
+        var dateWasModified=String(row.date)!==String(row.source);
+        var edit=mk("button","weekly-date-action-button weekly-date-edit-button"+(dateWasModified?" has-date-change":""),"📅");edit.type="button";edit.title=dateWasModified?"Data modificata":"Modifica data";
         edit.onclick=function(){var next=prompt("Nuova data (AAAA-MM-GG)",row.date);if(!next)return;if(!/^\d{4}-\d{2}-\d{2}$/.test(next)){alert("Formato data non valido");return;}usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_date:next,entry_type:"override"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
         actionWrap.appendChild(edit);
         var exclude=mk("button","weekly-date-action-button weekly-date-exclude-button","🗑");exclude.type="button";exclude.title="Escludi questa data";
@@ -12930,7 +12960,7 @@ function loadCustomBoxTasks(def){
     }
     // Usa il valore aggiornato restituito dall'API, non il flag eventualmente
     // obsoleto nella definizione del box già caricata in memoria.
-    def.assignment_enabled = data.assignment_enabled === true;
+    def.assignment_enabled = data.assignment_enabled === true || Number(data.assignment_enabled) === 1;
     /* I dati di collaborazione provengono dalla risposta live del Worker,
        non dalla copia potenzialmente incompleta del catalogo dashboard. */
     def.share_mode = data.share_mode || "private";
@@ -12954,7 +12984,7 @@ function loadCustomBoxTasks(def){
       var permissions=data.permissions||{};
       def.customPermissions=permissions;
       var canDelete=!!permissions.can_delete_tasks;
-      var assignment=!!permissions.can_manage_assignments && data.assignment_enabled ? customTaskAssignControl(def,task) : null;
+      var assignment=!!permissions.can_manage_assignments && def.assignment_enabled ? customTaskAssignControl(def,task) : null;
       var row=itemRow(item,false,
         function(){
           var next=!item.done;
