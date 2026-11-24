@@ -2545,7 +2545,7 @@ body:not(.k) .ev {
 body:not(.k) .ev .t {
   padding:3px 9px;
   border-radius:9px;
-  background:#7027a8;
+  background:#783B4A;
   color:#fff;
   font-size:13px;
 }
@@ -3017,7 +3017,7 @@ body.k .ev {
 body.k .ev .t {
   padding:3px 9px;
   border-radius:9px;
-  background:#7027a8;
+  background:#783B4A;
   color:#fff;
   font-size:13px;
 }
@@ -12609,22 +12609,29 @@ function loadCustomBoxRenderer(def){
   });
 }
 
-function openWeeklyDatePicker(initialValue,title,onConfirm){
-  var overlay=mk("div","overlay"),panel=mk("div","panel"),head=mk("div","overlay-head"),body=mk("div","");
-  head.appendChild(mk("h2","",title||"Seleziona una data"));
-  var close=mk("button","","ANNULLA");close.type="button";
-  close.onclick=function(){if(overlay.parentNode)overlay.parentNode.removeChild(overlay);};
-  head.appendChild(close);
+function openWeeklyDatePicker(initialValue,title,onConfirm,trigger){
+  var host=trigger&&trigger.parentNode?trigger.parentNode:document.body;
+  var previous=host.querySelector(".weekly-date-picker-popover");
+  if(previous&&previous.parentNode)previous.parentNode.removeChild(previous);
+  if(host!==document.body){host.style.position="relative";}
+  var pop=mk("div","weekly-date-picker-popover","");
+  pop.style.position=host===document.body?"fixed":"absolute";
+  pop.style.zIndex="10060";pop.style.background="#fff";pop.style.border="1px solid #9aaab5";
+  pop.style.borderRadius="7px";pop.style.boxShadow="0 4px 14px rgba(0,0,0,.2)";
+  pop.style.padding="9px";pop.style.width="230px";pop.style.maxWidth="calc(100vw - 24px)";
+  pop.style.boxSizing="border-box";pop.style.left=host===document.body?"12px":"0";
+  pop.style.top=host===document.body?"80px":"calc(100% + 5px)";
   var dateInput=document.createElement("input");dateInput.type="date";
   dateInput.value=/^\d{4}-\d{2}-\d{2}$/.test(String(initialValue||""))?String(initialValue):iso(new Date());
   dateInput.style.display="block";dateInput.style.width="100%";dateInput.style.boxSizing="border-box";
-  dateInput.style.padding="10px";dateInput.style.margin="12px 0";dateInput.style.fontSize="16px";
-  var actions=mk("div","route-config-footer","");
+  dateInput.style.padding="7px";dateInput.style.fontSize="14px";
+  var actions=mk("div","route-config-footer","");actions.style.marginTop="7px";
   var confirmButton=mk("button","route-config-save","CONFERMA");confirmButton.type="button";
-  confirmButton.onclick=function(){if(!dateInput.value){alert("Seleziona una data.");return;}var value=dateInput.value;if(overlay.parentNode)overlay.parentNode.removeChild(overlay);onConfirm(value);};
-  var cancelButton=mk("button","route-config-back","ANNULLA");cancelButton.type="button";cancelButton.onclick=close.onclick;
+  confirmButton.onclick=function(){if(!dateInput.value){alert("Seleziona una data.");return;}var value=dateInput.value;if(pop.parentNode)pop.parentNode.removeChild(pop);onConfirm(value);};
+  var cancelButton=mk("button","route-config-back","ANNULLA");cancelButton.type="button";
+  cancelButton.onclick=function(){if(pop.parentNode)pop.parentNode.removeChild(pop);};
   actions.appendChild(confirmButton);actions.appendChild(cancelButton);
-  body.appendChild(dateInput);body.appendChild(actions);panel.appendChild(head);panel.appendChild(body);overlay.appendChild(panel);document.body.appendChild(overlay);
+  pop.appendChild(dateInput);pop.appendChild(actions);host.appendChild(pop);
   try{if(dateInput.showPicker)dateInput.showPicker();else dateInput.focus();}catch(ignore){dateInput.focus();}
 }
 function loadWeeklyDateCalendar(def){
@@ -12861,7 +12868,7 @@ function loadWeeklyDateCalendar(def){
     }
     if(canEdit&&!showOverdue){
       var add=mk("button","weekly-date-rule-button","+ AGGIUNGI DATA");add.type="button";add.style.marginTop="9px";
-      add.onclick=function(){openWeeklyDatePicker(iso(new Date()),"Aggiungi una data",function(value){usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Data non aggiunta");load();});});};ruleToolbar.appendChild(add);
+      add.onclick=function(){openWeeklyDatePicker(iso(new Date()),"Aggiungi una data",function(value){usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Data non aggiunta");load();});},add);};ruleToolbar.appendChild(add);
     }
   }
   load();
