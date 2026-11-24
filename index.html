@@ -348,13 +348,10 @@ input[type=checkbox] {
   background:#fff!important;
   padding:0!important;
 }
-#dashboardAddBoxPanel .custom-box-user-choice input[type="checkbox"]:checked{
+.custom-box-user-choice input[type="checkbox"]:checked{
   background-color:#783B4A!important;
   border:1px solid #5d2938!important;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l2.5 2.5L10 3' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important;
-  background-repeat:no-repeat!important;
-  background-position:center!important;
-  background-size:10px 10px!important;
+  background-image:none!important;
 }
 
 
@@ -12095,10 +12092,10 @@ function openAddBoxPanel(anchor){
     if(ownerMatches.length&&ownerMatches[0].id)defaultVisible=[String(ownerMatches[0].id)];
   }
   renderCustomBoxUserChoices(visibleUsers,defaultVisible,function(){positionCustomBoxPanel(panel,addAnchorRect,true);});
-  visibilityScope.value=scope.value==="family"?"family":"selected";
-  visibilityScope.disabled=scope.value==="family";
+  visibilityScope.value="selected";
+  visibilityScope.disabled=false;
   setHidden(visibleUsers,visibilityScope.value!=="selected");
-  scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");if(scope.value==="family"){visibilityScope.value="family";visibilityScope.disabled=true;}else{visibilityScope.disabled=false;}setHidden(visibleUsers,visibilityScope.value!=="selected");assignment.disabled=scope.value==="private";if(assignment.disabled)assignment.checked=false;renderCreateGrantRows();positionCustomBoxPanel(panel,addAnchorRect,true);};
+  scope.onchange=function(){setHidden(shareUsers,scope.value!=="selected");visibilityScope.disabled=false;setHidden(visibleUsers,visibilityScope.value!=="selected");assignment.disabled=scope.value==="private";if(assignment.disabled)assignment.checked=false;renderCreateGrantRows();positionCustomBoxPanel(panel,addAnchorRect,true);};
   visibilityScope.onchange=function(){setHidden(visibleUsers,visibilityScope.value!=="selected");positionCustomBoxPanel(panel,addAnchorRect,true);};
   shareUsers.addEventListener("change",renderCreateGrantRows);
   var assignment=document.createElement("input");assignment.type="checkbox";assignment.disabled=scope.value==="private";
@@ -12425,8 +12422,8 @@ function openCustomBoxEditor(def, anchor){
     var showCollaborators=scope.value==='selected';
     setHidden(users,!showCollaborators);
     users.style.display=showCollaborators?'flex':'none';
-    if(scope.value==='family'){visibilityScope.value='family';visibilityScope.disabled=true;}else{visibilityScope.disabled=false;}
-    var showVisibleUsers=visibilityScope.value==='selected'&&scope.value!=='family';
+    visibilityScope.disabled=false;
+    var showVisibleUsers=visibilityScope.value==='selected';
     setHidden(visibleUsers,!showVisibleUsers);
     visibleUsers.style.display=showVisibleUsers?'flex':'none';
     assignment.disabled=scope.value==='private'||boxKind.value==='weekly_dates';
