@@ -12509,12 +12509,13 @@ function openCustomBoxEditor(def, anchor){
     setHidden(visibleUsers,!showVisibleUsers);
     visibleUsers.style.display=showVisibleUsers?'flex':'none';
     assignment.disabled=scope.value==='private'||boxKind.value==='weekly_dates';
+    assignmentLabel.hidden=boxKind.value==='weekly_dates';
     if(assignment.disabled)assignment.checked=false;
     positionCustomBoxPanel(panel,anchorRect);
   }
-  scope.onchange=function(){updateUsers();editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';assignment.disabled=boxKind.value==='weekly_dates'||scope.value==='private';if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,anchorRect);};
+  scope.onchange=function(){updateUsers();editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';assignment.disabled=boxKind.value==='weekly_dates'||scope.value==='private';assignmentLabel.hidden=boxKind.value==='weekly_dates';if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,anchorRect);};
   visibilityScope.onchange=updateUsers;
-  boxKind.onchange=function(){editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';retentionWrap.style.display=boxKind.value==='weekly_dates'?'flex':'none';assignment.disabled=boxKind.value==='weekly_dates'||scope.value==='private';if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,anchorRect);};
+  boxKind.onchange=function(){editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';retentionWrap.style.display=boxKind.value==='weekly_dates'?'flex':'none';assignment.disabled=boxKind.value==='weekly_dates'||scope.value==='private';assignmentLabel.hidden=boxKind.value==='weekly_dates';if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,anchorRect);};
   var loadStatus=mk('div','','Caricamento configurazione del box…');
   loadStatus.style.fontSize='13px';loadStatus.style.color='#9b2c2c';
   wrap.appendChild(loadStatus);
@@ -12820,7 +12821,9 @@ function loadWeeklyDateCalendar(def){
       includeOverdue=data.include_overdue!==false&&Number(data.include_overdue)!==0;
       retentionWeeks=Math.max(1,Math.min(5,Number(data.retention_weeks)||3));
       canEdit=!!(data.permissions&&data.permissions.can_edit_box);
-      canAssign=!!(data.permissions&&data.permissions.can_manage_assignments);
+      /* I calendari settimanali non prevedono assegnatari, anche se l'utente
+         possiede il permesso generale di gestione assegnazioni. */
+      canAssign=false;
       var box=$(def.element_id),editButton=box&&box.querySelector(".custom-box-edit");if(editButton)editButton.hidden=!canEdit;
       render(start,end);
     });
