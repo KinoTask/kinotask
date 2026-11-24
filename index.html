@@ -6596,6 +6596,14 @@ function renderGoogleCalendarTools(scope, userId){
     disconnect.type = "button";
     disconnect.onclick = function(){ googleCalendarDisconnect(scope, userId, disconnect); };
     host.appendChild(disconnect);
+    if(scope === "family"){
+      var manage = mk("button", "google-calendar-manage", "CALENDARI");
+      manage.type = "button";
+      manage.onclick = function(){ googleCalendarToolsCache[ownerKey] = false; openSharedAgendaConfig(manage); };
+      host.appendChild(manage);
+      googleCalendarToolsCache[ownerKey] = true;
+      return;
+    }
     googleCalendarRequest("GET", "/calendars?scope=" + encodeURIComponent(scope) + (userId ? "&user_id=" + encodeURIComponent(userId) : ""), null, function(calErr, data){
       if(calErr || !data || !Array.isArray(data.calendars) || !host.parentNode) return;
       var select = document.createElement("select");
@@ -6618,8 +6626,7 @@ function renderGoogleCalendarTools(scope, userId){
           if(saveErr) showErr(saveErr);
           else {
             renderGoogleCalendarTools(scope, userId);
-            if(scope === "family") loadAgenda();
-            else loadUserAgenda(userId);
+            loadUserAgenda(userId);
           }
         });
       };
