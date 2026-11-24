@@ -9,7 +9,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,sans-serif}
 body{padding:8px;min-height:100vh}
-.page{width:calc(100% - 12px);max-width:850px;margin:0 auto;border:3px solid #111}
+.page{width:calc(100% - 20px);max-width:850px;margin:0;border:3px solid #111}
 header{padding:12px 10px 10px;text-align:center;border-bottom:2px solid #111}
 h1{font-size:27px;line-height:1.1;margin:0;font-weight:800;letter-spacing:.4px}
 #todayLabel{font-size:16px;margin:6px 0 0}
@@ -17,10 +17,11 @@ h1{font-size:27px;line-height:1.1;margin:0;font-weight:800;letter-spacing:.4px}
 .user-button{flex:1 1 auto;min-width:76px;max-width:180px;padding:10px 6px;border:2px solid #111;background:#fff;color:#111;font-size:16px;font-weight:bold}
 .user-button.active{background:#111;color:#fff}
 main{padding:10px 12px 18px}
-.task-section{margin:0 0 15px}
+.task-section{margin:0 0 10px}
 .section-title{font-size:21px;font-weight:800;letter-spacing:.5px;margin:0 0 8px;padding:7px 8px;border-top:3px solid #111;border-bottom:2px solid #111}
+.task-section:first-child .section-title{border-top:0}
 .task-list{display:block}
-.task-row{display:block;overflow:hidden;padding:8px 3px;border-bottom:1px solid #bbb;font-size:19px;line-height:1.25;min-height:44px}
+.task-row{display:block;overflow:hidden;padding:5px 3px;border-bottom:1px solid #bbb;font-size:19px;line-height:1.25;min-height:38px}
 .task-row input{float:left;width:25px;height:25px;margin:1px 10px 2px 0;accent-color:#111}
 .task-text{display:inline;min-width:0;overflow-wrap:anywhere}
 .task-row.done .task-text{text-decoration:line-through;color:#555}
@@ -35,7 +36,7 @@ main{padding:10px 12px 18px}
 #loginError{font-size:16px;margin-top:8px;text-align:center}
 #app{display:none}
 footer{padding:7px 10px;text-align:center;border-top:1px solid #aaa;font-size:12px;color:#444}
-@media(min-width:700px){body{padding:14px}.page{border-width:4px}main{padding:14px 22px 22px}.task-row{font-size:21px;padding:10px 4px}.section-title{font-size:23px}}
+@media(min-width:700px){body{padding:14px}.page{width:calc(100% - 20px);margin:0 auto;border-width:4px}main{padding:14px 22px 22px}.task-row{font-size:21px;padding:7px 4px;min-height:38px}.section-title{font-size:23px}}
 </style>
 </head>
 <body>
