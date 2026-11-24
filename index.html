@@ -11144,11 +11144,21 @@ function applyDashboardReorderMode(){
   for(var i=0;i<boxes.length;i++){
     var el=boxes[i];el.draggable=false;
     el.style.cursor=dashboardReorderActive?"grab":"";
-    el.style.touchAction=dashboardReorderActive?"none":"";
+    /* Il contenuto del box resta scrollabile: il drag touch parte solo
+       dall'apposita maniglia, che intercetta il gesto senza bloccare la pagina. */
+    el.style.touchAction="";
     el.style.outline=dashboardReorderActive?"2px dashed #2878c8":"";
     el.style.outlineOffset=dashboardReorderActive?"2px":"";
     if(dashboardReorderActive){
       if(!el._dashboardReorderPosition)el._dashboardReorderPosition=el.style.position;
+      if(window.matchMedia&&window.matchMedia("(pointer:coarse)").matches&&!el.querySelector(".dashboard-box-drag-handle")){
+        var dragHandle=mk("button","dashboard-box-drag-handle","↕");
+        dragHandle.type="button";
+        dragHandle.title="Trascina per spostare questo box";
+        dragHandle.setAttribute("aria-label","Trascina per spostare questo box");
+        dragHandle.style.cssText="position:absolute;top:6px;left:6px;z-index:21;width:30px;height:30px;min-width:30px;padding:0;border:1px solid #2878c8;border-radius:5px;background:#fff;color:#2878c8;font-size:20px;line-height:1;touch-action:none;cursor:grab;";
+        el.appendChild(dragHandle);
+      }
       if(!el.querySelector(".dashboard-box-remove-control")){
         el.style.position="relative";
         var remove=mk("button","dashboard-box-remove-control","× NASCONDI");
@@ -11174,6 +11184,8 @@ function applyDashboardReorderMode(){
         el.appendChild(remove);
       }
     }else{
+      var dragHandleOld=el.querySelector(".dashboard-box-drag-handle");
+      if(dragHandleOld)dragHandleOld.parentNode.removeChild(dragHandleOld);
       var removeControl=el.querySelector(".dashboard-box-remove-control");
       if(removeControl)removeControl.parentNode.removeChild(removeControl);
       if(el._dashboardReorderPosition!==undefined){
@@ -11183,6 +11195,7 @@ function applyDashboardReorderMode(){
     }
     el.onpointerdown=dashboardReorderActive?(function(box){return function(ev){
       if(ev.target&&ev.target.closest&&ev.target.closest(".dashboard-box-remove-control"))return;
+      if(ev.pointerType==="touch"&&!(ev.target&&ev.target.closest&&ev.target.closest(".dashboard-box-drag-handle")))return;
       if(ev.button!==undefined&&ev.button!==0)return;
       dashboardPointerId=ev.pointerId;dashboardPointerStart={x:ev.clientX,y:ev.clientY};
       dashboardPointerSource=box;dashboardPointerDragging=ev.pointerType!=="touch";
@@ -11190,7 +11203,7 @@ function applyDashboardReorderMode(){
       dashboardPointerTimer=null;
       try{box.setPointerCapture(ev.pointerId);}catch(ignore){}
       if(ev.pointerType!=="touch")ev.preventDefault();
-      else if(ev.cancelable)ev.preventDefault();
+      else if(ev.target&&ev.target.closest&&ev.target.closest(".dashboard-box-drag-handle")&&ev.cancelable)ev.preventDefault();
     };})(el):null;
     el.onpointermove=null;
     el.onpointerup=null;
