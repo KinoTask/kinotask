@@ -10771,6 +10771,27 @@ function dashboardBoxId(el){
   for(var i=0;i<(DASHBOARD_BOXES||[]).length;i++)if(DASHBOARD_BOXES[i].element_id===el.id)return DASHBOARD_BOXES[i].id;
   return null;
 }
+/* Il renderer può risolvere un'associazione storica tramite element_id,
+   ma il riordino deve cercare nelle sezioni la chiave effettivamente salvata. */
+function dashboardLayoutItemId(el){
+  if(!el)return null;
+  var def=null;
+  for(var i=0;i<(DASHBOARD_BOXES||[]).length;i++){
+    if(DASHBOARD_BOXES[i].element_id===el.id){def=DASHBOARD_BOXES[i];break;}
+  }
+  if(!def)return null;
+  var sections=dashboardGetSections()||[];
+  for(var si=0;si<sections.length;si++){
+    for(var ci=0;ci<(sections[si].columns||[]).length;ci++){
+      var items=sections[si].columns[ci]||[];
+      for(var ii=0;ii<items.length;ii++){
+        var id=String(items[ii].box_id||"");
+        if(id===String(def.id)||id===String(def.element_id))return items[ii].box_id;
+      }
+    }
+  }
+  return def.id;
+}
 function dashboardLayoutHost(){
   var v=findItem(DASHBOARD_VIEWS||[],function(x){return String(x.id)===String(currentView);});
   return v&&v.view_type==="shared"?$("dashboardContent"):$("personalView");
@@ -10811,7 +10832,7 @@ function dashboardCleanupSections(sections){
 }
 function dashboardCalculateSections(sourceEl,targetEl,clientX,clientY,baseSections){
   if(!sourceEl||!targetEl)return null;
-  var sourceId=dashboardBoxId(sourceEl),targetId=dashboardBoxId(targetEl);
+  var sourceId=dashboardLayoutItemId(sourceEl),targetId=dashboardLayoutItemId(targetEl);
   if(!sourceId||!targetId||sourceId===targetId)return null;
   var sections=dashboardCloneSections(baseSections||dashboardGetSections()||[]);
   var sourceLoc=dashboardFindItemLocation(sections,sourceId),targetLoc=dashboardFindItemLocation(sections,targetId);
