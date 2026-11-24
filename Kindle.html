@@ -20,7 +20,7 @@ main{padding:10px 12px 18px}
 .task-section{margin:0 0 15px}
 .section-title{font-size:21px;font-weight:800;letter-spacing:.5px;margin:0 0 8px;padding:7px 8px;border-bottom:2px solid #111}
 .task-list{display:block}
-.task-row{display:block;overflow:hidden;padding:8px 3px;border-bottom:1px solid #bbb;font-size:21px;line-height:1.25;min-height:44px}
+.task-row{display:block;overflow:hidden;padding:8px 3px;border-bottom:1px solid #bbb;font-size:19px;line-height:1.25;min-height:44px}
 .task-row input{float:left;width:25px;height:25px;margin:1px 10px 2px 0;accent-color:#111}
 .task-text{display:inline;min-width:0;overflow-wrap:anywhere}
 .task-row.done .task-text{text-decoration:line-through;color:#555}
@@ -35,7 +35,7 @@ main{padding:10px 12px 18px}
 #loginError{font-size:16px;margin-top:8px;text-align:center}
 #app{display:none}
 footer{padding:7px 10px;text-align:center;border-top:1px solid #aaa;font-size:12px;color:#444}
-@media(min-width:700px){body{padding:14px}.page{border-width:4px}main{padding:14px 22px 22px}.task-row{font-size:23px;padding:10px 4px}.section-title{font-size:23px}}
+@media(min-width:700px){body{padding:14px}.page{border-width:4px}main{padding:14px 22px 22px}.task-row{font-size:21px;padding:10px 4px}.section-title{font-size:23px}}
 </style>
 </head>
 <body>
@@ -392,9 +392,9 @@ function renderSection(id,items){
       });
     };
     row.appendChild(cb);
+    if(item.source)row.appendChild(node("span","task-source",item.source));
     var textWrap=node("span","task-text",item.text);
     row.appendChild(textWrap);
-    if(item.source)row.appendChild(node("span","task-source",item.source));
     host.appendChild(row);
   });
 }
