@@ -12288,15 +12288,30 @@ function openAddBoxPanel(anchor){
     });
     positionCustomBoxPanel(panel,addAnchorRect,true);
   }
-  /* Ogni area di AGGIUNGI BOX è autonoma, come nell'editor MODIFICA BOX. */
-  function addBoxSection(sectionTitle,nodes){
+  /* Prima schermata: solo box già disponibili. La configurazione custom
+     viene mostrata esclusivamente dopo il comando + CUSTOM BOX. */
+  var customForm=mk("div","custom-box-create-form","");
+  customForm.hidden=true;
+  customForm.style.display="flex";
+  customForm.style.flexDirection="column";
+  customForm.style.gap="9px";
+  function addBoxSection(sectionTitle,nodes,target){
     var section=mk("div","custom-box-editor-section","");
     section.appendChild(mk("div","custom-box-editor-section-title",sectionTitle));
     nodes.forEach(function(node){if(node)section.appendChild(node);});
-    wrap.appendChild(section);
+    (target||customForm).appendChild(section);
     return section;
   }
-  addBoxSection("BOX DISPONIBILI",[available]);
+  var availableSection=addBoxSection("BOX DISPONIBILI",[available],wrap);
+  var customCreateButton=mk("button","","+ CUSTOM BOX");
+  customCreateButton.type="button";
+  customCreateButton.onclick=function(){
+    availableSection.hidden=true;
+    customCreateButton.hidden=true;
+    customForm.hidden=false;
+    positionCustomBoxPanel(panel,addAnchorRect,true);
+  };
+  wrap.appendChild(customCreateButton);
   addBoxSection("IMPOSTAZIONI GENERALI",[name,boxKind,overdueLabel,weekdaysPanel]);
   addBoxSection("COLLABORATORI",[scope,shareUsers]);
   addBoxSection("VISIBILITÀ",[visibilityScope,visibleUsers]);
@@ -12367,8 +12382,16 @@ function openAddBoxPanel(anchor){
         });
       }else refresh();
   }
-  wrap.appendChild(create);
-  var back=mk("button","","INDIETRO");back.type="button";back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};wrap.appendChild(back);
+  customForm.appendChild(create);
+  var back=mk("button","","INDIETRO");back.type="button";
+  back.onclick=function(){
+    customForm.hidden=true;
+    availableSection.hidden=false;
+    customCreateButton.hidden=false;
+    positionCustomBoxPanel(panel,addAnchorRect,true);
+  };
+  customForm.appendChild(back);
+  wrap.appendChild(customForm);
   panel.appendChild(wrap);
   positionCustomBoxPanel(panel,addAnchorRect,true);
   bindCustomBoxPanelPosition(panel,addAnchorRect,true);
