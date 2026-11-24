@@ -12533,7 +12533,7 @@ function openCustomBoxEditor(def, anchor){
   wrap.appendChild(loadStatus);
   var editorReady=false;
   scope.disabled=true;save.disabled=true;
-  usersRequest('GET','/custom-boxes?viewId='+encodeURIComponent(String(currentView)),null,function(err,data){
+  usersRequest('GET','/custom-boxes?viewId='+encodeURIComponent(String(currentView))+'&manage=1',null,function(err,data){
     /* Il catalogo /config può esporre il vecchio numeric_id come custom_box_id,
        mentre /custom-boxes restituisce l'UUID del record e box_id del box.
        Risolvi prima tramite ID custom, poi tramite ID del box e usa sempre
@@ -12561,7 +12561,7 @@ function openCustomBoxEditor(def, anchor){
     var ruleYear=(new Date()).getFullYear();
     if(boxKind.value==='weekly_dates'){
       editorReady=false;save.disabled=true;loadStatus.textContent='Caricamento regole del calendario…';loadStatus.hidden=false;
-      usersRequest('GET','/custom-boxes/'+def.custom_box_id+'/weekly-dates?viewId='+encodeURIComponent(currentView)+'&from='+ruleYear+'-01-01&to='+ruleYear+'-12-31',null,function(ruleErr,ruleData){
+      usersRequest('GET','/custom-boxes/'+def.custom_box_id+'/weekly-dates?viewId='+encodeURIComponent(currentView)+'&from='+ruleYear+'-01-01&to='+ruleYear+'-12-31&manage=1',null,function(ruleErr,ruleData){
         if(ruleErr||!ruleData||!ruleData.ok){loadStatus.textContent=ruleErr||(ruleData&&ruleData.error)||'Impossibile caricare le regole del calendario.';return;}
         editWeekdays.style.display='flex';retentionWrap.style.display='flex';
         editWeekdayChecks.forEach(function(c){c.checked=(ruleData.weekdays||[]).map(Number).indexOf(Number(c.value))!==-1;});
