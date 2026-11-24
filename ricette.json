@@ -1,44 +1,44 @@
 {
-  "generated_at": "2026-11-22T01:46:39.537721+01:00",
+  "generated_at": "2026-11-25T00:02:31.150582+01:00",
   "site": "U003128",
   "siteType": "02",
   "menus": {
-    "2026-11-23": {
-      "P102032": {
-        "dishCode": "P102032",
-        "name": "Gnocchi al pomodoro ",
+    "2026-11-24": {
+      "P101308": {
+        "dishCode": "P101308",
+        "name": "Minestra di lenticchie con crostini con farina integrale biologica",
         "alternative": 40,
         "label": "Ricetta Infanzia",
         "photo": "band",
         "ingredients": [
           {
-            "name": "GNOCCHI",
-            "quantity": "130",
+            "name": "LENTICCHIE SECCHE",
+            "quantity": "35",
             "unit": "Gr"
           },
           {
-            "name": "POLPA DI POMODORO",
-            "quantity": "33",
+            "name": "PATATE",
+            "quantity": "30",
             "unit": "Gr"
           },
           {
-            "name": "CAROTE",
-            "quantity": "3,3",
-            "unit": "Gr"
-          },
-          {
-            "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "3,6",
-            "unit": "Gr"
-          },
-          {
-            "name": "PARMIGIANO REGGIANO",
-            "quantity": "3",
+            "name": "CROSTINI CON FARINA INTEGRALE BIOLOGICA",
+            "quantity": "20",
             "unit": "Gr"
           },
           {
             "name": "CIPOLLE",
-            "quantity": "2,8",
+            "quantity": "7,5",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "2,5",
+            "unit": "Gr"
+          },
+          {
+            "name": "ESTRATTO PER BRODO VEGETALE",
+            "quantity": "1,7",
             "unit": "Gr"
           },
           {
@@ -48,85 +48,45 @@
           }
         ]
       },
-      "P100571": {
-        "dishCode": "P100571",
-        "name": "Burger con legumi con maionese 100% vegetale biologica",
+      "P100197": {
+        "dishCode": "P100197",
+        "name": "Bastoncini di pesce",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "BASTONCINI DI PESCE",
+            "quantity": "60",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P100904": {
+        "dishCode": "P100904",
+        "name": "Spinaci e patate saporiti",
         "alternative": 40,
         "label": "Ricetta Infanzia",
         "photo": "band",
         "ingredients": [
           {
             "name": "PATATE",
-            "quantity": "11,95",
+            "quantity": "40",
             "unit": "Gr"
           },
           {
-            "name": "ASIAGO E/O CACIOTTA BIOLOGICA",
-            "quantity": "6,72",
-            "unit": "Gr"
-          },
-          {
-            "name": "LENTICCHIE SECCHE DECORTICATE",
-            "quantity": "7,13",
-            "unit": "Gr"
-          },
-          {
-            "name": "PANE GRATTUGIATO",
-            "quantity": "4,98",
-            "unit": "Gr"
-          },
-          {
-            "name": "CAROTE",
-            "quantity": "3,32",
-            "unit": "Gr"
-          },
-          {
-            "name": "CIPOLLE",
-            "quantity": "2,32",
-            "unit": "Gr"
-          },
-          {
-            "name": "PARMIGIANO REGGIANO",
-            "quantity": "2,16",
+            "name": "SPINACI",
+            "quantity": "40",
             "unit": "Gr"
           },
           {
             "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "1,99",
+            "quantity": "4,8",
             "unit": "Gr"
           },
           {
-            "name": "UOVA BIOLOGICHE",
-            "quantity": "1,49",
-            "unit": "Gr"
-          },
-          {
-            "name": "SALE IODATO",
-            "quantity": "0,2",
-            "unit": "Gr"
-          },
-          {
-            "name": "MAIONESE 100% VEGETALE BIOLOGICA",
-            "quantity": "10",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P01887": {
-        "dishCode": "P01887",
-        "name": "Finocchi in insalata",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "FINOCCHI",
-            "quantity": "32",
-            "unit": "Gr"
-          },
-          {
-            "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "3,6",
+            "name": "AGLIO",
+            "quantity": "0,8",
             "unit": "Gr"
           },
           {
@@ -136,22 +96,84 @@
           }
         ]
       },
-      "P00005": {
-        "dishCode": "P00005",
+      "P00001": {
+        "dishCode": "P00001",
         "name": "Frutta fresca di stagione",
         "alternative": 40,
         "label": "Ricetta Infanzia",
         "photo": "band",
         "ingredients": [
           {
-            "name": "PERA",
-            "quantity": "145",
+            "name": "MELE",
+            "quantity": "150",
             "unit": "Gr"
           }
         ]
       },
-      "P01889": {
-        "dishCode": "P01889",
+      "P01891": {
+        "dishCode": "P01891",
+        "name": "Pane ai cereali ",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "PANE AI CEREALI",
+            "quantity": "30",
+            "unit": "Gr"
+          }
+        ]
+      }
+    },
+    "2026-11-25": {
+      "P01982": {
+        "dishCode": "P01982",
+        "name": "Pizza margherita",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "PIZZA MARGHERITA",
+            "quantity": "133",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P01991": {
+        "dishCode": "P01991",
+        "name": "Carote julienne",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "CAROTE",
+            "quantity": "32",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "3,4",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALE IODATO",
+            "quantity": "0,2",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P00959": {
+        "dishCode": "P00959",
+        "name": "Frutta fresca di stagione",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": []
+      },
+      "P01892": {
+        "dishCode": "P01892",
         "name": "Pane tipo 0",
         "alternative": 40,
         "label": "Ricetta Infanzia",
@@ -159,6 +181,153 @@
         "ingredients": [
           {
             "name": "PANE",
+            "quantity": "30",
+            "unit": "Gr"
+          }
+        ]
+      }
+    },
+    "2026-11-26": {
+      "P100192": {
+        "dishCode": "P100192",
+        "name": "Risotto allo zafferano",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "RISO",
+            "quantity": "50",
+            "unit": "Gr"
+          },
+          {
+            "name": "PARMIGIANO REGGIANO",
+            "quantity": "3,6",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "2,1",
+            "unit": "Gr"
+          },
+          {
+            "name": "BURRO",
+            "quantity": "1,8",
+            "unit": "Gr"
+          },
+          {
+            "name": "ESTRATTO PER BRODO VEGETALE",
+            "quantity": "2,1",
+            "unit": "Gr"
+          },
+          {
+            "name": "CIPOLLE",
+            "quantity": "1,1",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALE IODATO",
+            "quantity": "0,2",
+            "unit": "Gr"
+          },
+          {
+            "name": "ZAFFERANO",
+            "quantity": "0,02",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P100198": {
+        "dishCode": "P100198",
+        "name": "Cotoletta di lonza alla milanese",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "LONZA",
+            "quantity": "67",
+            "unit": "Gr"
+          },
+          {
+            "name": "PANE GRATTUGIATO",
+            "quantity": "8",
+            "unit": "Gr"
+          },
+          {
+            "name": "UOVA BIOLOGICHE",
+            "quantity": "5,3",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "3,5",
+            "unit": "Gr"
+          },
+          {
+            "name": "AMIDO DI MAIS",
+            "quantity": "2",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALE IODATO",
+            "quantity": "0,2",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P101306": {
+        "dishCode": "P101306",
+        "name": "Cavolo viola e insalata",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "CAVOLO VIOLA",
+            "quantity": "18",
+            "unit": "Gr"
+          },
+          {
+            "name": "INSALATA",
+            "quantity": "18",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "3,6",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALE IODATO",
+            "quantity": "0,2",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P00004": {
+        "dishCode": "P00004",
+        "name": "Frutta fresca di stagione",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "UVA",
+            "quantity": "160",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P01890": {
+        "dishCode": "P01890",
+        "name": "Pane di farina integrale biologica ",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "PANE DI FARINA INTEGRALE BIOLOGICA",
             "quantity": "30",
             "unit": "Gr"
           }

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>KinoTask · Kindle</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,sans-serif}
+body{padding:8px;min-height:100vh}
+.page{width:calc(100% - 12px);max-width:850px;margin:0 auto;border:3px solid #111}
+header{padding:12px 10px 10px;text-align:center;border-bottom:2px solid #111}
+h1{font-size:27px;line-height:1.1;margin:0;font-weight:800;letter-spacing:.4px}
+#todayLabel{font-size:16px;margin:6px 0 0}
+.user-switch{display:flex;flex-wrap:wrap;gap:5px;padding:8px;border-bottom:2px solid #111;justify-content:center}
+.user-button{flex:1 1 auto;min-width:76px;max-width:180px;padding:10px 6px;border:2px solid #111;background:#fff;color:#111;font-size:16px;font-weight:bold}
+.user-button.active{background:#111;color:#fff}
+main{padding:10px 12px 18px}
+.task-section{margin:0 0 15px}
+.section-title{font-size:21px;font-weight:800;letter-spacing:.5px;margin:0 0 8px;padding:7px 8px;border-top:3px solid #111;border-bottom:2px solid #111}
+.task-list{display:block}
+.task-row{display:block;overflow:hidden;padding:8px 3px;border-bottom:1px solid #bbb;font-size:19px;line-height:1.25;min-height:44px}
+.task-row input{float:left;width:25px;height:25px;margin:1px 10px 2px 0;accent-color:#111}
+.task-text{display:inline;min-width:0;overflow-wrap:anywhere}
+.task-row.done .task-text{text-decoration:line-through;color:#555}
+.task-source{float:right;display:inline-block;max-width:32%;font-size:12px;line-height:1.2;color:#555;text-align:right;margin:5px 0 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty,.status{font-size:17px;padding:9px 3px;color:#444}
+.status.error{font-weight:bold;color:#111}
+#refreshButton{display:block;width:100%;padding:11px;margin:8px 0 0;border:2px solid #111;background:#fff;color:#111;font-size:17px;font-weight:bold}
+#loginPanel{padding:16px;display:none}
+#loginPanel h2{text-align:center;font-size:22px;margin:0 0 12px}
+#loginPanel input{display:block;width:100%;height:44px;margin:8px 0;padding:8px;font-size:18px;border:2px solid #111;border-radius:0}
+#loginButton{width:100%;height:46px;margin-top:8px;border:2px solid #111;background:#111;color:#fff;font-size:18px;font-weight:bold}
+#loginError{font-size:16px;margin-top:8px;text-align:center}
+#app{display:none}
+footer{padding:7px 10px;text-align:center;border-top:1px solid #aaa;font-size:12px;color:#444}
+@media(min-width:700px){body{padding:14px}.page{border-width:4px}main{padding:14px 22px 22px}.task-row{font-size:21px;padding:10px 4px}.section-title{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header><h1>KinoTask</h1><div id="todayLabel">Caricamento…</div></header>
+  <section id="loginPanel">
+    <h2>ACCESSO</h2>
+    <form id="loginForm" autocomplete="on">
+      <input id="familyName" type="text" autocomplete="organization" placeholder="Famiglia" value="Spanasmella">
+      <input id="userName" type="text" autocomplete="username" placeholder="Utente">
+      <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN (6-12 cifre)" maxlength="12">
+      <button id="loginButton" type="submit">ACCEDI</button>
+    </form>
+    <div id="loginError"></div>
+  </section>
+  <div id="app">
+    <nav id="userSwitch" class="user-switch"></nav>
+    <main>
+      <section class="task-section">
+        <h2 class="section-title">TASK DEL GIORNO</h2>
+        <div id="dailyList" class="task-list"><div class="status">Caricamento…</div></div>
+      </section>
+      <section class="task-section">
+        <h2 class="section-title">TASK GENERALI</h2>
+        <div id="generalList" class="task-list"><div class="status">Caricamento…</div></div>
+      </section>
+      <div id="loadStatus" class="status"></div>
+      <button id="refreshButton" type="button">AGGIORNA</button>
+    </main>
+  </div>
+  <footer>Elenco attività sincronizzato con KinoTask</footer>
+</div>
+<script>
+/* Kindle/Silk: JavaScript ES5 e XMLHttpRequest, senza fetch, Promise o requestAnimationFrame. */
+var AUTH_API="https://auth-api.kinotask.workers.dev";
+var DASHBOARD_API="https://dashboard-api.kinotask.workers.dev";
+var TODO_API="https://todo-sync.kinotask.workers.dev";
+var CUSTOM_API="https://custom-box-api.kinotask.workers.dev";
+var RAW_BASE="https://raw.githubusercontent.com/KinoTask/kinotask/main/";
+var authToken="",views=[],users=[],boxes=[],currentView=null,manualUntil=0;
+var dailyItems=[],generalItems=[],loadErrors=[],loadSequence=0;
+var refreshTimer=null,scheduleTimer=null,renderTimer=null;
+var MONTHS=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
+var DAYS=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
+function $(id){return document.getElementById(id);}
+function clear(el){if(!el)return;while(el.firstChild)el.removeChild(el.firstChild);}
+function node(tag,cls,txt){var el=document.createElement(tag);if(cls)el.className=cls;if(txt!==undefined)el.appendChild(document.createTextNode(String(txt)));return el;}
+function p2(n){return n<10?"0"+n:String(n);}
+function lastSunday1UTC(year,month0){var last=new Date(Date.UTC(year,month0+1,0));return Date.UTC(year,month0,last.getUTCDate()-last.getUTCDay(),1,0,0);}
+function romeOffsetHours(ms){var y=new Date(ms).getUTCFullYear();return(ms>=lastSunday1UTC(y,2)&&ms<lastSunday1UTC(y,9))?2:1;}
+function toRome(ms){return new Date(ms+romeOffsetHours(ms)*3600000);}
+function todayNum(){var r=toRome(new Date().getTime());return Math.round(Date.UTC(r.getUTCFullYear(),r.getUTCMonth(),r.getUTCDate())/86400000);}
+function dateFromNum(n){var d=new Date(n*86400000);return d.getUTCFullYear()+"-"+p2(d.getUTCMonth()+1)+"-"+p2(d.getUTCDate());}
+function todayKey(){return dateFromNum(todayNum());}
+function dateLabel(){var r=toRome(new Date().getTime());return DAYS[r.getUTCDay()]+" "+r.getUTCDate()+" "+MONTHS[r.getUTCMonth()]+" "+r.getUTCFullYear();}
+function dayNumFromIso(s){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||""));if(!m)return null;return Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/86400000);}
+function getRomeDayFromDateTime(s){var ms=Date.parse(String(s||""));if(!isFinite(ms))return null;return todayNumFromMs(ms);}
+function todayNumFromMs(ms){var r=toRome(ms);return Math.round(Date.UTC(r.getUTCFullYear(),r.getUTCMonth(),r.getUTCDate())/86400000);}
+function xhr(method,url,body,callback,timeout){
+  var x=new XMLHttpRequest(),done=false;
+  function finish(err,data,status){if(done)return;done=true;if(callback)callback(err,data,status);}
+  try{x.open(method,url,true);}catch(e){finish("Richiesta non avviata",null);return;}
+  x.timeout=timeout||20000;
+  if(authToken)x.setRequestHeader("Authorization","Bearer "+authToken);
+  if(body!==null)x.setRequestHeader("Content-Type","application/json");
+  x.onreadystatechange=function(){if(x.readyState!==4)return;var d=null;try{d=JSON.parse(x.responseText);}catch(e){}if(x.status>=200&&x.status<300)finish(null,d,x.status);else finish(d&&d.error?d.error:"Errore HTTP "+x.status,d,x.status);};
+  x.onerror=function(){finish("Errore di connessione",null);};
+  x.ontimeout=function(){finish("Timeout",null);};
+  try{x.send(body===null?null:JSON.stringify(body));}catch(e){finish("Errore di invio",null);}
+}
+function getJson(url,callback){
+  var x=new XMLHttpRequest(),done=false;
+  x.open("GET",url+(url.indexOf("?")<0?"?":"&")+"t="+new Date().getTime(),true);x.timeout=15000;
+  x.onreadystatechange=function(){if(x.readyState!==4||done)return;done=true;if(x.status>=200&&x.status<300){try{callback(null,JSON.parse(x.responseText));}catch(e){callback("JSON non valido");}}else callback("HTTP "+x.status);};
+  x.onerror=function(){if(!done){done=true;callback("Connessione non disponibile");}};
+  x.ontimeout=function(){if(!done){done=true;callback("Timeout");}};
+  try{x.send(null);}catch(e){if(!done){done=true;callback("Errore di rete");}}
+}
+function authRequest(method,path,body,callback){xhr(method,AUTH_API+path,body,callback);}
+function saveSession(data){
+  authToken=data.token;try{localStorage.setItem("dashboardAuthToken",authToken);localStorage.setItem("dashboardAuthProfile",String(data.user_id||""));localStorage.setItem("dashboardAuthSessionId",String(data.session_id||""));localStorage.setItem("dashboardAuthUserType",String(data.user_type||""));localStorage.setItem("dashboardAuthUserName",String(data.user_name||""));localStorage.setItem("kinotaskFamily",$("familyName").value);localStorage.setItem("kinotaskLastUser",$("userName").value);}catch(e){}
+  try{document.cookie="kinotask_auth="+encodeURIComponent(authToken)+"; max-age=2592000; path=/; SameSite=Lax";}catch(e){}
+}
+function showLogin(message){
+  $("app").style.display="none";$("loginPanel").style.display="block";$("loginError").textContent=message||"";
+}
+function startSession(){
+  authRequest("POST","/session/verify",null,function(err,data){
+    if(err||!data||!data.ok){try{localStorage.removeItem("dashboardAuthToken");document.cookie="kinotask_auth=; max-age=0; path=/";}catch(e){}authToken="";showLogin("Sessione non valida. Accedi nuovamente.");return;}
+    authToken=localStorage.getItem("dashboardAuthToken")||authToken;
+    loadConfig();
+  });
+}
+function login(ev){
+  if(ev&&ev.preventDefault)ev.preventDefault();
+  var family=$("familyName").value.replace(/^\s+|\s+$/g,""),name=$("userName").value.replace(/^\s+|\s+$/g,""),pin=$("pin").value.replace(/\s/g,"");
+  if(!family||!name||!/^[0-9]{6,12}$/.test(pin)){$("loginError").textContent="Inserisci famiglia, utente e PIN valido.";return false;}
+  $("loginButton").disabled=true;
+  authRequest("POST","/login",{family_name:family,user_name:name,pin:pin},function(err,data){
+    $("loginButton").disabled=false;
+    if(err||!data||!data.ok){$("loginError").textContent=err||"Credenziali non valide.";return;}
+    saveSession(data);$("pin").value="";loadConfig();
+  });
+  return false;
+}
+function loadConfig(){
+  xhr("GET",DASHBOARD_API+"/config",null,function(err,data){
+    if(err||!data||!data.ok||!Array.isArray(data.views)||!Array.isArray(data.users)||!Array.isArray(data.boxes)){showLogin("Configurazione non disponibile: "+(err||"risposta non valida"));return;}
+    views=data.views.slice(0);users=data.users.slice(0);boxes=data.boxes.slice(0);
+    $("loginPanel").style.display="none";$("app").style.display="block";
+    $("todayLabel").textContent=dateLabel();
+    var initial=getScheduledView();if(!initial){for(var i=0;i<views.length;i++)if(views[i].view_type==="shared"){initial=views[i].id;break;}}
+    if(!initial&&views.length)initial=views[0].id;
+    setView(initial,false);
+    if(!scheduleTimer)scheduleTimer=setInterval(checkSchedule,60000);
+    if(!refreshTimer)refreshTimer=setInterval(loadAll,300000);
+  });
+}
+function findView(id){for(var i=0;i<views.length;i++)if(String(views[i].id)===String(id))return views[i];return null;}
+function userForView(id){for(var i=0;i<users.length;i++)if(String(users[i].view_id)===String(id))return users[i];return null;}
+function hasBox(viewId,key){
+  var v=findView(viewId);if(!v)return false;var wanted=String(key),found=false;
+  function scan(items){items=items||[];for(var i=0;i<items.length;i++){var x=items[i]||{};if(String(x.box_id)===wanted||String(x.element_id)===wanted){found=true;return;}}}
+  var sections=v.sections||[];for(var s=0;s<sections.length&&!found;s++){var cols=sections[s].columns||[];for(var c=0;c<cols.length&&!found;c++)scan(cols[c].items);}
+  var rows=v.rows||[];for(var r=0;r<rows.length&&!found;r++)scan(rows[r].items);
+  return found;
+}
+function isPersonal(id){var v=findView(id);return !!v&&v.view_type==="personal";}
+function getScheduledView(){
+  var r=toRome(new Date().getTime()),minutes=r.getUTCHours()*60+r.getUTCMinutes();
+  for(var i=0;i<views.length;i++){var v=views[i];if(!v.schedule_start||!v.schedule_end)continue;var a=toMinutes(v.schedule_start),b=toMinutes(v.schedule_end);if(a<b?(minutes>=a&&minutes<b):(minutes>=a||minutes<b))return v.id;}
+  for(var j=0;j<views.length;j++)if(views[j].view_type==="shared")return views[j].id;
+  return null;
+}
+function toMinutes(s){var p=String(s).split(":");return Number(p[0])*60+Number(p[1]);}
+function checkSchedule(){if(new Date().getTime()<manualUntil)return;var v=getScheduledView();if(v&&String(v)!==String(currentView))setView(v,false);}
+function renderSwitch(){
+  var nav=$("userSwitch");clear(nav);
+  for(var i=0;i<views.length;i++){
+    (function(v){
+      var b=node("button","user-button"+(String(v.id)===String(currentView)?" active":""),v.view_type==="shared"?(v.title||"Famiglia"):(v.title||v.name||"Utente"));
+      b.type="button";b.onclick=function(){setView(v.id,true);};nav.appendChild(b);
+    })(views[i]);
+  }
+}
+function setView(id,manual){
+  if(!findView(id))return;
+  if(manual)manualUntil=new Date().getTime()+10*60*1000;
+  currentView=id;renderSwitch();loadAll();
+}
+function addError(message){if(message)loadErrors.push(String(message));}
+function addTask(section,item){
+  if(!item||!item.text)return;
+  (section==="daily"?dailyItems:generalItems).push(item);
+}
+function loadAll(){
+  if(!authToken||!currentView)return;
+  var seq=++loadSequence;dailyItems=[];generalItems=[];loadErrors=[];
+  $("todayLabel").textContent=dateLabel();
+  $("dailyList").innerHTML='<div class="status">Caricamento…</div>';
+  $("generalList").innerHTML='<div class="status">Caricamento…</div>';
+  $("loadStatus").textContent="Aggiornamento…";
+  var personal=isPersonal(currentView),user=userForView(currentView),viewId=currentView,date=todayKey();
+  /* Daily Task condiviso oppure Daily Task personale, rispettando il layout della vista. */
+  if(!personal&&hasBox(viewId,"sharedTasksBox")){
+    xhr("GET",TODO_API+"?list=tasks",null,function(err,data){
+      if(seq!==loadSequence)return;
+      if(err||!data||!data.days){addError("Daily Task: "+(err||"non disponibile"));}
+      else{var items=data.days[date]||[];for(var i=0;i<items.length;i++)addTask("daily",{text:items[i].text,done:!!items[i].done,source:"Daily Task",toggle:(function(index){return function(done,cb){xhr("POST",TODO_API+"?list=tasks",{action:"toggle",date:date,index:index},cb);};})(i)});}
+      renderLists(seq);
+    });
+  }else if(personal&&user&&hasBox(viewId,"personalGlobalTaskBox")){
+    xhr("GET",TODO_API+"?list=tasks",null,function(err,data){
+      if(seq!==loadSequence)return;
+      if(err||!data||!data.days)addError("Daily Task: "+(err||"non disponibile"));
+      else{var items=data.days[date]||[];for(var i=0;i<items.length;i++){var assigned=items[i].assignees||[];if(assigned.map(String).indexOf(String(user.id))!==-1)addTask("daily",{text:items[i].text,done:!!items[i].done,source:"Daily Task",toggle:(function(index){return function(done,cb){xhr("POST",TODO_API+"?list=tasks",{action:"toggle",date:date,index:index},cb);};})(i)});}}
+      renderLists(seq);
+    });
+  }
+  /* Attività ricorrenti: il Worker filtra automaticamente quelle assegnate alla vista personale. */
+  if(hasBox(viewId,"recurringTasksBox")){
+    var recurringUrl=TODO_API+"?list=recurring-tasks&date="+encodeURIComponent(date);
+    if(personal)recurringUrl+="&view="+encodeURIComponent(viewId);
+    xhr("GET",recurringUrl,null,function(err,data){
+      if(seq!==loadSequence)return;
+      if(err||!data||!data.days)addError("Attività ricorrenti: "+(err||"non disponibili"));
+      else{
+        var items=data.days[date]||[];
+        items.forEach(function(item){
+          var subs=item.subtasks||[];
+          if(subs.length){subs.forEach(function(sub){addTask("daily",{text:item.text+" · "+sub.text,done:!!sub.done,source:"Attività ricorrenti",toggle:function(done,cb){var body={action:"toggle",task_id:item.id,subtask_id:sub.id,date:date,done:done};xhr("POST",recurringUrl,body,cb);}});});}
+          else addTask("daily",{text:item.text,done:!!item.done,source:"Attività ricorrenti",toggle:function(done,cb){xhr("POST",recurringUrl,{action:"toggle",task_id:item.id,date:date,done:done},cb);}});
+        });
+      }
+      renderLists(seq);
+    });
+  }
+  /* Agenda Famiglia: task W/I/C per la vista personale, tutti i task nella vista famiglia. */
+  if((personal&&hasBox(viewId,"personalTasksBox"))||(!personal&&hasBox(viewId,"agendaBox"))){
+    getJson(RAW_BASE+"agenda.json",function(err,data){
+      if(seq!==loadSequence)return;
+      if(err||!data||!Array.isArray(data.events)){addError("Agenda Famiglia: "+(err||"non disponibile"));renderLists(seq);return;}
+      var owner=personal&&user?String(user.task_owner||"").toUpperCase():"";
+      var events=[];
+      data.events.forEach(function(ev){
+        var span=eventSpan(ev);if(!span||todayNum()<span.first||todayNum()>span.last)return;
+        var parsed=parseEventTasks(ev.description||""),indexes=[];
+        for(var k=0;k<parsed.tasks.length;k++)if(!owner||parsed.owners[k]===owner)indexes.push(k);
+        if(indexes.length)events.push({event:ev,parsed:parsed,indexes:indexes});
+      });
+      if(!events.length){renderLists(seq);return;}
+      var remaining=events.length;
+      events.forEach(function(record){
+        var eventId=String(record.event.id||"");
+        if(!eventId){remaining--;return;}
+        xhr("GET",TODO_API+"?list=event-tasks&eventId="+encodeURIComponent(eventId),null,function(e,res){
+          if(seq!==loadSequence)return;
+          if(e||!res){addError("Compiti agenda: "+(e||"non disponibili"));}
+          else{
+            var completed=res.completed||{};
+            record.indexes.forEach(function(index){
+              var label=record.parsed.tasks[index].replace(/^[A-Za-z]\s*:\s*/,"");
+              var key=index+":"+record.parsed.tasks[index];
+              addTask("daily",{text:label,done:completed[key]===true,source:record.event.summary||record.event.title||"Agenda Famiglia",toggle:(function(k,id){return function(done,cb){xhr("POST",TODO_API+"?list=event-tasks&eventId="+encodeURIComponent(id),{action:"set",taskKey:k,done:done},cb);};})(key,eventId)});
+            });
+          }
+          remaining--;if(remaining===0)renderLists(seq);
+        });
+      });
+      if(remaining===0)renderLists(seq);
+    });
+  }
+  /* To-do generali e To-do personale. */
+  if(!personal&&hasBox(viewId,"todoBox")){
+    xhr("GET",TODO_API,null,function(err,data){
+      if(seq!==loadSequence)return;
+      if(err||!data||!Array.isArray(data.items))addError("To-do: "+(err||"non disponibile"));
+      else data.items.forEach(function(item,index){addTask("general",{text:item.text,done:!!item.done,source:"To-do",toggle:(function(n){return function(done,cb){xhr("POST",TODO_API,{action:"toggle",index:n},cb);};})(index)});});
+      renderLists(seq);
+    });
+  }
+  if(personal&&hasBox(viewId,"personalTodoBox")){
+    var personalUrl=TODO_API+"?list=personal-todo&view="+encodeURIComponent(viewId);
+    xhr("GET",personalUrl,null,function(err,data){
+      if(seq!==loadSequence)return;
+      if(err||!data||!Array.isArray(data.items))addError("To-do personale: "+(err||"non disponibile"));
+      else data.items.forEach(function(item,index){addTask("general",{text:item.text,done:!!item.done,source:"To-do",toggle:(function(n){return function(done,cb){xhr("POST",personalUrl,{action:"toggle",index:n},cb);};})(index)});});
+      renderLists(seq);
+    });
+  }
+  /* Box custom: i task generici finiscono nei generali, i calendari con date nei task del giorno. */
+  var customBoxes=[];
+  for(var bi=0;bi<boxes.length;bi++){
+    var box=boxes[bi];if(!box.custom_box_id)continue;
+    var keys=[box.id,box.element_id,box.custom_box_id];
+    var active=false;for(var ki=0;ki<keys.length;ki++)if(keys[ki]&&hasBox(viewId,keys[ki]))active=true;
+    if(active)customBoxes.push(box);
+  }
+  customBoxes.forEach(function(box){
+    if(box.box_kind==="weekly_dates")loadWeeklyCustom(box,seq,date);
+    else loadGenericCustom(box,seq,viewId);
+  });
+  if(!hasBox(viewId,"sharedTasksBox")&&!hasBox(viewId,"personalGlobalTaskBox")&&!hasBox(viewId,"recurringTasksBox")&&!hasBox(viewId,"agendaBox")&&!hasBox(viewId,"personalTasksBox")&&customBoxes.length===0)renderLists(seq);
+  renderLists(seq);
+}
+function loadGenericCustom(box,seq,viewId){
+  var url=CUSTOM_API+"/custom-boxes/"+encodeURIComponent(box.custom_box_id)+"/tasks?viewId="+encodeURIComponent(viewId);
+  xhr("GET",url,null,function(err,data){
+    if(seq!==loadSequence)return;
+    if(err||!data||!data.ok){if(err!=="Errore HTTP 403"&&err!=="Errore HTTP 404")addError((box.title||"Box custom")+": "+(err||(data&&data.error)||"non disponibile"));}
+    else {
+      var canEdit=!data.permissions||typeof data.permissions.can_edit_tasks!=="boolean"||data.permissions.can_edit_tasks;
+      (data.tasks||[]).forEach(function(task){
+        addTask("general",{text:task.description,done:!!task.done,editable:canEdit,source:box.title||"Box custom",toggle:function(done,cb){xhr("PATCH",CUSTOM_API+"/custom-tasks/"+encodeURIComponent(task.id),{done:done,view_id:viewId},cb);}});
+      });
+    }
+    renderLists(seq);
+  });
+}
+function loadWeeklyCustom(box,seq,date){
+  var url=CUSTOM_API+"/custom-boxes/"+encodeURIComponent(box.custom_box_id)+"/weekly-dates?viewId="+encodeURIComponent(currentView)+"&from="+date+"&to="+date;
+  xhr("GET",url,null,function(err,data){
+    if(seq!==loadSequence)return;
+    if(err||!data||!data.ok){if(err!=="Errore HTTP 403"&&err!=="Errore HTTP 404")addError((box.title||"Calendario")+": "+(err||(data&&data.error)||"non disponibile"));renderLists(seq);return;}
+    var weekdays=data.weekdays||[];if(typeof weekdays==="string"){try{weekdays=JSON.parse(weekdays);}catch(e){weekdays=[];}}
+    weekdays=Array.isArray(weekdays)?weekdays.map(Number):[];
+    var entries=Array.isArray(data.entries)?data.entries:[];
+    var canEdit=!data.permissions||typeof data.permissions.can_edit_tasks!=="boolean"||data.permissions.can_edit_tasks;
+    var sourceEntry=null,extras=[];
+    entries.forEach(function(entry){
+      var source=String(entry.source_date||"").slice(0,10),target=String(entry.entry_date||source).slice(0,10);
+      if(source===date)sourceEntry=entry;
+      if((entry.entry_type==="extra"||entry.entry_type==="override")&&target===date&&source!==date)extras.push(entry);
+    });
+    var dow=new Date(date+"T12:00:00").getDay();
+    if(sourceEntry&&sourceEntry.entry_type==="excluded"){}
+    else if(sourceEntry&&(sourceEntry.entry_type==="extra"||sourceEntry.entry_type==="override")){
+      if(String(sourceEntry.entry_date||"").slice(0,10)===date)appendWeeklyTask(box,sourceEntry.source_date,date,sourceEntry,seq,canEdit);
+    }else if(weekdays.indexOf(dow)!==-1){
+      appendWeeklyTask(box,date,date,sourceEntry,seq,canEdit);
+    }
+    extras.forEach(function(entry){appendWeeklyTask(box,entry.source_date,String(entry.entry_date||date).slice(0,10),entry,seq,canEdit);});
+    renderLists(seq);
+  });
+}
+function appendWeeklyTask(box,sourceDate,date,entry,seq,canEdit){
+  addTask("daily",{text:box.title||"Attività calendario",done:!!(entry&&entry.done),editable:canEdit!==false,source:box.title||"Calendario",toggle:function(done,cb){
+    var url=CUSTOM_API+"/custom-boxes/"+encodeURIComponent(box.custom_box_id)+"/weekly-dates?viewId="+encodeURIComponent(currentView);
+    xhr("PATCH",url,{source_date:String(sourceDate).slice(0,10),date:String(date).slice(0,10),done:done},cb);
+  }});
+}
+function eventSpan(ev){
+  var start=ev.start||{},end=ev.end||{},first,last;
+  if(start.date){first=dayNumFromIso(start.date);last=end.date?dayNumFromIso(end.date)-1:first;}
+  else{first=getRomeDayFromDateTime(start.dateTime||start.date);last=first;}
+  if(first===null||first===undefined)return null;
+  if(last===null||last===undefined||last<first)last=first;
+  return{first:first,last:last};
+}
+function parseEventTasks(description){
+  var lines=String(description||"").split(/\r?\n/),tasks=[],owners=[],hasTodo=false,started=false;
+  for(var i=0;i<lines.length;i++)if(/^\s*TODO:\s*$/i.test(lines[i])){hasTodo=true;break;}
+  for(var j=0;j<lines.length;j++){
+    var line=lines[j].replace(/^\s+|\s+$/g,"");if(!line)continue;
+    if(/^TODO:$/i.test(line)){started=true;continue;}
+    var taskLine=line.replace(/^[-*]\s+/,""),m=taskLine.match(/^([A-Za-z])\s*[-:]\s*(.+)$/);
+    if(m){tasks.push(m[1].toUpperCase()+": "+m[2]);owners.push(m[1].toUpperCase());continue;}
+    if((hasTodo&&!started)||!/^[-*]\s+/.test(line))continue;
+    taskLine=line.replace(/^[-*]\s+/,"");if(taskLine){tasks.push(taskLine);owners.push("");}
+  }
+  return{tasks:tasks,owners:owners};
+}
+function renderLists(seq){
+  if(seq!==loadSequence)return;
+  if(renderTimer)clearTimeout(renderTimer);
+  renderTimer=setTimeout(function(){renderTimer=null;if(seq!==loadSequence)return;
+    renderSection("dailyList",dailyItems);
+    renderSection("generalList",generalItems);
+    $("loadStatus").textContent=loadErrors.length?loadErrors.join(" · "):"Aggiornato alle "+p2(toRome(new Date().getTime()).getUTCHours())+":"+p2(toRome(new Date().getTime()).getUTCMinutes());
+    if(loadErrors.length)$("loadStatus").className="status error";else $("loadStatus").className="status";
+  },120);
+}
+function renderSection(id,items){
+  var host=$(id);clear(host);
+  if(!items.length){host.appendChild(node("div","empty","Nessuna attività."));return;}
+  items.forEach(function(item){
+    var row=node("label","task-row"+(item.done?" done":""));
+    var cb=document.createElement("input");cb.type="checkbox";cb.checked=!!item.done;cb.disabled=!!item.busy||item.editable===false;
+    cb.onchange=function(){
+      var next=cb.checked;cb.disabled=true;
+      item.toggle(next,function(err){
+        if(err){cb.checked=!next;cb.disabled=false;alert("Salvataggio non riuscito: "+err);return;}
+        item.done=next;renderSection(id,items);
+      });
+    };
+    row.appendChild(cb);
+    if(item.source)row.appendChild(node("span","task-source",item.source));
+    var textWrap=node("span","task-text",item.text);
+    row.appendChild(textWrap);
+    host.appendChild(row);
+  });
+}
+function logout(){authRequest("POST","/logout",null,function(){try{localStorage.removeItem("dashboardAuthToken");localStorage.removeItem("dashboardAuthProfile");localStorage.removeItem("dashboardAuthSessionId");document.cookie="kinotask_auth=; max-age=0; path=/";}catch(e){}authToken="";showLogin("Sessione terminata.");});}
+$("loginForm").onsubmit=login;
+$("refreshButton").onclick=loadAll;
+try{authToken=localStorage.getItem("dashboardAuthToken")||"";$("familyName").value=localStorage.getItem("kinotaskFamily")||"Spanasmella";$("userName").value=localStorage.getItem("kinotaskLastUser")||"";}catch(e){}
+if(!authToken){try{var cm=document.cookie.match(/(?:^|;\s*)kinotask_auth=([^;]+)/);if(cm)authToken=decodeURIComponent(cm[1]);}catch(e){}}
+if(authToken)startSession();else showLogin("");
+</script>
+</body>
+</html>

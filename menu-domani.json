@@ -1,33 +1,33 @@
 {
   "available": true,
-  "date": "2026-11-23",
+  "date": "2026-11-26",
   "site": "U003128",
-  "generated_at": "2026-11-22T01:46:39.537721+01:00",
+  "generated_at": "2026-11-25T00:02:31.150582+01:00",
   "plates": [
     {
-      "position": "3132",
-      "dishCode": "P102032",
-      "name": "Gnocchi al pomodoro "
+      "position": "3432",
+      "dishCode": "P100192",
+      "name": "Risotto allo zafferano"
     },
     {
-      "position": "3133",
-      "dishCode": "P100571",
-      "name": "Burger con legumi con maionese 100% vegetale biologica"
+      "position": "3433",
+      "dishCode": "P100198",
+      "name": "Cotoletta di lonza alla milanese"
     },
     {
-      "position": "3136",
-      "dishCode": "P01887",
-      "name": "Finocchi in insalata"
+      "position": "3436",
+      "dishCode": "P101306",
+      "name": "Cavolo viola e insalata"
     },
     {
-      "position": "3137",
-      "dishCode": "P00005",
+      "position": "3437",
+      "dishCode": "P00004",
       "name": "Frutta fresca di stagione"
     },
     {
-      "position": "3139",
-      "dishCode": "P01889",
-      "name": "Pane tipo 0"
+      "position": "3439",
+      "dishCode": "P01890",
+      "name": "Pane di farina integrale biologica "
     }
   ]
 }
