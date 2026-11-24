@@ -11987,7 +11987,7 @@ function openAddBoxPanel(anchor){
   var scope=document.createElement("select");
   scope.style.width="100%";scope.style.padding="9px";
   [['family','Condivisa con tutta la famiglia'],['selected','Condivisa con utenti specifici'],['private','Privata']].forEach(function(item){var opt=document.createElement("option");opt.value=item[0];opt.textContent=item[1];scope.appendChild(opt);});
-  wrap.appendChild(scope);
+
   wrap.appendChild(mk("div","","COLLABORATORI (possono collaborare e ricevere assegnazioni)"));
   var shareUsers=mk("div","custom-box-share-users","");shareUsers.style.display="none";shareUsers.style.flexDirection="column";shareUsers.style.gap="6px";wrap.appendChild(shareUsers);
   renderCustomBoxUserChoices(shareUsers,[],function(){positionCustomBoxPanel(panel,addAnchorRect,true);});
@@ -11995,7 +11995,7 @@ function openAddBoxPanel(anchor){
   var visibilityScope=document.createElement("select");visibilityScope.style.width="100%";visibilityScope.style.padding="9px";
   [["family","Visibile a tutta la famiglia"],["selected","Visibile solo agli utenti selezionati"]].forEach(function(item){var opt=document.createElement("option");opt.value=item[0];opt.textContent=item[1];visibilityScope.appendChild(opt);});
   wrap.appendChild(mk("div","","VISIBILITÀ (chi può vedere box e attività)"));
-  wrap.appendChild(visibilityScope);
+
   var visibleUsers=mk("div","custom-box-visible-users","");visibleUsers.style.display="none";visibleUsers.style.flexDirection="column";visibleUsers.style.gap="6px";wrap.appendChild(visibleUsers);
   var defaultVisible=[];
   if(scope.value!=="family"){
@@ -12261,10 +12261,10 @@ function openCustomBoxEditor(def, anchor){
   var wrap=mk('div','','');wrap.style.padding='10px';wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.gap='9px';
   var editorTitle=mk('div','custom-box-editor-title','MODIFICA BOX');
   wrap.appendChild(editorTitle);
-  var name=document.createElement('input');name.type='text';name.maxLength=80;name.value=def.title||'';name.placeholder='Nome del box';name.style.padding='9px';name.style.width='100%';name.style.boxSizing='border-box';wrap.appendChild(name);
+  var name=document.createElement('input');name.type='text';name.maxLength=80;name.value=def.title||'';name.placeholder='Nome del box';name.style.padding='9px';name.style.width='100%';name.style.boxSizing='border-box';
   var boxKind=document.createElement('select');boxKind.style.padding='9px';boxKind.style.width='100%';
   [['tasklist','Tasklist personalizzata'],['weekly_dates','Calendario date settimanali']].forEach(function(item){var opt=document.createElement('option');opt.value=item[0];opt.textContent=item[1];boxKind.appendChild(opt);});
-  boxKind.value=def.box_kind||'tasklist';wrap.appendChild(boxKind);
+  boxKind.value=def.box_kind||'tasklist';
   var editWeekdays=mk('div','custom-weekly-days','');editWeekdays.style.display='none';editWeekdays.style.flexWrap='wrap';editWeekdays.style.gap='8px';
   var editWeekdayChecks=[];
   ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'].forEach(function(day,index){
@@ -12272,17 +12272,17 @@ function openCustomBoxEditor(def, anchor){
     var check=document.createElement('input');check.type='checkbox';check.value=String((index+1)%7);editWeekdayChecks.push(check);
     label.appendChild(check);label.appendChild(document.createTextNode(day));editWeekdays.appendChild(label);
   });
-  wrap.appendChild(editWeekdays);
+
   var scope=document.createElement('select');scope.style.padding='9px';scope.style.width='100%';
   [['private','Privato'],['family','Condiviso con tutta la famiglia'],['selected','Condiviso con utenti specifici']].forEach(function(item){var opt=document.createElement('option');opt.value=item[0];opt.textContent=item[1];scope.appendChild(opt);});
-  wrap.appendChild(mk('div','','COLLABORATORI (possono collaborare e ricevere assegnazioni)'));
+  var collaboratorsTitle=mk('div','custom-box-editor-section-title','COLLABORATORI');
   wrap.appendChild(scope);
-  var users=mk('div','custom-box-share-users','');wrap.appendChild(users);
+  var users=mk('div','custom-box-share-users','');
   var visibilityScope=document.createElement('select');visibilityScope.style.padding='9px';visibilityScope.style.width='100%';
   [['family','Visibile a tutta la famiglia'],['selected','Visibile solo agli utenti selezionati']].forEach(function(item){var opt=document.createElement('option');opt.value=item[0];opt.textContent=item[1];visibilityScope.appendChild(opt);});
-  wrap.appendChild(mk('div','','VISIBILITÀ (chi può vedere box e attività)'));
+  var visibilityTitle=mk('div','custom-box-editor-section-title','VISIBILITÀ');
   wrap.appendChild(visibilityScope);
-  var visibleUsers=mk('div','custom-box-visible-users','');wrap.appendChild(visibleUsers);
+  var visibleUsers=mk('div','custom-box-visible-users','');
   var assignment=document.createElement('input');assignment.type='checkbox';assignment.checked=!!def.assignment_enabled;
   var assignmentLabel=mk('label','','');assignmentLabel.style.display='flex';assignmentLabel.style.alignItems='center';assignmentLabel.style.gap='7px';assignmentLabel.style.marginTop='8px';assignmentLabel.style.paddingTop='10px';assignmentLabel.style.borderTop='1px solid #ccc';assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode('Abilita assegnazione delle attività'));wrap.appendChild(assignmentLabel);
   var grantPanel=mk('div','custom-box-permissions-panel','');
@@ -12290,7 +12290,19 @@ function openCustomBoxEditor(def, anchor){
   grantPanel.appendChild(mk('div','','AUTORIZZAZIONI PER GLI UTENTI CONDIVISI'));
   var grantRows=mk('div','custom-box-permission-rows','');grantPanel.appendChild(grantRows);
   var grantSave=mk('button','','SALVA AUTORIZZAZIONI');grantSave.type='button';
-  grantPanel.appendChild(grantSave);grantPanel.hidden=true;wrap.appendChild(grantPanel);
+  grantPanel.appendChild(grantSave);grantPanel.hidden=true;
+  /* Raggruppa i controlli in sezioni autonome con un bordo esterno evidente. */
+  var generalSection=mk('div','custom-box-editor-section','');
+  generalSection.appendChild(mk('div','custom-box-editor-section-title','IMPOSTAZIONI GENERALI'));
+  generalSection.appendChild(name);generalSection.appendChild(boxKind);generalSection.appendChild(editWeekdays);
+  var collaboratorsSection=mk('div','custom-box-editor-section','');
+  collaboratorsSection.appendChild(collaboratorsTitle);collaboratorsSection.appendChild(scope);collaboratorsSection.appendChild(users);
+  var visibilitySection=mk('div','custom-box-editor-section','');
+  visibilitySection.appendChild(visibilityTitle);visibilitySection.appendChild(visibilityScope);visibilitySection.appendChild(visibleUsers);
+  var permissionsSection=mk('div','custom-box-editor-section','');
+  permissionsSection.appendChild(mk('div','custom-box-editor-section-title','ASSEGNAZIONI E AUTORIZZAZIONI'));
+  permissionsSection.appendChild(assignmentLabel);permissionsSection.appendChild(grantPanel);
+  wrap.appendChild(generalSection);wrap.appendChild(collaboratorsSection);wrap.appendChild(visibilitySection);wrap.appendChild(permissionsSection);
   var save=mk('button','','SALVA MODIFICHE');save.type='button';
   var back=mk('button','','INDIETRO');back.type='button';back.onclick=function(){setHidden(panel,true);setHidden($('dashboardLayoutMenu'),false);};
   function updateUsers(){
