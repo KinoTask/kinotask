@@ -6363,6 +6363,9 @@ function buildAgenda(box, events, st, redraw, opts){
 
 function renderAgenda(){
   var box = $("agenda");
+  /* Il caricamento dati può partire prima che il layout DB abbia montato
+     il box Agenda: in quel caso si attende il successivo setView(). */
+  if(!box){ return; }
   clear(box);
   if(!agendaData){
     setText(box, agendaErr ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
