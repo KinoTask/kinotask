@@ -12300,7 +12300,20 @@ function openAddBoxPanel(anchor){
     if(!view){available.textContent="Vista non disponibile.";return;}
     var present={};
     var sections=dashboardGetSections()||[];
-    sections.forEach(function(sec){(sec.columns||[]).forEach(function(col){col.forEach(function(item){present[item.box_id]=true;});});});
+    sections.forEach(function(sec){
+      (sec.columns||[]).forEach(function(col){
+        col.forEach(function(item){
+          present[String(item.box_id)]=true;
+          /* Riconosce anche le associazioni legacy salvate con element_id:
+             altrimenti un box già nel layout viene riproposto come disponibile. */
+          var def=dashboardDefinitionForLayoutItem(item);
+          if(def){
+            present[String(def.id)]=true;
+            if(def.element_id)present[String(def.element_id)]=true;
+          }
+        });
+      });
+    });
     /* Per i box custom usiamo anche l'elenco live dell'API dedicata:
        /config è il catalogo generale, mentre /custom-boxes esclude gli
        elementi archiviati. Un box custom compare solo se presente in entrambi. */
