@@ -10846,7 +10846,21 @@ function dashboardCalculateSections(sourceEl,targetEl,clientX,clientY,baseSectio
     return dashboardCleanupSections(sections);
   }
 
-  if(xr>=.35&&xr<=.65){
+  if(targetSection.type==="columns" && (xr<.35 || xr>.65)){
+    // Il bordo sinistro/destro seleziona la colonna di destinazione:
+    // consente pile indipendenti, ad esempio due box a sinistra e uno a destra.
+    sections[sourceLoc.section].columns[sourceLoc.column].splice(sourceLoc.item,1);
+    sections=dashboardCleanupSections(sections);
+    targetLoc=dashboardFindItemLocation(sections,targetId);
+    if(!targetLoc)return null;
+    var destinationColumn=xr<.35?0:1;
+    var destinationItems=sections[targetLoc.section].columns[destinationColumn];
+    if(!destinationItems)return null;
+    var destinationIndex=destinationColumn===targetLoc.column
+      ? (yr<.5?targetLoc.item:targetLoc.item+1)
+      : destinationItems.length;
+    destinationItems.splice(Math.max(0,Math.min(destinationIndex,destinationItems.length)),0,sourceItem);
+  }else if(xr>=.35&&xr<=.65){
     sections[sourceLoc.section].columns[sourceLoc.column][sourceLoc.item]=targetItem;
     sections[targetLoc.section].columns[targetLoc.column][targetLoc.item]=sourceItem;
   }else if(sourceLoc.section===targetLoc.section&&sourceLoc.column===targetLoc.column){
@@ -10858,7 +10872,7 @@ function dashboardCalculateSections(sourceEl,targetEl,clientX,clientY,baseSectio
     var insertAt=yr<.5?targetLoc.item:targetLoc.item+1;
     sameColumn.splice(Math.max(0,Math.min(insertAt,sameColumn.length)),0,sourceItem);
   }else{
-    // Il trasferimento fra colonne scambia le due box, evitando colonne vuote.
+    // Il trasferimento fra colonne centrali mantiene lo scambio tradizionale.
     sections[sourceLoc.section].columns[sourceLoc.column][sourceLoc.item]=targetItem;
     sections[targetLoc.section].columns[targetLoc.column][targetLoc.item]=sourceItem;
   }
