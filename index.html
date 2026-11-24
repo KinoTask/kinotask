@@ -12310,7 +12310,10 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
     return;
   }
   users.forEach(function(user){
-    var label=mk("div","custom-box-user-choice","");
+    /* Label HTML nativa: il browser gestisce direttamente il click sia sul
+       quadratino sia sul nome, senza dipendere da handler sul contenitore. */
+    var label=document.createElement("label");
+    label.className="custom-box-user-choice";
     label.style.display="inline-flex";
     label.style.alignItems="center";
     label.style.justifyContent="flex-start";
@@ -12322,13 +12325,17 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
     label.style.background="#fff";
     label.style.fontSize=".8em";
     label.style.cursor="pointer";
+    label.style.position="relative";
+    label.style.zIndex="1";
     var check=document.createElement("input");
     check.type="checkbox";
+    check.disabled=false;
     check.value=String(user.id);
     check.checked=!!selected[String(user.id)];
     check.style.display="inline-block";
     check.style.visibility="visible";
     check.style.opacity="1";
+    check.style.pointerEvents="auto";
     check.style.appearance="none";
     check.style.webkitAppearance="none";
     check.style.boxSizing="border-box";
@@ -12343,25 +12350,7 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
     check.style.margin="0";
     check.style.padding="0";
     label.appendChild(check);
-    var name=document.createElement("span");
-    name.textContent=user.name;
-    name.style.cursor="pointer";
-    label.appendChild(name);
-    /* Gestione sul contenitore: il click sul nome o sullo spazio della
-       pillola attiva la checkbox anche nei browser meno recenti. */
-    label.onclick=function(event){
-      event=event||window.event;
-      var target=event.target||event.srcElement;
-      if(target===check)return true;
-      check.checked=!check.checked;
-      if(typeof onChange==="function")onChange();
-      return false;
-    };
-    check.onclick=function(event){
-      event=event||window.event;
-      if(event.stopPropagation)event.stopPropagation();
-      else event.cancelBubble=true;
-    };
+    label.appendChild(document.createTextNode(user.name));
     check.onchange=function(){if(typeof onChange==="function")onChange();};
     host.appendChild(label);
   });
