@@ -8126,8 +8126,12 @@ function openRoutesConfig(anchor){
       });
       card.appendChild(days);
       var timing=mk("div","","");timing.style.display="flex";timing.style.flexWrap="wrap";timing.style.gap="8px";
-      data.targetTime=makeInput(timing,"Orario",data.target_time||"08:00","time","");
+      data.targetTime=makeInput(timing,"Orario obiettivo",data.target_time||"08:00","time","");
       data.targetTime.onchange=function(){data.target_time=this.value;};
+      data.calculationTime1=makeInput(timing,"Primo calcolo",data.calculation_time_1||"07:00","time","");
+      data.calculationTime1.onchange=function(){data.calculation_time_1=this.value;};
+      data.calculationTime2=makeInput(timing,"Secondo calcolo (facoltativo)",data.calculation_time_2||"15:00","time","");
+      data.calculationTime2.onchange=function(){data.calculation_time_2=this.value;};
       var modeField=mk("label","route-config-field","");modeField.style.display="flex";modeField.style.flexDirection="column";modeField.style.gap="3px";modeField.style.flex="1 1 180px";
       modeField.appendChild(mk("span","small","L'orario indica"));
       data.targetMode=document.createElement("select");data.targetMode.style.padding="7px";data.targetMode.style.width="100%";
@@ -8142,7 +8146,7 @@ function openRoutesConfig(anchor){
     positionCustomBoxPanel(panel,anchorRect);
   }
   function newRoute(){
-    routeRows.push({id:"",origin_label:"",origin_address:"",destination_label:"",destination_address:"",target_mode:"arrival",target_time:"08:00",days:[]});
+    routeRows.push({id:"",origin_label:"",origin_address:"",destination_label:"",destination_address:"",target_mode:"arrival",target_time:"08:00",calculation_time_1:"07:00",calculation_time_2:"15:00",days:[]});
     renderRows();
   }
   add.onclick=function(){newRoute();};
@@ -8156,6 +8160,8 @@ function openRoutesConfig(anchor){
         destination_address:data.destinationAddress.value.trim(),
         target_mode:data.targetMode.value,
         target_time:data.targetTime.value,
+        calculation_time_1:data.calculationTime1.value,
+        calculation_time_2:data.calculationTime2.value,
         days:data.dayChecks.filter(function(cb){return cb.checked;}).map(function(cb){return Number(cb.value);})
       };
     });
@@ -8172,7 +8178,9 @@ function openRoutesConfig(anchor){
     routeRows=(data.routes||[]).map(function(route){return {
       id:route.id,origin_label:route.origin_label,origin_address:route.origin_address,
       destination_label:route.destination_label,destination_address:route.destination_address,
-      target_mode:route.target_mode,target_time:route.target_time,days:route.days||[]
+      target_mode:route.target_mode,target_time:route.target_time,
+      calculation_time_1:route.calculation_time_1||"07:00",
+      calculation_time_2:route.calculation_time_2||"15:00",days:route.days||[]
     };});
     if(!routeRows.length)newRoute();else renderRows();
   });
