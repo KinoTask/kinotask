@@ -240,7 +240,7 @@ input[type=checkbox] {
 
 .route-config-panel-title{font-size:1.15em;font-weight:800;color:#263746}
 .route-config-intro{padding:9px 11px;background:#f2f5f7;border-left:3px solid #54758b;border-radius:5px;color:#43515b;font-size:.84em;line-height:1.4}
-.route-config-card{background:#fbfcfd;border:1px solid #d8e0e5!important;border-radius:10px!important;padding:12px!important;margin:10px 0!important;box-shadow:0 2px 7px rgba(28,48,62,.06)}
+.route-config-card{background:#fbfcfd;border:2px solid #9aaab5!important;border-radius:10px!important;padding:12px!important;margin:10px 0!important;box-shadow:0 2px 7px rgba(28,48,62,.09)}
 .route-config-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:9px;margin-bottom:10px;border-bottom:1px solid #e2e8ec}
 .route-config-remove{border:1px solid #e0c7c7;background:#fff7f7;color:#984747;border-radius:6px;padding:5px 9px;font-size:.72em}
 .route-config-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
@@ -264,6 +264,18 @@ input[type=checkbox] {
 .routes-refresh-button{background:#29495b!important;color:#fff!important;border-color:#29495b!important}
 .routes-refresh-button:disabled{opacity:.55}
 @media(max-width:480px){.route-config-grid{grid-template-columns:1fr}.route-config-times{grid-template-columns:1fr 1fr}.route-config-card{padding:9px!important}}
+
+/* Stile condiviso per tutti i menu e pannelli di configurazione. */
+#viewMenuPanel,#dashboardLayoutMenu,#dashboardAddBoxPanel{background:#fff!important;border:1px solid #aab8c1!important;border-radius:10px!important;box-shadow:0 8px 26px rgba(24,43,56,.20)!important;color:#263746;}
+#viewMenuPanel{padding:8px!important;}
+#dashboardLayoutMenu{padding:8px!important;min-width:190px;}
+#dashboardLayoutMenu button,#dashboardAddBoxPanel button,#viewMenuPanel button{border-radius:7px;}
+#dashboardAddBoxPanel{overflow-x:hidden;}
+#dashboardAddBoxPanel>div{color:#263746;}
+#dashboardAddBoxPanel input:not([type=checkbox]),#dashboardAddBoxPanel select,#viewMenuPanel input:not([type=checkbox]){border:1px solid #c5d0d7!important;border-radius:6px!important;background:#fff;box-sizing:border-box;}
+#dashboardAddBoxPanel button,#viewMenuPanel button{padding:8px 10px;}
+#dashboardAddBoxPanel .route-config-footer button{padding:9px 10px;}
+#dashboardAddBoxPanel .route-config-back{background:#fff;border-color:#c5d0d7;color:#46545d;}
 
 /* ==================================================
    3. HEADER
@@ -14100,6 +14112,28 @@ function initViewMenu(){
 	}
 
 	if(!menuInitialized){
+    /* Un clic esterno chiude l'intero pannello, senza tornare al livello
+       precedente. Il listener in capture lascia poi eseguire normalmente
+       il click sul pulsante che eventualmente apre un altro menu. */
+    document.addEventListener("click", function(ev){
+      var target=ev.target;
+      var addPanel=$("dashboardAddBoxPanel");
+      var layoutMenu=$("dashboardLayoutMenu");
+      var layoutButton=$("dashboardLayoutButton");
+      var viewMenu=$("viewMenu");
+      if(addPanel && !addPanel.hidden && !addPanel.contains(target)){
+        setHidden(addPanel,true);
+        if(layoutMenu)setHidden(layoutMenu,true);
+      } else if(layoutMenu && !layoutMenu.hidden &&
+                !layoutMenu.contains(target) && target!==layoutButton){
+        setHidden(layoutMenu,true);
+      }
+      if(panel && !panel.hidden && !panel.contains(target) &&
+         !(viewMenu && viewMenu.contains(target))){
+        closeViewMenu();
+      }
+    }, true);
+
 	toggle.onclick = function(){
 		var open = panel.hasAttribute("hidden");
 		setHidden(panel, !open);
