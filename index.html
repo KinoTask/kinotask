@@ -10665,12 +10665,10 @@ function buildLayout(view, previewSections){
     if(!b && def && !def.custom_box_id){
       b=createDashboardBoxElement(def);
     }
-    /* I box standard hanno contenitori HTML statici. Non esiste un
-       createDashboardBoxElement: se il catalogo punta a un elemento assente,
-       segnala il dato incoerente senza interrompere il rendering degli altri
-       box della vista (in particolare dei box custom, creati dinamicamente). */
+    /* Se il catalogo non dispone di un renderer, salta soltanto il box
+       non implementato e lascia proseguire il rendering della vista. */
     if(!b && def){
-      console.warn("Box senza contenitore HTML statico:", JSON.stringify({
+      console.warn("Box senza renderer disponibile:", JSON.stringify({
         id:def.id,
         element_id:def.element_id,
         element_key:def.element_key,
