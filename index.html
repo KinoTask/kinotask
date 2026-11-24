@@ -6686,8 +6686,7 @@ if(agendaConfigEditButton){agendaConfigEditButton.onclick=function(ev){if(ev){ev
    6. COMPITI DEGLI EVENTI (righe "- compito" sotto "TODO:")
    ================================================== */
 function parseTasks(desc){
-  var lines = String(desc || "").split(/\r?
-/);
+  var lines = String(desc || "").split(/\r?\n/);
   var tasks = [], owners = [], details = [];
   var hasMarker = false, started = false, i, line, m;
 
@@ -6721,8 +6720,7 @@ function parseTasks(desc){
       owners.push("");
     }
   }
-  return {tasks: tasks, owners: owners, details: details.join("
-")};
+  return {tasks: tasks, owners: owners, details: details.join("\n")};
 }
 
 function eventTasksQuery(id){ return "?list=event-tasks&eventId=" + encodeURIComponent(id); }
@@ -10856,11 +10854,7 @@ function showCustomBoxRemovalChoice(callback){
   header.appendChild(title);
   var message=document.createElement("div");
   message.style.cssText="margin-bottom:14px;white-space:pre-line;line-height:1.5;font:16px/1.5 'Trebuchet MS',Arial,sans-serif;";
-  message.textContent="Il box sparirà soltanto dalla vista corrente.
-
-SÌ: nascondi in questa vista.
-NO: archivia per tutta la famiglia.
-ANNULLA: non fare nulla.";
+  message.textContent="Il box sparirà soltanto dalla vista corrente.\n\nSÌ: nascondi in questa vista.\nNO: archivia per tutta la famiglia.\nANNULLA: non fare nulla.";
   var actions=document.createElement("div");
   actions.style.cssText="display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;";
   function addChoice(label,value){
@@ -12096,9 +12090,7 @@ function openAddBoxPanel(anchor){
         var count=Number(data.archived&&data.archived.task_count||0);
         var message="Nello storico è già presente un box \""+(data.archived.title||value)+"\"";
         message+=count ? " con "+count+" attività." : ".";
-        message+="
-
-Vuoi ripristinare il vecchio box con tutte le sue attività?";
+        message+="\n\nVuoi ripristinare il vecchio box con tutte le sue attività?";
         showArchivedCustomBoxChoice(message,function(choice){
           if(choice===null){create.disabled=false;return;}
           payload.reuse_archived=true;
@@ -12445,9 +12437,7 @@ function openCustomBoxEditor(def, anchor){
         if(data.needs_confirmation){
           var names=(data.affected_users||[]).map(function(u){return u.name;});
           var msg='Attenzione: il box non sarà più visibile a '+names.join(', ')+'.';
-          msg+='
-
-I task assegnati a queste persone resteranno salvati, ma non compariranno più nelle loro viste personali. Vuoi continuare?';
+          msg+='\n\nI task assegnati a queste persone resteranno salvati, ma non compariranno più nelle loro viste personali. Vuoi continuare?';
           if(!confirm(msg)){save.disabled=false;return;}
           submitBoxUpdate(true);return;
         }
