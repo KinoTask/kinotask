@@ -10556,6 +10556,9 @@ function createDashboardBoxElement(def){
   if(typeof template!=="string")return null;
   var box=document.createElement("div");
   box.className="box dashboard-box";
+  /* Il contenitore mantiene l'element_id previsto dai renderer:
+     titoli, refresh e callback lo risolvono tramite getElementById. */
+  if(def.element_id)box.id=String(def.element_id);
   box.setAttribute("data-dashboard-box-id",String(def.id));
   box.setAttribute("data-renderer-key",String(def.element_key));
   box.innerHTML=template;
