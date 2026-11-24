@@ -10639,6 +10639,30 @@ function dashboardLegacyRowsToSections(rows){
   return sections;
 }
 
+/* Risolve sempre il contenitore esterno del box. Alcuni renderer, come
+   l'agenda Google condivisa, puntano a un elemento interno al box HTML. */
+function dashboardResolveBoxElement(def){
+  if(!def||!def.element_id)return null;
+  var el=$(def.element_id);
+  if(!el)return null;
+  if(el.classList&&el.classList.contains("box"))return el;
+  var parent=el.parentNode;
+  while(parent&&parent!==document.body){
+    if(parent.classList&&parent.classList.contains("box"))return parent;
+    parent=parent.parentNode;
+  }
+  return el;
+}
+function dashboardDefinitionForLayoutItem(item){
+  if(!item)return null;
+  var id=String(item.box_id||"");
+  return findItem(DASHBOARD_BOXES||[],function(def){
+    return String(def.id||"")===id ||
+      String(def.element_id||"")===id ||
+      (item.element_id&&String(def.element_id||"")===String(item.element_id));
+  });
+}
+
 function buildLayout(view, previewSections){
   var views=DASHBOARD_VIEWS||[],vc=findItem(views,function(v){return String(v.id)===String(view);});
   var i,j,b,host,stash,sections;
@@ -10672,12 +10696,20 @@ function buildLayout(view, previewSections){
     var allRows=views[v].rows||[];
     for(i=0;i<allRows.length;i++){
       var oldItems=allRows[i].items||[];
-      for(j=0;j<oldItems.length;j++){b=$(oldItems[j].element_id);if(b&&b.parentNode!==stash)stash.appendChild(b);}
+      for(j=0;j<oldItems.length;j++){
+        var oldDef=dashboardDefinitionForLayoutItem(oldItems[j]);
+        b=oldDef?dashboardResolveBoxElement(oldDef):$(oldItems[j].element_id);
+        if(b&&b.parentNode!==stash)stash.appendChild(b);
+      }
     }
     var allSections=views[v].sections||[];
     for(i=0;i<allSections.length;i++)for(var c=0;c<(allSections[i].columns||[]).length;c++){
       var colItems=allSections[i].columns[c].items||[];
-      for(j=0;j<colItems.length;j++){b=$(colItems[j].element_id);if(b&&b.parentNode!==stash)stash.appendChild(b);}
+      for(j=0;j<colItems.length;j++){
+        var oldSectionDef=dashboardDefinitionForLayoutItem(colItems[j]);
+        b=oldSectionDef?dashboardResolveBoxElement(oldSectionDef):$(colItems[j].element_id);
+        if(b&&b.parentNode!==stash)stash.appendChild(b);
+      }
     }
   }
   clear(host);
@@ -10696,7 +10728,7 @@ function buildLayout(view, previewSections){
         return String(x.element_id||"")===String(item.box_id);
       });
     }
-    b=def?$(def.element_id):null;
+    b=def?dashboardResolveBoxElement(def):null;
     /* I box custom sono generati dal catalogo DB, non devono esistere
        come markup statico nell'HTML. */
     if(!b && def && def.custom_box_id && def.box_key){
@@ -10768,7 +10800,10 @@ var dashboardPreviewRows=null,dashboardPreviewSource=null,dashboardPreviewTarget
 
 function dashboardBoxId(el){
   if(!el)return null;
-  for(var i=0;i<(DASHBOARD_BOXES||[]).length;i++)if(DASHBOARD_BOXES[i].element_id===el.id)return DASHBOARD_BOXES[i].id;
+  for(var i=0;i<(DASHBOARD_BOXES||[]).length;i++){
+    var def=DASHBOARD_BOXES[i];
+    if(def.element_id===el.id||dashboardResolveBoxElement(def)===el)return def.id;
+  }
   return null;
 }
 /* Il renderer può risolvere un'associazione storica tramite element_id,
@@ -10777,7 +10812,9 @@ function dashboardLayoutItemId(el){
   if(!el)return null;
   var def=null;
   for(var i=0;i<(DASHBOARD_BOXES||[]).length;i++){
-    if(DASHBOARD_BOXES[i].element_id===el.id){def=DASHBOARD_BOXES[i];break;}
+    if(DASHBOARD_BOXES[i].element_id===el.id||dashboardResolveBoxElement(DASHBOARD_BOXES[i])===el){
+      def=DASHBOARD_BOXES[i];break;
+    }
   }
   if(!def)return null;
   var sections=dashboardGetSections()||[];
