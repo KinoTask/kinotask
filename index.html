@@ -8130,7 +8130,7 @@ function openRoutesConfig(anchor){
       data.targetTime.onchange=function(){data.target_time=this.value;};
       data.calculationTime1=makeInput(timing,"Primo calcolo",data.calculation_time_1||"07:00","time","");
       data.calculationTime1.onchange=function(){data.calculation_time_1=this.value;};
-      data.calculationTime2=makeInput(timing,"Secondo calcolo (facoltativo)",data.calculation_time_2||"15:00","time","");
+      data.calculationTime2=makeInput(timing,"Secondo calcolo",data.calculation_time_2||"15:00","time","");
       data.calculationTime2.onchange=function(){data.calculation_time_2=this.value;};
       var modeField=mk("label","route-config-field","");modeField.style.display="flex";modeField.style.flexDirection="column";modeField.style.gap="3px";modeField.style.flex="1 1 180px";
       modeField.appendChild(mk("span","small","L'orario indica"));
