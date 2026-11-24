@@ -364,9 +364,17 @@ input[type=checkbox] {
   position:relative!important;
   z-index:2!important;
 }
+/* Evidenzia nello stesso blu del calendario settimanale gli utenti selezionati
+   nelle sezioni COLLABORATORI e VISIBILITÀ dell'editor box custom. */
 #dashboardAddBoxPanel button.custom-box-user-choice[aria-pressed="true"]{
-  border-color:#783B4A!important;
-  background:#f8eef1!important;
+  border-color:#29495b!important;
+  background:#29495b!important;
+  color:#fff!important;
+}
+#dashboardAddBoxPanel button.custom-box-user-choice[aria-pressed="true"] .custom-box-user-choice-mark{
+  border-color:#fff!important;
+  background:#fff!important;
+  color:#29495b!important;
 }
 /* Il checkbox tecnico conserva lo stato letto dal salvataggio, ma non deve
    essere mostrato né ricevere il click: la selezione è gestita dal pulsante. */
@@ -12401,7 +12409,9 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
     mark.style.minWidth="15px";
     mark.style.border="1px solid #697780";
     mark.style.borderRadius="3px";
-    mark.style.background=check.checked?"#783B4A":"#fff";
+    mark.style.background=check.checked?"#fff":"#fff";
+    mark.style.borderColor=check.checked?"#fff":"#697780";
+    mark.style.color=check.checked?"#29495b":"#fff";
     mark.style.color="#fff";
     mark.style.fontSize="11px";
     mark.style.fontWeight="bold";
