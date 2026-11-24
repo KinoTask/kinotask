@@ -8105,10 +8105,10 @@ function openRoutesConfig(anchor){
   wrap.appendChild(mk("div","route-config-intro","Imposta indirizzi, giorni e orari. Il traffico si aggiorna automaticamente due volte al giorno oppure su richiesta."));
   var rows=mk("div","","");wrap.appendChild(rows);
   var status=mk("div","small","Caricamento configurazione…");wrap.appendChild(status);
-  var actions=mk("div","agenda-config-actions","");
+  var actions=mk("div","route-config-footer","");
   var add=mk("button","route-config-add","+ AGGIUNGI PERCORSO");add.type="button";
-  var save=mk("button","","SALVA MODIFICHE");save.type="button";save.disabled=true;
-  var back=mk("button","","INDIETRO");back.type="button";
+  var save=mk("button","route-config-save","SALVA MODIFICHE");save.type="button";save.disabled=true;
+  var back=mk("button","route-config-back","CHIUDI");back.type="button";
   back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};
   actions.appendChild(add);actions.appendChild(save);actions.appendChild(back);wrap.appendChild(actions);
   panel.appendChild(wrap);
