@@ -6279,10 +6279,10 @@ function shortDayText(n){
   return g.charAt(0).toUpperCase() + g.substring(1) + " " + p2(d.getUTCDate()) + "/" + p2(d.getUTCMonth() + 1);
 }
 
-function dayLabel(n, today){
+function dayLabel(n, today, showTodayLabel){
   var base = fullDateText(n);
-  if(n === today){ return "Oggi - " + base; }
-  if(n === today + 1){ return "Domani - " + base; }
+  if(showTodayLabel !== false && n === today){ return "Oggi - " + base; }
+  if(showTodayLabel !== false && n === today + 1){ return "Domani - " + base; }
   return base;
 }
 
@@ -6430,7 +6430,7 @@ function buildAgenda(box, events, st, redraw, opts){
     if(!buckets[i].length){ continue; }
     any = true;
     buckets[i].sort(function(a, b){ return a.key - b.key; });
-    box.appendChild(mk("h3", "", dayLabel(start + i, today)));
+    box.appendChild(mk("h3", "", dayLabel(start + i, today, !opts || opts.todayLabel !== false)));
 
     for(j = 0; j < buckets[i].length; j++){
       var it = buckets[i][j];
@@ -6480,7 +6480,7 @@ function renderAgenda(){
     }
   }
   buildAgenda(box, visibleEvents, agendaSt, function(){ safe(renderAgenda); },
-              {tasks: isSharedView(currentView), click: true, period: false});
+              {tasks: isSharedView(currentView), click: true, period: true, todayLabel: false});
 }
 
 function renderUserAgenda(){
