@@ -10662,6 +10662,26 @@ function dashboardDefinitionForLayoutItem(item){
       (item.element_id&&String(def.element_id||"")===String(item.element_id));
   });
 }
+/* Recupera il contenitore anche se l'associazione D1 è storica e non
+   corrisponde più al catalogo: gli ID possono indicare l'elemento interno. */
+function dashboardElementForLayoutItem(item){
+  if(!item)return null;
+  var def=dashboardDefinitionForLayoutItem(item);
+  if(def){
+    var resolved=dashboardResolveBoxElement(def);
+    if(resolved)return resolved;
+  }
+  var ids=[item.element_id,item.box_id];
+  for(var i=0;i<ids.length;i++){
+    if(!ids[i])continue;
+    var el=$(String(ids[i]));
+    while(el&&el!==document.body){
+      if(el.classList&&el.classList.contains("box"))return el;
+      el=el.parentNode;
+    }
+  }
+  return null;
+}
 
 function buildLayout(view, previewSections){
   var views=DASHBOARD_VIEWS||[],vc=findItem(views,function(v){return String(v.id)===String(view);});
@@ -10697,8 +10717,7 @@ function buildLayout(view, previewSections){
     for(i=0;i<allRows.length;i++){
       var oldItems=allRows[i].items||[];
       for(j=0;j<oldItems.length;j++){
-        var oldDef=dashboardDefinitionForLayoutItem(oldItems[j]);
-        b=oldDef?dashboardResolveBoxElement(oldDef):$(oldItems[j].element_id);
+        b=dashboardElementForLayoutItem(oldItems[j]);
         if(b&&b.parentNode!==stash)stash.appendChild(b);
       }
     }
@@ -10706,8 +10725,7 @@ function buildLayout(view, previewSections){
     for(i=0;i<allSections.length;i++)for(var c=0;c<(allSections[i].columns||[]).length;c++){
       var colItems=allSections[i].columns[c].items||[];
       for(j=0;j<colItems.length;j++){
-        var oldSectionDef=dashboardDefinitionForLayoutItem(colItems[j]);
-        b=oldSectionDef?dashboardResolveBoxElement(oldSectionDef):$(colItems[j].element_id);
+        b=dashboardElementForLayoutItem(colItems[j]);
         if(b&&b.parentNode!==stash)stash.appendChild(b);
       }
     }
@@ -10728,7 +10746,8 @@ function buildLayout(view, previewSections){
         return String(x.element_id||"")===String(item.box_id);
       });
     }
-    b=def?dashboardResolveBoxElement(def):null;
+    b=def?dashboardResolveBoxElement(def):dashboardElementForLayoutItem(item);
+    if(!b)b=dashboardElementForLayoutItem(item);
     /* I box custom sono generati dal catalogo DB, non devono esistere
        come markup statico nell'HTML. */
     if(!b && def && def.custom_box_id && def.box_key){
@@ -10816,7 +10835,18 @@ function dashboardLayoutItemId(el){
       def=DASHBOARD_BOXES[i];break;
     }
   }
-  if(!def)return null;
+  if(!def){
+    var sectionsWithoutCatalog=dashboardGetSections()||[];
+    for(var si0=0;si0<sectionsWithoutCatalog.length;si0++){
+      for(var ci0=0;ci0<(sectionsWithoutCatalog[si0].columns||[]).length;ci0++){
+        var items0=sectionsWithoutCatalog[si0].columns[ci0]||[];
+        for(var ii0=0;ii0<items0.length;ii0++){
+          if(dashboardElementForLayoutItem(items0[ii0])===el)return items0[ii0].box_id;
+        }
+      }
+    }
+    return null;
+  }
   var sections=dashboardGetSections()||[];
   for(var si=0;si<sections.length;si++){
     for(var ci=0;ci<(sections[si].columns||[]).length;ci++){
