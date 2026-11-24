@@ -12292,7 +12292,7 @@ function openAddBoxPanel(anchor){
      viene mostrata esclusivamente dopo il comando + CUSTOM BOX. */
   var customForm=mk("div","custom-box-create-form","");
   customForm.hidden=true;
-  customForm.style.display="flex";
+  customForm.style.display="none";
   customForm.style.flexDirection="column";
   customForm.style.gap="9px";
   function addBoxSection(sectionTitle,nodes,target){
@@ -12309,6 +12309,7 @@ function openAddBoxPanel(anchor){
     availableSection.hidden=true;
     customCreateButton.hidden=true;
     customForm.hidden=false;
+    customForm.style.display="flex";
     positionCustomBoxPanel(panel,addAnchorRect,true);
   };
   wrap.appendChild(customCreateButton);
@@ -12386,6 +12387,7 @@ function openAddBoxPanel(anchor){
   var back=mk("button","","INDIETRO");back.type="button";
   back.onclick=function(){
     customForm.hidden=true;
+    customForm.style.display="none";
     availableSection.hidden=false;
     customCreateButton.hidden=false;
     positionCustomBoxPanel(panel,addAnchorRect,true);
