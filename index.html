@@ -283,7 +283,7 @@ input[type=checkbox] {
 #viewMenuPanel .user-management-panel>div:first-child,
 #viewMenuPanel .user-management-panel strong{color:#000!important;}
 #dashboardAddBoxPanel .custom-box-editor-title{font-size:18px;font-weight:700;letter-spacing:.2px;padding-bottom:8px;border-bottom:1px solid #d5dde2;}
-#dashboardAddBoxPanel .custom-weekly-days label{color:#202a30;}
+#dashboardAddBoxPanel .custom-weekly-days{margin-top:10px!important;gap:10px 14px!important;}\n#dashboardAddBoxPanel .custom-weekly-days label{display:inline-flex!important;align-items:center;gap:7px!important;margin:2px 4px 2px 0;padding:3px 5px;color:#202a30;}\n#dashboardAddBoxPanel .custom-weekly-days input[type=checkbox]{width:16px!important;height:16px!important;min-width:16px;flex:0 0 16px;border-radius:5px!important;}
 #dashboardAddBoxPanel button{border:1px solid #aebdc6;border-radius:7px;background:#f7f9fa;color:#1f2d35;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.06);}
 #dashboardAddBoxPanel button:hover,#viewMenuPanel button:hover{background:#eaf0f3;}
 #dashboardAddBoxPanel button:disabled{opacity:.55;cursor:default;}
@@ -298,8 +298,9 @@ input[type=checkbox] {
 #viewMenuPanel .user-management-panel{box-shadow:0 2px 7px rgba(28,48,62,.09);}
 #dashboardAddBoxPanel .custom-box-editor-section{border:2px solid #9aaab5;border-radius:9px;padding:11px;margin:3px 0;background:#fbfcfd;box-shadow:0 2px 6px rgba(28,48,62,.07);}
 #dashboardAddBoxPanel .custom-box-editor-section-title{font-size:.76em;font-weight:800;letter-spacing:.05em;color:#000;margin:0 0 9px;text-transform:uppercase;}
-.weekly-date-rule-editor button,.weekly-date-rule-button{border-radius:6px!important;padding:6px 9px!important;font-size:.75em!important;font-weight:700!important;background:#29495b!important;color:#fff!important;border:1px solid #29495b!important;}
-.weekly-date-rule-editor button:disabled{opacity:.55;}\n.weekly-date-edit-button{background:#29495b!important;color:#fff!important;border:1px solid #29495b!important;border-radius:6px!important;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.weekly-date-rule-editor button,.weekly-date-rule-button{display:inline-flex!important;align-items:center;justify-content:center;width:auto!important;vertical-align:middle;margin:6px 8px 6px 0!important;border-radius:6px!important;padding:6px 9px!important;font-size:.75em!important;font-weight:700!important;background:#29495b!important;color:#fff!important;border:1px solid #29495b!important;}
+.weekly-date-rule-editor button:disabled{opacity:.55;}
+.weekly-date-edit-button{background:#29495b!important;color:#fff!important;border:1px solid #29495b!important;border-radius:6px!important;box-shadow:0 1px 2px rgba(0,0,0,.08);}
 #agendaGoogleTools .google-calendar-disconnect,#userAgendaGoogleTools .google-calendar-disconnect{border-radius:6px;padding:6px 9px;font-size:.75em;font-weight:700;background:#fff;border:1px solid #9aaab5;color:#29495b;}
 
 
@@ -12273,7 +12274,7 @@ function openCustomBoxEditor(def, anchor){
   var boxKind=document.createElement('select');boxKind.style.padding='9px';boxKind.style.width='100%';
   [['tasklist','Tasklist personalizzata'],['weekly_dates','Calendario date settimanali']].forEach(function(item){var opt=document.createElement('option');opt.value=item[0];opt.textContent=item[1];boxKind.appendChild(opt);});
   boxKind.value=def.box_kind||'tasklist';
-  var editWeekdays=mk('div','custom-weekly-days','');editWeekdays.style.display='none';editWeekdays.style.flexWrap='wrap';editWeekdays.style.gap='8px';
+  var editWeekdays=mk('div','custom-weekly-days','');editWeekdays.style.display='none';editWeekdays.style.flexWrap='wrap';editWeekdays.style.gap='10px 14px';editWeekdays.style.marginTop='10px';
   var editWeekdayChecks=[];
   ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'].forEach(function(day,index){
     var label=mk('label','','');label.style.display='flex';label.style.alignItems='center';label.style.gap='4px';
@@ -12292,9 +12293,9 @@ function openCustomBoxEditor(def, anchor){
   wrap.appendChild(visibilityScope);
   var visibleUsers=mk('div','custom-box-visible-users','');
   var assignment=document.createElement('input');assignment.type='checkbox';assignment.checked=!!def.assignment_enabled;
-  var assignmentLabel=mk('label','','');assignmentLabel.style.display='flex';assignmentLabel.style.alignItems='center';assignmentLabel.style.gap='7px';assignmentLabel.style.marginTop='8px';assignmentLabel.style.paddingTop='10px';assignmentLabel.style.borderTop='1px solid #ccc';assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode('Abilita assegnazione delle attività'));wrap.appendChild(assignmentLabel);
+  var assignmentLabel=mk('label','','');assignmentLabel.style.display='flex';assignmentLabel.style.alignItems='center';assignmentLabel.style.gap='7px';assignmentLabel.style.margin='8px 0 0';assignmentLabel.style.padding='4px 0';assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode('Abilita assegnazione delle attività'));
   var grantPanel=mk('div','custom-box-permissions-panel','');
-  grantPanel.style.borderTop='1px solid #ccc';grantPanel.style.paddingTop='9px';
+  grantPanel.style.borderTop='1px solid #ccc';grantPanel.style.paddingTop='12px';grantPanel.style.marginTop='12px';
   grantPanel.appendChild(mk('div','','AUTORIZZAZIONI PER GLI UTENTI CONDIVISI'));
   var grantRows=mk('div','custom-box-permission-rows','');grantPanel.appendChild(grantRows);
   var grantSave=mk('button','','SALVA AUTORIZZAZIONI');grantSave.type='button';
