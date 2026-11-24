@@ -12346,14 +12346,24 @@ function renderCustomBoxUserChoices(host, selectedIds, onChange, userList){
     var name=document.createElement("span");
     name.textContent=user.name;
     name.style.cursor="pointer";
-    name.addEventListener("click",function(event){
-      if(event&&event.preventDefault)event.preventDefault();
+    label.appendChild(name);
+    /* Gestione sul contenitore: il click sul nome o sullo spazio della
+       pillola attiva la checkbox anche nei browser meno recenti. */
+    label.onclick=function(event){
+      event=event||window.event;
+      var target=event.target||event.srcElement;
+      if(target===check)return true;
       check.checked=!check.checked;
       if(typeof onChange==="function")onChange();
-    });
-    label.appendChild(name);
+      return false;
+    };
+    check.onclick=function(event){
+      event=event||window.event;
+      if(event.stopPropagation)event.stopPropagation();
+      else event.cancelBubble=true;
+    };
+    check.onchange=function(){if(typeof onChange==="function")onChange();};
     host.appendChild(label);
-    check.addEventListener("change",function(){if(typeof onChange==="function")onChange();});
   });
 }
 function customBoxSelectedUserIds(host){
