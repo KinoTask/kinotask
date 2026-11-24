@@ -237,6 +237,34 @@ input[type=checkbox] {
   border: 1px solid #777;
 }
 
+
+.route-config-panel-title{font-size:1.15em;font-weight:800;color:#263746}
+.route-config-intro{padding:9px 11px;background:#f2f5f7;border-left:3px solid #54758b;border-radius:5px;color:#43515b;font-size:.84em;line-height:1.4}
+.route-config-card{background:#fbfcfd;border:1px solid #d8e0e5!important;border-radius:10px!important;padding:12px!important;margin:10px 0!important;box-shadow:0 2px 7px rgba(28,48,62,.06)}
+.route-config-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:9px;margin-bottom:10px;border-bottom:1px solid #e2e8ec}
+.route-config-remove{border:1px solid #e0c7c7;background:#fff7f7;color:#984747;border-radius:6px;padding:5px 9px;font-size:.72em}
+.route-config-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.route-config-field{min-width:0!important;flex:1 1 auto!important;gap:4px!important}
+.route-config-field>span{font-size:.73em!important;font-weight:700;color:#53636e}
+.route-config-field input,.route-config-field select{width:100%;min-width:0;box-sizing:border-box;border:1px solid #cbd5dc;border-radius:6px;background:#fff;padding:8px 9px!important;font:inherit;font-size:.88em}
+.route-config-section{margin-top:12px;padding-top:10px;border-top:1px solid #e5eaee}
+.route-config-section-title{font-size:.74em;font-weight:800;color:#53636e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.route-config-days{display:flex;flex-wrap:wrap;gap:6px}
+.route-config-day{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border:1px solid #d5dee4;border-radius:6px;background:#fff;font-size:.8em}
+.route-config-day input{width:15px;height:15px;margin:0}
+.route-config-times{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.route-config-footer{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:10px;border-top:1px solid #e5eaee}
+.route-config-footer button{flex:1 1 130px;margin:0;border-radius:7px;padding:9px 10px;font-size:.82em;font-weight:700}
+.route-config-add{background:#edf3f6;border-color:#b9cbd5;color:#29495b}
+.route-config-save{background:#29495b;color:#fff;border-color:#29495b}
+.route-config-back{background:#fff;border-color:#d4dce1;color:#46545d}
+.routes-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0 8px}
+.routes-toolbar .google-calendar-account{flex:1 1 100%;font-size:.78em}
+.routes-toolbar button{border-radius:6px;padding:6px 9px;font-size:.75em;font-weight:700}
+.routes-refresh-button{background:#29495b!important;color:#fff!important;border-color:#29495b!important}
+.routes-refresh-button:disabled{opacity:.55}
+@media(max-width:480px){.route-config-grid{grid-template-columns:1fr}.route-config-times{grid-template-columns:1fr 1fr}.route-config-card{padding:9px!important}}
+
 /* ==================================================
    3. HEADER
    ================================================== */
@@ -6469,11 +6497,11 @@ function openSharedAgendaConfig(anchor){
   wrap.appendChild(add);
   var status=mk("div","small","");
   wrap.appendChild(status);
-  var actions=mk("div","agenda-config-actions","");
-  var save=mk("button","","SALVA MODIFICHE");
+  var actions=mk("div","route-config-footer","");
+  var save=mk("button","route-config-save","SALVA MODIFICHE");
   save.type="button";
   save.disabled=true;
-  var back=mk("button","","INDIETRO");
+  var back=mk("button","route-config-back","CHIUDI");
   back.type="button";
   back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};
   actions.appendChild(save);actions.appendChild(back);wrap.appendChild(actions);
@@ -8073,12 +8101,12 @@ function openRoutesConfig(anchor){
   wrap.style.display="flex";
   wrap.style.flexDirection="column";
   wrap.style.gap="9px";
-  wrap.appendChild(mk("div","","MODIFICA SPOSTAMENTI"));
-  wrap.appendChild(mk("div","small","Configura i percorsi ricorrenti. I tempi con traffico vengono calcolati automaticamente da Google Routes."));
+  wrap.appendChild(mk("div","route-config-panel-title","I TUOI PERCORSI"));
+  wrap.appendChild(mk("div","route-config-intro","Imposta indirizzi, giorni e orari. Il traffico si aggiorna automaticamente due volte al giorno oppure su richiesta."));
   var rows=mk("div","","");wrap.appendChild(rows);
   var status=mk("div","small","Caricamento configurazione…");wrap.appendChild(status);
   var actions=mk("div","agenda-config-actions","");
-  var add=mk("button","","+ AGGIUNGI PERCORSO");add.type="button";
+  var add=mk("button","route-config-add","+ AGGIUNGI PERCORSO");add.type="button";
   var save=mk("button","","SALVA MODIFICHE");save.type="button";save.disabled=true;
   var back=mk("button","","INDIETRO");back.type="button";
   back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};
@@ -8100,12 +8128,12 @@ function openRoutesConfig(anchor){
     clear(rows);
     routeRows.forEach(function(data,index){
       var card=mk("div","route-config-card","");
-      card.style.border="1px solid #d8d1c5";card.style.borderRadius="6px";card.style.padding="9px";card.style.marginBottom="8px";
-      var head=mk("div","","");head.style.display="flex";head.style.alignItems="center";head.style.justifyContent="space-between";head.style.gap="8px";
+      
+      var head=mk("div","route-config-card-head","");
       head.appendChild(mk("strong","","Percorso "+(index+1)));
-      var remove=mk("button","","RIMUOVI");remove.type="button";remove.onclick=function(){routeRows.splice(index,1);renderRows();};
+      var remove=mk("button","route-config-remove","Rimuovi");remove.type="button";remove.onclick=function(){routeRows.splice(index,1);renderRows();};
       head.appendChild(remove);card.appendChild(head);
-      var grid=mk("div","","");grid.style.display="flex";grid.style.flexWrap="wrap";grid.style.gap="7px";
+      var grid=mk("div","route-config-grid","");
       data.originLabel=makeInput(grid,"Partenza · nome",data.origin_label,"text","Casa");
       data.originAddress=makeInput(grid,"Indirizzo di partenza",data.origin_address,"text","Via, numero, città");
       data.destinationLabel=makeInput(grid,"Arrivo · nome",data.destination_label,"text","Lavoro");
@@ -8115,17 +8143,17 @@ function openRoutesConfig(anchor){
       data.destinationLabel.oninput=function(){data.destination_label=this.value;};
       data.destinationAddress.oninput=function(){data.destination_address=this.value;};
       card.appendChild(grid);
-      card.appendChild(mk("div","small","Giorni della settimana"));
-      var days=mk("div","","");days.style.display="flex";days.style.flexWrap="wrap";days.style.gap="8px";days.style.margin="4px 0 8px";
+      var daysSection=mk("div","route-config-section","");daysSection.appendChild(mk("div","route-config-section-title","Giorni attivi"));
+      var days=mk("div","route-config-days","");
       data.dayChecks=[];
       dayOptions.forEach(function(day){
-        var label=mk("label","","");label.style.display="inline-flex";label.style.alignItems="center";label.style.gap="3px";
+        var label=mk("label","route-config-day","");
         var cb=document.createElement("input");cb.type="checkbox";cb.value=String(day.value);cb.checked=(data.days||[]).indexOf(day.value)!==-1;
         label.appendChild(cb);label.appendChild(document.createTextNode(day.label));days.appendChild(label);data.dayChecks.push(cb);
         cb.onchange=function(){data.days=data.dayChecks.filter(function(x){return x.checked;}).map(function(x){return Number(x.value);});};
       });
-      card.appendChild(days);
-      var timing=mk("div","","");timing.style.display="flex";timing.style.flexWrap="wrap";timing.style.gap="8px";
+      daysSection.appendChild(days);card.appendChild(daysSection);
+      var timingSection=mk("div","route-config-section","");timingSection.appendChild(mk("div","route-config-section-title","Orari e calcolo"));var timing=mk("div","route-config-times","");
       data.targetTime=makeInput(timing,"Orario obiettivo",data.target_time||"08:00","time","");
       data.targetTime.onchange=function(){data.target_time=this.value;};
       data.calculationTime1=makeInput(timing,"Primo calcolo",data.calculation_time_1||"07:00","time","");
@@ -8138,7 +8166,7 @@ function openRoutesConfig(anchor){
       [{value:"departure",label:"Ora di partenza"},{value:"arrival",label:"Ora di arrivo"}].forEach(function(item){var option=document.createElement("option");option.value=item.value;option.textContent=item.label;data.targetMode.appendChild(option);});
       data.targetMode.value=data.target_mode||"arrival";
       data.targetMode.onchange=function(){data.target_mode=this.value;};
-      modeField.appendChild(data.targetMode);timing.appendChild(modeField);card.appendChild(timing);
+      modeField.appendChild(data.targetMode);timing.appendChild(modeField);timingSection.appendChild(timing);card.appendChild(timingSection);
       rows.appendChild(card);
     });
     status.textContent=routeRows.length?"Configura i giorni e l'orario di ogni percorso.":"Nessun percorso: premi + AGGIUNGI PERCORSO.";
@@ -8191,7 +8219,7 @@ function renderRoutes(){
   if(!box){ return; }
   var tools=$("routesConnectionTools");
   if(tools && authToken){
-    clear(tools);
+    clear(tools);tools.className="routes-toolbar";
     var userId=routeUserIdForView(currentView);
     if(userId){
       setText(tools,"Verifica collegamento…");
@@ -8201,7 +8229,7 @@ function renderRoutes(){
         if(err){ setText(tools,"Spostamenti: "+err); return; }
         if(status && status.connected){
           tools.appendChild(mk("span","google-calendar-account","Spostamenti collegati · "+(status.route_count||0)+" percorsi"));
-          var modify=mk("button","google-calendar-save","MODIFICA");
+          var refresh=mk("button","routes-refresh-button","↻ AGGIORNA ORA");refresh.type="button";refresh.onclick=function(){refresh.disabled=true;refresh.textContent="AGGIORNAMENTO…";routesRequest("POST","/refresh?user_id="+encodeURIComponent(userId),{},function(e){refresh.disabled=false;refresh.textContent="↻ AGGIORNA ORA";if(e){showErr("Aggiornamento percorsi: "+e);return;}loadRoutes(currentView);});};var modify=mk("button","google-calendar-save","CONFIGURA");
           modify.type="button";modify.onclick=function(){openRoutesConfig(modify);};
           var disconnect=mk("button","google-calendar-disconnect","SCOLLEGA");
           disconnect.type="button";
@@ -8213,7 +8241,7 @@ function renderRoutes(){
               routesData=null;renderRoutes();
             });
           };
-          tools.appendChild(modify);tools.appendChild(disconnect);
+          tools.appendChild(refresh);tools.appendChild(modify);tools.appendChild(disconnect);
         }else{
           var connect=mk("button","google-calendar-connect","COLLEGA");
           connect.type="button";
