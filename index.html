@@ -6632,7 +6632,7 @@ function openSharedAgendaConfig(anchor){
   save.disabled=true;
   var back=mk("button","route-config-back","CHIUDI");
   back.type="button";
-  back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};
+  back.onclick=function(){setHidden(panel,true);};
   actions.appendChild(save);actions.appendChild(back);wrap.appendChild(actions);
   panel.appendChild(wrap);
   positionCustomBoxPanel(panel,anchorRect);
@@ -6700,7 +6700,6 @@ function openSharedAgendaConfig(anchor){
       save.disabled=false;
       if(err||!data||!data.ok){status.textContent=err||(data&&data.error)||"Salvataggio non riuscito.";return;}
       setHidden(panel,true);
-      setHidden($("dashboardLayoutMenu"),false);
       loadAgenda();
     });
   };
