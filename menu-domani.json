@@ -1,28 +1,33 @@
 {
   "available": true,
-  "date": "2026-11-25",
+  "date": "2026-11-26",
   "site": "U003128",
-  "generated_at": "2026-11-24T00:01:02.092233+01:00",
+  "generated_at": "2026-11-25T00:01:03.938434+01:00",
   "plates": [
     {
-      "position": "3334",
-      "dishCode": "P01982",
-      "name": "Pizza margherita"
+      "position": "3432",
+      "dishCode": "P100192",
+      "name": "Risotto allo zafferano"
     },
     {
-      "position": "3336",
-      "dishCode": "P01991",
-      "name": "Carote julienne"
+      "position": "3433",
+      "dishCode": "P100198",
+      "name": "Cotoletta di lonza alla milanese"
     },
     {
-      "position": "3338",
-      "dishCode": "P00959",
+      "position": "3436",
+      "dishCode": "P101306",
+      "name": "Cavolo viola e insalata"
+    },
+    {
+      "position": "3437",
+      "dishCode": "P00004",
       "name": "Frutta fresca di stagione"
     },
     {
-      "position": "3339",
-      "dishCode": "P01892",
-      "name": "Pane tipo 0"
+      "position": "3439",
+      "dishCode": "P01890",
+      "name": "Pane di farina integrale biologica "
     }
   ]
 }
