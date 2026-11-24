@@ -11964,7 +11964,6 @@ function openAddBoxPanel(anchor){
   available.style.display="flex";
   available.style.flexDirection="column";
   available.style.gap="5px";
-  var customTitle=mk("div","custom-box-editor-section-title","BOX CUSTOM");
   var name=document.createElement("input");
   name.type="text";name.placeholder="Nome della tasklist";name.maxLength=80;
   name.style.width="100%";name.style.boxSizing="border-box";name.style.padding="9px";
@@ -12138,10 +12137,6 @@ function openAddBoxPanel(anchor){
         });
       }else refresh();
   }
-  var customSection=mk("div","custom-box-editor-section","");
-  customSection.appendChild(customTitle);
-  customSection.appendChild(mk("div","small","Crea un box personalizzato con le impostazioni qui sotto."));
-  wrap.appendChild(customSection);
   wrap.appendChild(create);
   var back=mk("button","","INDIETRO");back.type="button";back.onclick=function(){setHidden(panel,true);setHidden($("dashboardLayoutMenu"),false);};wrap.appendChild(back);
   panel.appendChild(wrap);
