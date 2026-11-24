@@ -6724,7 +6724,7 @@ function openSharedAgendaConfig(anchor){
         if(sourceErr){status.textContent=sourceErr;return;}
         selected=(sourceData&&Array.isArray(sourceData.sources)&&sourceData.sources.length)
           ?sourceData.sources.map(function(x){return x.calendar_id;})
-          :["primary"];
+          :[connection.calendar_id||"primary"];
         if(!calendars.some(function(c){return c.id==="primary";})&&selected[0]==="primary"&&calendars.length)selected=[calendars[0].id];
         renderRows();
         status.textContent="Puoi aggiungere fino a 20 calendari.";
