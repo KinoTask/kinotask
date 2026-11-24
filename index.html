@@ -364,6 +364,13 @@ input[type=checkbox] {
   border-color:#783B4A!important;
   background:#f8eef1!important;
 }
+/* Il checkbox tecnico conserva lo stato letto dal salvataggio, ma non deve
+   essere mostrato né ricevere il click: la selezione è gestita dal pulsante. */
+#dashboardAddBoxPanel button.custom-box-user-choice input[type="checkbox"]{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
 
 
 
