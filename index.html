@@ -276,6 +276,19 @@ input[type=checkbox] {
 /* Stile condiviso per tutti i menu e pannelli di configurazione. */
 #viewMenuPanel,#dashboardLayoutMenu,#dashboardAddBoxPanel{background:#fff!important;border:1px solid #aab8c1!important;border-radius:10px!important;box-shadow:0 8px 26px rgba(24,43,56,.20)!important;color:#263746;}
 #viewMenuPanel{padding:8px!important;}
+#viewMenuPanel .kinotask-menu-brand {
+  display:block;
+  margin:0 2px 9px;
+  padding:2px 4px 8px;
+  border-bottom:2px solid #D8C9A8;
+  font-family:"Trebuchet MS",Arial,sans-serif;
+  font-size:23px;
+  font-weight:800;
+  line-height:1.1;
+  letter-spacing:-.5px;
+}
+#viewMenuPanel .kinotask-menu-brand-kino { color:#29495b; }
+#viewMenuPanel .kinotask-menu-brand-task { color:#783B4A; }
 #dashboardLayoutMenu{padding:8px!important;min-width:190px;}
 #dashboardLayoutMenu button,#dashboardAddBoxPanel button,#viewMenuPanel button{border-radius:7px;}
 #dashboardAddBoxPanel{overflow-x:hidden;}
@@ -5151,6 +5164,15 @@ html body #head {
   min-width:30px;
   margin:0;
 }
+#dashboardToolbar #toolbarBrandLogo {
+  display:block;
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+  object-fit:contain;
+  margin:0 3px 0 0;
+}
+body.k #dashboardToolbar #toolbarBrandLogo { display:none!important; }
 #dashboardToolbar #viewMenuPanel {
   position:absolute;
   left:0;
@@ -5627,6 +5649,8 @@ body .recurring-task-time,body.k .recurring-task-time,body:not(.k) .recurring-ta
     </button>
     <div id="viewMenuPanel" hidden></div>
   </div>
+
+  <img id="toolbarBrandLogo" src="kinotask.v03.jpg" alt="KinoTask">
 
   <button type="button" id="toolbarNotesButton" class="view-switcher-notes-button" aria-label="Apri appunti" title="Apri appunti">✎</button>
 
@@ -11591,6 +11615,14 @@ function findItem(list, callback){
 function renderViewMenu(){
   var panel = $("viewMenuPanel");
   clear(panel);
+
+  /* Marchio del menu principale: resta fuori dalle sottoschermate operative. */
+  var brand = mk("div", "kinotask-menu-brand", "");
+  var brandKino = mk("span", "kinotask-menu-brand-kino", "Kino");
+  var brandTask = mk("span", "kinotask-menu-brand-task", "Task");
+  brand.appendChild(brandKino);
+  brand.appendChild(brandTask);
+  panel.appendChild(brand);
   
   panel.style.width = "";
   panel.style.maxWidth = "";
