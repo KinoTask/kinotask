@@ -740,6 +740,10 @@ input[type=checkbox] {
 .weekly-date-number { font-size:.82em; font-weight:normal; color:#555; }
 .weekly-date-who { flex:0 0 auto; font-size:.68em; color:#555; text-align:right; }
 .weekly-date-row.is-done .weekly-date-label,.weekly-date-row.is-done .weekly-date-number { color:#2e7d32; }
+.weekly-date-row.is-cancelled { opacity:.55; background:#f1f2f3; border-radius:5px; }
+.weekly-date-row.is-cancelled .weekly-date-label,.weekly-date-row.is-cancelled .weekly-date-number { color:#858b90!important; text-decoration:line-through; }
+.weekly-date-row.is-cancelled input[type="checkbox"] { cursor:not-allowed; }
+.weekly-date-exclude-button.is-excluded,.weekly-date-exclude-button.is-excluded:disabled { background:#dce3e7!important; color:#687780!important; border-color:#aab6bd!important; opacity:1!important; cursor:not-allowed!important; }
 .weekly-date-completed-by { max-width:112px; min-width:88px; padding:3px 18px 3px 4px; border:1px solid #aaa; border-radius:3px; background:#fff; color:#333; font:inherit; font-size:11px; }
 .weekly-date-action-button,.weekly-date-actions > div > button { display:inline-flex; align-items:center; justify-content:center; width:30px; min-width:30px; height:30px; margin:0; padding:2px; border:1px solid #555; border-radius:4px; background:#fff; font-size:16px; line-height:1; }
 .weekly-date-actions { gap:5px; }
@@ -12672,7 +12676,9 @@ function openWeeklyDatePicker(initialValue,title,onConfirm,trigger){
   }
   pop.style.left=left+"px";pop.style.top=top+"px";
   var dateInput=document.createElement("input");dateInput.type="date";
-  dateInput.value=/^\\d{4}-\\d{2}-\\d{2}$/.test(String(initialValue||""))?String(initialValue):iso(new Date());
+  var fallbackDate=new Date(),fallbackMonth=String(fallbackDate.getMonth()+1),fallbackDay=String(fallbackDate.getDate());
+  var fallbackIso=fallbackDate.getFullYear()+"-"+(fallbackMonth.length<2?"0":"")+fallbackMonth+"-"+(fallbackDay.length<2?"0":"")+fallbackDay;
+  dateInput.value=/^\d{4}-\d{2}-\d{2}$/.test(String(initialValue||""))?String(initialValue):fallbackIso;
   dateInput.style.display="block";dateInput.style.width="100%";dateInput.style.boxSizing="border-box";
   dateInput.style.padding="7px";dateInput.style.fontSize="14px";
   var actions=mk("div","route-config-footer","");actions.style.marginTop="7px";
@@ -12761,7 +12767,7 @@ function loadWeeklyDateCalendar(def){
     var rows=[];
     for(var d=new Date(start);d<=end;d=shift(d,1)){
       var key=iso(d),dow=d.getDay(),ex=map[key];
-      if(ex&&ex.entry_type==="excluded")continue;
+      if(ex&&ex.entry_type==="excluded"){rows.push({source:key,date:key,entry:ex,cancelled:true});continue;}
       if(ex&&ex.entry_type==="override"){if(!showOverdue||!ex.done)rows.push({source:key,date:ex.entry_date||key,entry:ex});continue;}
       if(ex&&ex.entry_type==="extra"){if(!showOverdue||!ex.done)rows.push({source:key,date:ex.entry_date||key,entry:ex});continue;}
       if(weekdays.indexOf(dow)!==-1&&(!showOverdue||!(ex&&ex.done)))rows.push({source:key,date:key,entry:ex||null});
@@ -12787,7 +12793,9 @@ function loadWeeklyDateCalendar(def){
       line.className="weekly-date-row";
       line.style.display="flex";line.style.flexWrap="wrap";line.style.alignItems="center";line.style.gap="8px";line.style.padding="7px 2px";line.style.borderBottom="1px solid #ddd";
       if(entry.done)line.classList.add("is-done");
-      var check=document.createElement("input");check.type="checkbox";check.checked=!!entry.done;check.disabled=false;
+      var isCancelled=!!row.cancelled||entry.entry_type==="excluded";
+      if(isCancelled)line.classList.add("is-cancelled");
+      var check=document.createElement("input");check.type="checkbox";check.checked=!!entry.done;check.disabled=isCancelled;
       check.onchange=function(){usersRequest("PATCH","/custom-boxes/"+def.custom_box_id+"/weekly-dates?viewId="+encodeURIComponent(currentView),{source_date:row.source,date:row.date,done:check.checked},function(e,r){if(e||!r||!r.ok){alert(e||(r&&r.error)||"Salvataggio non riuscito");load();}else load();});};
       line.appendChild(check);
       var dateText=mk("span","weekly-date-label","");dateText.textContent=d.toLocaleDateString("it-IT",{weekday:"long"});
@@ -12873,9 +12881,14 @@ function loadWeeklyDateCalendar(def){
         edit.onclick=function(){openWeeklyDatePicker(row.date,"Modifica data",function(next){usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_date:next,entry_type:"override"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});},edit);};
 
         actionWrap.appendChild(edit);
-        var exclude=mk("button","weekly-date-action-button weekly-date-exclude-button","🗑");exclude.type="button";exclude.title="Escludi questa data";
-        exclude.onclick=function(){if(!confirm("Escludere questa data?"))return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_type:"excluded"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
+        var exclude=mk("button","weekly-date-action-button weekly-date-exclude-button"+(isCancelled?" is-excluded":""),"🗑");exclude.type="button";exclude.title=isCancelled?"Data annullata":"Annulla questa data";
+        exclude.disabled=isCancelled;
+        if(!isCancelled)exclude.onclick=function(){if(!confirm("Annullare questa data? La data resterà visibile nel calendario come annullata."))return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:row.source,entry_type:"excluded"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Modifica non salvata");load();});};
         actionWrap.appendChild(exclude);
+        if(isCancelled){
+          var cancelledButtons=actionWrap.querySelectorAll("button");
+          for(var cancelledIndex=0;cancelledIndex<cancelledButtons.length;cancelledIndex++)cancelledButtons[cancelledIndex].disabled=true;
+        }
       }
       host.appendChild(line);
     });
