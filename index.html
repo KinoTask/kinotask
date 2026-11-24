@@ -12589,7 +12589,17 @@ function openCustomBoxEditor(def, anchor){
         ['can_edit_tasks','Modificare il testo delle attività'],
         ['can_manage_assignments','Modificare assegnatari'],
         ['can_delete_tasks','Eliminare attività']
-      ];
+      var capabilityLabels=[
+        ['can_edit_box','Modificare il box'],
+        ['can_add_tasks','Aggiungere attività'],
+        ['can_edit_tasks','Modificare il testo delle attività'],
+        ['can_manage_assignments','Modificare assegnatari'],
+        ['can_delete_tasks','Eliminare attività']
+      ];.filter(function(cap){
+         // I calendari di date settimanali non prevedono assegnatari:
+         // la relativa autorizzazione non deve essere modificabile né mostrata.
+         return !(def.box_kind==='weekly_dates'&&cap[0]==='can_manage_assignments');
+       })
       (permissionData.users||[]).forEach(function(user){
         if(String(user.id)===String(def.custom_owner_user_id))return;
         var existing=(permissionData.permissions||[]).filter(function(x){return String(x.user_id)===String(user.id);})[0]||{};
