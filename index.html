@@ -847,11 +847,11 @@ body.k .weekly-date-mark {
 .google-calendar-account{color:#555;overflow-wrap:anywhere}
 .google-calendar-select{flex:1 1 160px;min-width:0;max-width:100%;font:inherit;padding:5px;border:1px solid #777;background:#fff}
 .google-calendar-tools button{margin:0;padding:7px 12px;font-size:.9em;font-weight:600;white-space:nowrap;border:1px solid #c9bea6;border-radius:12px;background:#f2f0e6;color:#111;}
-#agendaBox .seg > button{border:1px solid #c9bea6;border-radius:12px;background:#f2f0e6;color:#111;font-weight:600;}
-#agendaBox .seg > button.sel{background:#1d1d1d;color:#fff;border-color:#1d1d1d;}
+.dashboard-box[data-renderer-key="agenda"] .seg > button{border:1px solid #c9bea6;border-radius:12px;background:#f2f0e6;color:#111;font-weight:600;}
+.dashboard-box[data-renderer-key="agenda"] .seg > button.sel{background:#1d1d1d;color:#fff;border-color:#1d1d1d;}
 .google-calendar-connect{font-weight:bold}
 /* Attività ricorrenti */
-#recurringTasksBox .recurring-config-button {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button {
   display:flex;
   position:relative;
   top:-1px;
@@ -875,7 +875,7 @@ body.k .weekly-date-mark {
   text-align:center;
   cursor:pointer;
 }
-#recurringTasksBox .recurring-config-button span {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button span {
   display:block;
   width:100%;
   font-size:10px;
@@ -883,10 +883,10 @@ body.k .weekly-date-mark {
   text-align:center;
   transform:none;
 }
-#recurringTasksBox .section-heading {
+.dashboard-box[data-renderer-key="recurringTasks"] .section-heading {
   align-items:center;
 }
-body.k #recurringTasksBox .recurring-config-button {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button {
   float:left;
   display:flex;
   width:16px;
@@ -897,7 +897,7 @@ body.k #recurringTasksBox .recurring-config-button {
   padding:0!important;
   top:-1px;
 }
-#recurringTasksBox .section-heading h2 {
+.dashboard-box[data-renderer-key="recurringTasks"] .section-heading h2 {
   margin-right:4px;
 }
 .recurring-task-row {
@@ -2787,11 +2787,11 @@ body.k .todo-assign {
 }
 
 /* Impostazioni attività ricorrenti (sostituisce ⚙) */
-#recurringTasksBox .recurring-config-button span {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button span {
   font-size:0 !important;
 }
 
-#recurringTasksBox .recurring-config-button:before {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button:before {
   content:"";
   position:absolute;
   left:50%;
@@ -2803,7 +2803,7 @@ body.k .todo-assign {
   border-radius:50%;
 }
 
-#recurringTasksBox .recurring-config-button:after {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button:after {
   content:"";
   position:absolute;
   left:50%;
@@ -3257,11 +3257,11 @@ body.k .overlay .panel {
 }
 
 /* Impostazioni attività ricorrenti (sostituisce ⚙) */
-#recurringTasksBox .recurring-config-button span {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button span {
   font-size:0 !important;
 }
 
-#recurringTasksBox .recurring-config-button:before {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button:before {
   content:"";
   position:absolute;
   left:50%;
@@ -3273,7 +3273,7 @@ body.k .overlay .panel {
   border-radius:50%;
 }
 
-#recurringTasksBox .recurring-config-button:after {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button:after {
   content:"";
   position:absolute;
   left:50%;
@@ -3402,15 +3402,15 @@ body.k .shopping-delete-label > span:after {
    su tutti i dispositivi; restano solo le regole responsive generali. */
 
 /* Sottotask: gli assegnatari restano nel box e vanno a capo se manca spazio. */
-#recurringTasksBox #recurringTaskList {
+.dashboard-box[data-renderer-key="recurringTasks"] #recurringTaskList {
   width:100%;
   max-width:100%;
   min-width:0;
   overflow:hidden;
   box-sizing:border-box;
 }
-#recurringTasksBox .recurring-subtask-row,
-body.k #recurringTasksBox .recurring-subtask-row {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row {
   display:flex!important;
   flex-wrap:wrap;
   align-items:center;
@@ -3422,15 +3422,15 @@ body.k #recurringTasksBox .recurring-subtask-row {
   box-sizing:border-box;
   overflow:hidden;
 }
-#recurringTasksBox .recurring-subtask-row .todo-check-cell,
-body.k #recurringTasksBox .recurring-subtask-row .todo-check-cell {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-check-cell,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-check-cell {
   display:block;
   flex:0 0 25px;
   width:25px;
   box-sizing:border-box;
 }
-#recurringTasksBox .recurring-subtask-row .todo-text,
-body.k #recurringTasksBox .recurring-subtask-row .todo-text {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-text,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-text {
   display:block!important;
   flex:1 1 120px;
   width:auto;
@@ -3440,8 +3440,8 @@ body.k #recurringTasksBox .recurring-subtask-row .todo-text {
   word-wrap:break-word;
   white-space:normal;
 }
-#recurringTasksBox .recurring-subtask-row .recurring-subtask-owners,
-body.k #recurringTasksBox .recurring-subtask-row .recurring-subtask-owners {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .recurring-subtask-owners,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .recurring-subtask-owners {
   display:block;
   flex:0 1 auto;
   max-width:45%;
@@ -3482,21 +3482,21 @@ body.k .recurring-subtask-assign label {
 }
 
 /* Kindle: pulsante configurazione subito a destra del titolo. */
-body.k #recurringTasksBox .section-heading {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .section-heading {
   display:flex;
   align-items:center;
   gap:5px;
   min-height:20px;
   padding-right:18px;
 }
-body.k #recurringTasksBox .section-heading h2 {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .section-heading h2 {
   float:none;
   flex:0 1 auto;
   width:auto;
   min-width:0;
   white-space:normal;
 }
-body.k #recurringTasksBox .recurring-config-button {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button {
   float:none;
   position:static;
   flex:0 0 16px;
@@ -3520,8 +3520,8 @@ body.k #recurringTasksBox .recurring-config-button {
 
 
 /* Sottotask: stessa struttura e stessi stili assegnatario della To-do list. */
-#recurringTasksBox .recurring-subtask-row,
-body.k #recurringTasksBox .recurring-subtask-row {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row {
   display:flex!important;
   flex-flow:row nowrap!important;
   align-items:center!important;
@@ -3531,16 +3531,16 @@ body.k #recurringTasksBox .recurring-subtask-row {
   min-width:0!important;
   overflow:visible!important;
 }
-#recurringTasksBox .recurring-subtask-row .todo-check-cell,
-body.k #recurringTasksBox .recurring-subtask-row .todo-check-cell {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-check-cell,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-check-cell {
   display:block!important;
   flex:0 0 25px!important;
   width:25px!important;
   min-width:25px!important;
   padding:0!important;
 }
-#recurringTasksBox .recurring-subtask-row .todo-text,
-body.k #recurringTasksBox .recurring-subtask-row .todo-text {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-text,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-text {
   display:block!important;
   flex:0 1 auto!important;
   width:auto!important;
@@ -3549,7 +3549,7 @@ body.k #recurringTasksBox .recurring-subtask-row .todo-text {
   white-space:normal!important;
   overflow-wrap:anywhere!important;
 }
-#recurringTasksBox .recurring-subtask-row .task-assignees {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .task-assignees {
   display:inline-block!important;
   margin-left:5px!important;
   font-size:.78em!important;
@@ -3564,20 +3564,20 @@ body.k #recurringTasksBox .recurring-subtask-row .todo-text {
 
 /* L'ingranaggio rimane accanto al titolo anche con le regole Kindle
    che normalmente allargano i pulsanti dei box. */
-#recurringTasksBox .section-heading {
+.dashboard-box[data-renderer-key="recurringTasks"] .section-heading {
   display:flex!important;
   flex-flow:row nowrap!important;
   align-items:center!important;
   gap:5px!important;
 }
-#recurringTasksBox .section-heading h2 {
+.dashboard-box[data-renderer-key="recurringTasks"] .section-heading h2 {
   float:none!important;
   flex:0 1 auto!important;
   width:auto!important;
   min-width:0;
 }
-#recurringTasksBox .recurring-config-button,
-body.k #recurringTasksBox .recurring-config-button {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button {
   display:inline-flex!important;
   position:static!important;
   float:none!important;
@@ -3755,40 +3755,40 @@ body.k #loggedUser {
    .todo-check-cell, .todo-text e .todo-actions anche su Kindle. */
 
 /* Ripristina il simbolo ⚙ visibile nel pulsante PC della versione Claude. */
-#recurringTasksBox .recurring-config-button span {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button span {
   display:block!important;
   font-size:11px!important;
   line-height:1!important;
 }
-#recurringTasksBox .recurring-config-button::before,
-#recurringTasksBox .recurring-config-button::after {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button::before,
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button::after {
   content:none!important;
   display:none!important;
 }
 
 /* Kindle: riga ricorrente a celle, checkbox e testo affiancati. */
-body.k #recurringTasksBox .recurring-task-row,
-body.k #recurringTasksBox .recurring-subtask-row {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-task-row,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row {
   display:table!important;
   table-layout:fixed!important;
   width:100%!important;
   margin:4px 0!important;
 }
-body.k #recurringTasksBox .recurring-task-row .todo-check-cell,
-body.k #recurringTasksBox .recurring-subtask-row .todo-check-cell {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-task-row .todo-check-cell,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-check-cell {
   display:table-cell!important;
   width:28px!important;
   vertical-align:middle!important;
 }
-body.k #recurringTasksBox .recurring-task-row .todo-text,
-body.k #recurringTasksBox .recurring-subtask-row .todo-text {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-task-row .todo-text,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-text {
   display:table-cell!important;
   width:100%!important;
   min-width:0!important;
   vertical-align:middle!important;
   overflow-wrap:anywhere!important;
 }
-body.k #recurringTasksBox .recurring-subtask-row .recurring-subtask-owners {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .recurring-subtask-owners {
   display:inline!important;
   margin-left:5px!important;
   font-size:.78em!important;
@@ -3804,18 +3804,18 @@ body.k .todo-delete .trash-icon {
 }
 
 /* Header ricorrenti: titolo, impostazioni e sync sulla stessa riga. */
-body.k #recurringTasksBox .section-heading {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .section-heading {
   display:table!important;
   table-layout:auto!important;
   width:100%!important;
 }
-body.k #recurringTasksBox .section-heading h2 {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .section-heading h2 {
   display:table-cell!important;
   width:1%!important;
   white-space:nowrap!important;
   vertical-align:middle!important;
 }
-body.k #recurringTasksBox .recurring-config-button {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button {
   display:table-cell!important;
   position:static!important;
   float:none!important;
@@ -3830,7 +3830,7 @@ body.k #recurringTasksBox .recurring-config-button {
 /* La geometria dell'icona è definita una sola volta da .trash-button. */
 
 /* L'etichetta assegnatario dei sottotask è indivisibile anche con task lunghi */
-#recurringTasksBox .recurring-subtask-row .task-assignees {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .task-assignees {
   display:inline-block!important;
   white-space:nowrap!important;
   word-break:keep-all!important;
@@ -3838,7 +3838,7 @@ body.k #recurringTasksBox .recurring-config-button {
   flex:0 0 auto!important;
   vertical-align:baseline!important;
 }
-#recurringTasksBox .recurring-subtask-row .todo-text {
+.dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-text {
   min-width:0!important;
   overflow-wrap:break-word!important;
 }
@@ -3850,14 +3850,14 @@ body.k #recurringTasksBox .recurring-config-button {
 
 /* Testo attività: il task può andare a capo, l'assegnatario resta unito. */
 body.k .todo .todo-text,
-body.k #recurringTasksBox .recurring-subtask-row .todo-text {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-text {
   min-width:0!important;
   overflow-wrap:break-word!important;
   word-wrap:break-word!important;
   word-break:normal!important;
 }
 body.k .todo .task-assignees,
-body.k #recurringTasksBox .recurring-subtask-row .task-assignees {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .task-assignees {
   display:inline-block!important;
   white-space:nowrap!important;
   word-break:keep-all!important;
@@ -3868,22 +3868,22 @@ body.k #recurringTasksBox .recurring-subtask-row .task-assignees {
 }
 
 /* Righe ricorrenti: tabella semplice, più affidabile sul browser Kindle. */
-body.k #recurringTasksBox .recurring-task-row,
-body.k #recurringTasksBox .recurring-subtask-row {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-task-row,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row {
   display:table!important;
   table-layout:fixed!important;
   width:100%!important;
   box-sizing:border-box!important;
 }
-body.k #recurringTasksBox .recurring-task-row .todo-check-cell,
-body.k #recurringTasksBox .recurring-subtask-row .todo-check-cell {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-task-row .todo-check-cell,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-check-cell {
   display:table-cell!important;
   width:28px!important;
   min-width:28px!important;
   vertical-align:middle!important;
 }
-body.k #recurringTasksBox .recurring-task-row .todo-text,
-body.k #recurringTasksBox .recurring-subtask-row .todo-text {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-task-row .todo-text,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-subtask-row .todo-text {
   display:table-cell!important;
   width:100%!important;
   min-width:0!important;
@@ -4501,14 +4501,14 @@ body.k #headerRight {
 
 
 /* Icona attività ricorrenti: glifo semplice e bianco, leggibile su Kindle. */
-body.k #recurringTasksBox .recurring-config-button {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button {
   margin-left:11px!important;
   background:#783B4A!important;
   background-color:#783B4A!important;
   color:#fff!important;
   border-color:#783B4A!important;
 }
-body.k #recurringTasksBox .recurring-config-button span {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button span {
   display:block!important;
   width:100%!important;
   font-family:Arial,sans-serif!important;
@@ -4517,8 +4517,8 @@ body.k #recurringTasksBox .recurring-config-button span {
   line-height:14px!important;
   color:#fff!important;
 }
-body.k #recurringTasksBox .recurring-config-button:before,
-body.k #recurringTasksBox .recurring-config-button:after {
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button:before,
+body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button:after {
   display:none!important;
   content:none!important;
 }
@@ -5646,154 +5646,36 @@ body .recurring-task-time,body.k .recurring-task-time,body:not(.k) .recurring-ta
 <!-- ===== VISTE PERSONALI ===== -->
 <div id="personalView" hidden>
 
-  <div class="box" id="personalGlobalTaskBox">
-    <div class="section-heading">
-      <h2 data-box-title="personalGlobalTasks"></h2>
-      <div class="sync-label" id="personalGlobalTaskTimes"></div>
-    </div>
-    <div class="seg" id="personalGlobalTaskDays">
-      <button type="button" class="seg-button" data-day="ieri">Ieri</button>
-      <button type="button" class="seg-button" data-day="oggi">Oggi</button>
-      <button type="button" class="seg-button" data-day="domani">Domani</button>
-    </div>
-    <div id="personalGlobalTaskList">Caricamento...</div>
-    <div class="small" id="personalGlobalTaskStatus"></div>
-  </div>
+  
 
-  <div class="box" id="personalTasksBox">
-    <div class="section-heading">
-      <h2 data-box-title="personalTasks"></h2>
-      <div class="sync-label" id="personalTasksTimes"></div>
-    </div>
-    <div class="seg two" id="personalPeriod">
-      <button type="button" class="seg-button" data-day="oggi">Oggi</button>
-      <button type="button" class="seg-button" data-day="domani">Domani</button>
-    </div>
-    <div id="personalTasks">Caricamento...</div>
-  </div>
+  
 
-  <div class="box" id="personalRoutesBox" hidden>
-    <div class="section-heading">
-      <h2 data-box-title="personalRoutes"></h2>
-      <div class="sync-label" id="personalRoutesTimes"></div>
-      
-    </div>
-    <div class="google-calendar-tools" id="routesConnectionTools"></div>
-    <div id="personalRoutes"></div>
-    <div class="small" id="personalRoutesStatus"></div>
-  </div>
+  
 
-  <div class="box" id="userAgendaBox" hidden>
-    <div class="section-heading">
-      <h2 data-box-title="userAgenda"></h2>
-      <div class="sync-label" id="userAgendaTimes"></div>
-    </div>
-    <div class="google-calendar-tools" id="userAgendaGoogleTools"></div>
-    <div id="userAgenda">Caricamento...</div>
-  </div>
+  
 </div>
 
 <!-- ===== VISTA FAMIGLIA ===== -->
 <div class="row" id="dashboardContent" hidden>
   <div class="col">
 
-    <div class="box" id="agendaBox">
-      <div class="section-heading">
-        <h2 data-box-title="agenda"></h2>
-        <div class="sync-label" id="agendaTimes"></div>
-      </div>
-      <div class="google-calendar-tools" id="agendaGoogleTools"></div>
-      <div id="agenda">Caricamento...</div>
-    </div>
+    
 
-    <div class="box" id="familyShoppingBox" hidden>
-      <div class="section-heading">
-        <h2 data-box-title="familyShopping">Lista della spesa</h2>
-        <div class="sync-label" id="familyShoppingTimes"></div>
-      </div>
-      <div class="add-ctl family-shopping-add">
-        <input type="text" id="familyShoppingInput" maxlength="200" placeholder="Aggiungi un articolo">
-        <input type="text" id="familyShoppingQuantity" maxlength="50" placeholder="Qtà" aria-label="Quantità">
-        <button type="button" id="familyShoppingAdd">+</button>
-      </div>
-      <div id="familyShoppingList">Caricamento...</div>
-    </div>
+    
   </div>
 
   <div class="col">
 
-    <div class="box" id="sharedTasksBox">
-      <div class="section-heading">
-        <h2 data-box-title="sharedTasks"></h2>
-        <div class="sync-label" id="taskTimes"></div>
-      </div>
-      <div class="seg" id="taskDays">
-        <button type="button" class="seg-button" data-day="ieri">Ieri</button>
-        <button type="button" class="seg-button" data-day="oggi">Oggi</button>
-        <button type="button" class="seg-button" data-day="domani">Domani</button>
-      </div>
-      <div class="add-ctl" id="taskCtl" hidden>
-        <input type="text" id="taskInput" maxlength="200" placeholder="Nuova attività">
-        <button type="button" id="taskAddButton">Aggiungi</button>
-      </div>
-      <div id="taskList"></div>
-      <div class="small" id="taskStatus"></div>
-    </div>
+    
 
 
-    <div class="box" id="recurringTasksBox" hidden>
-      <div class="section-heading">
-        <h2 data-box-title="recurringTasks">Attività ricorrenti</h2>
-        <button type="button" id="recurringConfigButton" class="recurring-config-button" title="Configura attività ricorrenti" aria-label="Configura attività ricorrenti" hidden><span aria-hidden="true">≡</span></button>
-        <div class="sync-label" id="recurringTasksTimes"></div>
-      </div>
-      <div class="seg" id="recurringTaskDays">
-        <button type="button" class="seg-button" data-day="ieri">Ieri</button>
-        <button type="button" class="seg-button" data-day="oggi">Oggi</button>
-        <button type="button" class="seg-button" data-day="domani">Domani</button>
-      </div>
-      <div id="recurringTaskList">Caricamento...</div>
-      <div class="small" id="recurringTaskStatus"></div>
-    </div>
+    
 
-    <div class="box" id="todoBox">
-      <div class="section-heading">
-        <h2 data-box-title="todo"></h2>
-        <div class="sync-label" id="todoSyncLabel">non connesso</div>
-      </div>
-      <div class="add-ctl" id="todoCtl" hidden>
-        <input type="text" id="todoInput" maxlength="200" placeholder="Nuova attività">
-        <button type="button" id="todoAddButton">Aggiungi</button>
-      </div>
-      <div id="todoList"><div class="small">Nessuna attività assegnata.</div></div>
-      <div class="small" id="todoStatus"></div>
-    </div>
+    
 	
-	<div class="box" id="personalTodoBox">
-	  <div class="section-heading">
-		<h2 data-box-title="personalTodo"></h2>
-		<div class="sync-label" id="personalTodoSyncLabel">non connesso</div>
-	  </div>
-	  <div id="personalTodoList"></div>
-	  <div class="small" id="personalTodoStatus"></div>
-	</div>
+	
 
-    <div class="box" id="schoolMenuBox">
-      <div class="section-heading">
-        <h2 data-box-title="schoolMenu"></h2>
-        <div class="sync-label" id="menuTimes"></div>
-      </div>
-      <div class="seg" id="menuDays">
-        <button type="button" class="seg-button" data-day="ieri">Ieri</button>
-        <button type="button" class="seg-button" data-day="oggi">Oggi</button>
-        <button type="button" class="seg-button" data-day="domani">Domani</button>
-      </div>
-      <div class="menu-head">
-        <h3 id="menuDate"></h3>
-        <div class="small" id="menuStatus"></div>
-      </div>
-      <div id="menuList"></div>
-    </div>
+    
   </div>
 </div>
 
@@ -5967,6 +5849,9 @@ var USERS = [];
 var AUTH_PROFILES = [];
 var DASHBOARD_VIEWS = [];
 var DASHBOARD_BOXES = [];
+
+/* Template dei renderer standard: i contenitori sono creati dal catalogo D1. */
+var DASHBOARD_BOX_TEMPLATES = {"personalGlobalTasks":"\n    <div class=\"section-heading\">\n      <h2 data-box-title=\"personalGlobalTasks\"></h2>\n      <div class=\"sync-label\" id=\"personalGlobalTaskTimes\"></div>\n    </div>\n    <div class=\"seg\" id=\"personalGlobalTaskDays\">\n      <button type=\"button\" class=\"seg-button\" data-day=\"ieri\">Ieri</button>\n      <button type=\"button\" class=\"seg-button\" data-day=\"oggi\">Oggi</button>\n      <button type=\"button\" class=\"seg-button\" data-day=\"domani\">Domani</button>\n    </div>\n    <div id=\"personalGlobalTaskList\">Caricamento...</div>\n    <div class=\"small\" id=\"personalGlobalTaskStatus\"></div>\n  ","personalTasks":"\n    <div class=\"section-heading\">\n      <h2 data-box-title=\"personalTasks\"></h2>\n      <div class=\"sync-label\" id=\"personalTasksTimes\"></div>\n    </div>\n    <div class=\"seg two\" id=\"personalPeriod\">\n      <button type=\"button\" class=\"seg-button\" data-day=\"oggi\">Oggi</button>\n      <button type=\"button\" class=\"seg-button\" data-day=\"domani\">Domani</button>\n    </div>\n    <div id=\"personalTasks\">Caricamento...</div>\n  ","personalRoutes":"\n    <div class=\"section-heading\">\n      <h2 data-box-title=\"personalRoutes\"></h2>\n      <div class=\"sync-label\" id=\"personalRoutesTimes\"></div>\n      \n    </div>\n    <div class=\"google-calendar-tools\" id=\"routesConnectionTools\"></div>\n    <div id=\"personalRoutes\"></div>\n    <div class=\"small\" id=\"personalRoutesStatus\"></div>\n  ","userAgenda":"\n    <div class=\"section-heading\">\n      <h2 data-box-title=\"userAgenda\"></h2>\n      <div class=\"sync-label\" id=\"userAgendaTimes\"></div>\n    </div>\n    <div class=\"google-calendar-tools\" id=\"userAgendaGoogleTools\"></div>\n    <div id=\"userAgenda\">Caricamento...</div>\n  ","agenda":"\n      <div class=\"section-heading\">\n        <h2 data-box-title=\"agenda\"></h2>\n        <div class=\"sync-label\" id=\"agendaTimes\"></div>\n      </div>\n      <div class=\"google-calendar-tools\" id=\"agendaGoogleTools\"></div>\n      <div id=\"agenda\">Caricamento...</div>\n    ","familyShopping":"\n      <div class=\"section-heading\">\n        <h2 data-box-title=\"familyShopping\">Lista della spesa</h2>\n        <div class=\"sync-label\" id=\"familyShoppingTimes\"></div>\n      </div>\n      <div class=\"add-ctl family-shopping-add\">\n        <input type=\"text\" id=\"familyShoppingInput\" maxlength=\"200\" placeholder=\"Aggiungi un articolo\">\n        <input type=\"text\" id=\"familyShoppingQuantity\" maxlength=\"50\" placeholder=\"Qtà\" aria-label=\"Quantità\">\n        <button type=\"button\" id=\"familyShoppingAdd\">+</button>\n      </div>\n      <div id=\"familyShoppingList\">Caricamento...</div>\n    ","sharedTasks":"\n      <div class=\"section-heading\">\n        <h2 data-box-title=\"sharedTasks\"></h2>\n        <div class=\"sync-label\" id=\"taskTimes\"></div>\n      </div>\n      <div class=\"seg\" id=\"taskDays\">\n        <button type=\"button\" class=\"seg-button\" data-day=\"ieri\">Ieri</button>\n        <button type=\"button\" class=\"seg-button\" data-day=\"oggi\">Oggi</button>\n        <button type=\"button\" class=\"seg-button\" data-day=\"domani\">Domani</button>\n      </div>\n      <div class=\"add-ctl\" id=\"taskCtl\" hidden>\n        <input type=\"text\" id=\"taskInput\" maxlength=\"200\" placeholder=\"Nuova attività\">\n        <button type=\"button\" id=\"taskAddButton\">Aggiungi</button>\n      </div>\n      <div id=\"taskList\"></div>\n      <div class=\"small\" id=\"taskStatus\"></div>\n    ","recurringTasks":"\n      <div class=\"section-heading\">\n        <h2 data-box-title=\"recurringTasks\">Attività ricorrenti</h2>\n        <button type=\"button\" id=\"recurringConfigButton\" class=\"recurring-config-button\" title=\"Configura attività ricorrenti\" aria-label=\"Configura attività ricorrenti\" hidden><span aria-hidden=\"true\">≡</span></button>\n        <div class=\"sync-label\" id=\"recurringTasksTimes\"></div>\n      </div>\n      <div class=\"seg\" id=\"recurringTaskDays\">\n        <button type=\"button\" class=\"seg-button\" data-day=\"ieri\">Ieri</button>\n        <button type=\"button\" class=\"seg-button\" data-day=\"oggi\">Oggi</button>\n        <button type=\"button\" class=\"seg-button\" data-day=\"domani\">Domani</button>\n      </div>\n      <div id=\"recurringTaskList\">Caricamento...</div>\n      <div class=\"small\" id=\"recurringTaskStatus\"></div>\n    ","todo":"\n      <div class=\"section-heading\">\n        <h2 data-box-title=\"todo\"></h2>\n        <div class=\"sync-label\" id=\"todoSyncLabel\">non connesso</div>\n      </div>\n      <div class=\"add-ctl\" id=\"todoCtl\" hidden>\n        <input type=\"text\" id=\"todoInput\" maxlength=\"200\" placeholder=\"Nuova attività\">\n        <button type=\"button\" id=\"todoAddButton\">Aggiungi</button>\n      </div>\n      <div id=\"todoList\"><div class=\"small\">Nessuna attività assegnata.</div></div>\n      <div class=\"small\" id=\"todoStatus\"></div>\n    ","personalTodo":"\n\t  <div class=\"section-heading\">\n\t\t<h2 data-box-title=\"personalTodo\"></h2>\n\t\t<div class=\"sync-label\" id=\"personalTodoSyncLabel\">non connesso</div>\n\t  </div>\n\t  <div id=\"personalTodoList\"></div>\n\t  <div class=\"small\" id=\"personalTodoStatus\"></div>\n\t","schoolMenu":"\n      <div class=\"section-heading\">\n        <h2 data-box-title=\"schoolMenu\"></h2>\n        <div class=\"sync-label\" id=\"menuTimes\"></div>\n      </div>\n      <div class=\"seg\" id=\"menuDays\">\n        <button type=\"button\" class=\"seg-button\" data-day=\"ieri\">Ieri</button>\n        <button type=\"button\" class=\"seg-button\" data-day=\"oggi\">Oggi</button>\n        <button type=\"button\" class=\"seg-button\" data-day=\"domani\">Domani</button>\n      </div>\n      <div class=\"menu-head\">\n        <h3 id=\"menuDate\"></h3>\n        <div class=\"small\" id=\"menuStatus\"></div>\n      </div>\n      <div id=\"menuList\"></div>\n    "};
 var currentView = null;
 var viewManualUntil = 0;
 var AUTH_PERMISSIONS = [];
@@ -7335,7 +7220,7 @@ function schedulePoll(){
 /* personal to-do */
 
 function personalTodoConnect() {
-  if (!authToken || !currentView || !$("personalTodoBox")) return;
+  if (!authToken || !currentView || !dashboardFindBoxByRenderer("personalTodo")) return;
   if (String(personalTodoRequestedView) === String(currentView)) return;
 
   personalTodoRequestedView = currentView;
@@ -10649,16 +10534,31 @@ function dashboardLegacyRowsToSections(rows){
 /* Risolve sempre il contenitore esterno del box. Alcuni renderer, come
    l'agenda Google condivisa, puntano a un elemento interno al box HTML. */
 function dashboardResolveBoxElement(def){
-  if(!def||!def.element_id)return null;
-  var el=$(def.element_id);
-  if(!el)return null;
-  if(el.classList&&el.classList.contains("box"))return el;
-  var parent=el.parentNode;
-  while(parent&&parent!==document.body){
-    if(parent.classList&&parent.classList.contains("box"))return parent;
-    parent=parent.parentNode;
+  if(!def)return null;
+  var boxes=document.getElementsByClassName("dashboard-box"),i;
+  for(i=0;i<boxes.length;i++){
+    if(String(boxes[i].getAttribute("data-dashboard-box-id")||"")===String(def.id||""))return boxes[i];
   }
-  return el;
+  if(def.custom_box_id&&def.element_id)return $(def.element_id);
+  return null;
+}
+function dashboardFindBoxByRenderer(rendererKey){
+  var boxes=document.getElementsByClassName("dashboard-box"),i;
+  for(i=0;i<boxes.length;i++){
+    if(String(boxes[i].getAttribute("data-renderer-key")||"")===String(rendererKey||""))return boxes[i];
+  }
+  return null;
+}
+function createDashboardBoxElement(def){
+  if(!def||!def.id||!def.element_key)return null;
+  var template=DASHBOARD_BOX_TEMPLATES&&DASHBOARD_BOX_TEMPLATES[String(def.element_key)];
+  if(typeof template!=="string")return null;
+  var box=document.createElement("div");
+  box.className="box dashboard-box";
+  box.setAttribute("data-dashboard-box-id",String(def.id));
+  box.setAttribute("data-renderer-key",String(def.element_key));
+  box.innerHTML=template;
+  return box;
 }
 function dashboardDefinitionForLayoutItem(item){
   if(!item)return null;
@@ -10761,11 +10661,8 @@ function buildLayout(view, previewSections){
       createCustomBoxElement(def);
       b=$(def.element_id);
     }
-    /* Appunti è un'azione della toolbar, non un contenitore di layout:
-       ignora le associazioni D1 storiche che lo riportano come box. */
-    if(item.element_id === "handwrittenNotesBox" ||
-       (def && String(def.element_id || "") === "handwrittenNotesBox")){
-      return;
+    if(!b && def && !def.custom_box_id){
+      b=createDashboardBoxElement(def);
     }
     /* I box standard hanno contenitori HTML statici. Non esiste un
        createDashboardBoxElement: se il catalogo punta a un elemento assente,
@@ -10826,9 +10723,11 @@ var dashboardPreviewRows=null,dashboardPreviewSource=null,dashboardPreviewTarget
 
 function dashboardBoxId(el){
   if(!el)return null;
+  var id=el.getAttribute&&el.getAttribute("data-dashboard-box-id");
+  if(id)return id;
   for(var i=0;i<(DASHBOARD_BOXES||[]).length;i++){
     var def=DASHBOARD_BOXES[i];
-    if(def.element_id===el.id||dashboardResolveBoxElement(def)===el)return def.id;
+    if(def.custom_box_id&&def.element_id===el.id)return def.id;
   }
   return null;
 }
@@ -11439,12 +11338,12 @@ function setView(view, manual){
   }
   /* L'Agenda Famiglia è condivisa tra le viste: ridisegnala dopo lo spostamento
      del box, così non resta il contenuto della vista precedente. */
-  if(isMountedInActiveView($("agendaBox"))) safe(renderAgenda, "renderAgenda");
-  if(isMountedInActiveView($("familyShoppingBox"))) safe(loadFamilyShoppingList, "loadFamilyShoppingList");
-  if(isMountedInActiveView($("recurringTasksBox"))) safe(loadRecurringTasks, "loadRecurringTasks");
+  if(isMountedInActiveView(dashboardFindBoxByRenderer("agenda"))) safe(renderAgenda, "renderAgenda");
+  if(isMountedInActiveView(dashboardFindBoxByRenderer("familyShopping"))) safe(loadFamilyShoppingList, "loadFamilyShoppingList");
+  if(isMountedInActiveView(dashboardFindBoxByRenderer("recurringTasks"))) safe(loadRecurringTasks, "loadRecurringTasks");
   /* Fallback anche per la To-do personale: alcune associazioni D1 legacy
      montano il box ma non risolvono la chiave del renderer. */
-  if(isMountedInActiveView($("personalTodoBox"))) safe(personalTodoConnect, "personalTodoConnect");
+  if(isMountedInActiveView(dashboardFindBoxByRenderer("personalTodo"))) safe(personalTodoConnect, "personalTodoConnect");
 
   /* I task W/I/C arrivano dall'Agenda Famiglia: al cambio vista rilegge
      subito agenda.json, così non rimangono per minuti i task della vista
