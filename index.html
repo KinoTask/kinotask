@@ -12127,7 +12127,7 @@ function openAddBoxPanel(anchor){
     var check=document.createElement("input");check.type="checkbox";check.value=String((index+1)%7);weekdayChecks.push(check);
     label.appendChild(check);label.appendChild(document.createTextNode(day));weekdaysPanel.appendChild(label);
   });
-  boxKind.onchange=function(){weekdaysPanel.style.display=boxKind.value==="weekly_dates"?"flex":"none";overdueLabel.hidden=boxKind.value!=="weekly_dates";assignmentLabel.hidden=boxKind.value==="weekly_dates";positionCustomBoxPanel(panel,addAnchorRect,true);};
+  boxKind.onchange=function(){weekdaysPanel.style.display=boxKind.value==="weekly_dates"?"flex":"none";overdueLabel.hidden=boxKind.value!=="weekly_dates";/* checkbox assegnazioni disponibile anche per i calendari */positionCustomBoxPanel(panel,addAnchorRect,true);};
   var scope=document.createElement("select");
   scope.style.width="100%";scope.style.padding="9px";
   [['family','Condivisa con tutta la famiglia'],['selected','Condivisa con utenti specifici'],['private','Privata']].forEach(function(item){var opt=document.createElement("option");opt.value=item[0];opt.textContent=item[1];scope.appendChild(opt);});
@@ -12228,7 +12228,7 @@ function openAddBoxPanel(anchor){
     if(visibilityScope.value==="selected"&&!visibleIds.length){alert("Seleziona almeno un utente che può vedere il box.");create.disabled=false;return;}
     var selectedWeekdays=weekdayChecks.filter(function(check){return check.checked;}).map(function(check){return Number(check.value);});
     if(boxKind.value==="weekly_dates"&&!selectedWeekdays.length){alert("Seleziona almeno un giorno della settimana.");create.disabled=false;return;}
-    var payload={title:value,view_id:currentView,box_kind:boxKind.value,weekdays:selectedWeekdays,assignment_enabled:boxKind.value!=="weekly_dates"&&scope.value!=="private"&&assignment.checked,scope:scope.value,user_ids:selectedIds,visibility_mode:visibilityScope.value,visible_user_ids:visibleIds};
+    var payload={title:value,view_id:currentView,box_kind:boxKind.value,weekdays:selectedWeekdays,assignment_enabled:scope.value!=="private"&&assignment.checked,scope:scope.value,user_ids:selectedIds,visibility_mode:visibilityScope.value,visible_user_ids:visibleIds};
     usersRequest("POST","/custom-boxes",payload,function(err,data){
       if(err||!data||!data.ok){create.disabled=false;alert(err||(data&&data.error)||"Creazione non riuscita.");return;}
       if(data.needs_confirmation){
@@ -12520,14 +12520,14 @@ function openCustomBoxEditor(def, anchor){
     var showVisibleUsers=visibilityScope.value==='selected';
     setHidden(visibleUsers,!showVisibleUsers);
     visibleUsers.style.display=showVisibleUsers?'flex':'none';
-    assignment.disabled=scope.value==='private'||boxKind.value==='weekly_dates';
-    assignmentLabel.hidden=boxKind.value==='weekly_dates';
+    assignment.disabled=scope.value==='private';
+    assignmentLabel.hidden=false;
     if(assignment.disabled)assignment.checked=false;
     positionCustomBoxPanel(panel,anchorRect);
   }
-  scope.onchange=function(){updateUsers();editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';assignment.disabled=boxKind.value==='weekly_dates'||scope.value==='private';assignmentLabel.hidden=boxKind.value==='weekly_dates';if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,anchorRect);};
+  scope.onchange=function(){updateUsers();editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';assignment.disabled=scope.value==='private';assignmentLabel.hidden=false;if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,anchorRect);};
   visibilityScope.onchange=updateUsers;
-  boxKind.onchange=function(){editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';retentionWrap.style.display=boxKind.value==='weekly_dates'?'flex':'none';assignment.disabled=boxKind.value==='weekly_dates'||scope.value==='private';assignmentLabel.hidden=boxKind.value==='weekly_dates';if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,anchorRect);};
+  boxKind.onchange=function(){editWeekdays.style.display=boxKind.value==='weekly_dates'?'flex':'none';retentionWrap.style.display=boxKind.value==='weekly_dates'?'flex':'none';assignment.disabled=scope.value==='private';assignmentLabel.hidden=false;if(assignment.disabled)assignment.checked=false;positionCustomBoxPanel(panel,anchorRect);};
   var loadStatus=mk('div','','Caricamento configurazione del box…');
   loadStatus.style.fontSize='13px';loadStatus.style.color='#9b2c2c';
   wrap.appendChild(loadStatus);
@@ -12589,11 +12589,7 @@ function openCustomBoxEditor(def, anchor){
         ['can_edit_tasks','Modificare il testo delle attività'],
         ['can_manage_assignments','Modificare assegnatari'],
         ['can_delete_tasks','Eliminare attività']
-      ].filter(function(cap){
-        // I calendari di date settimanali non prevedono assegnatari:
-        // la relativa autorizzazione non deve essere modificabile né mostrata.
-        return !(def.box_kind==='weekly_dates'&&cap[0]==='can_manage_assignments');
-      });
+      ];
       (permissionData.users||[]).forEach(function(user){
         if(String(user.id)===String(def.custom_owner_user_id))return;
         var existing=(permissionData.permissions||[]).filter(function(x){return String(x.user_id)===String(user.id);})[0]||{};
@@ -12837,9 +12833,8 @@ function loadWeeklyDateCalendar(def){
       includeOverdue=data.include_overdue!==false&&Number(data.include_overdue)!==0;
       retentionWeeks=Math.max(1,Math.min(5,Number(data.retention_weeks)||3));
       canEdit=!!(data.permissions&&data.permissions.can_edit_box);
-      /* I calendari settimanali non prevedono assegnatari, anche se l'utente
-         possiede il permesso generale di gestione assegnazioni. */
-      canAssign=false;
+      def.assignment_enabled=data.assignment_enabled===true||Number(data.assignment_enabled)===1;
+      canAssign=!!(data.permissions&&data.permissions.can_manage_assignments&&def.assignment_enabled);
       var box=$(def.element_id),editButton=box&&box.querySelector(".custom-box-edit");if(editButton)editButton.hidden=!canEdit;
       render(start,end);
     });
