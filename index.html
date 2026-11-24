@@ -288,13 +288,19 @@ input[type=checkbox] {
 #dashboardAddBoxPanel button:hover,#viewMenuPanel button:hover{background:#eaf0f3;}
 #dashboardAddBoxPanel button:disabled{opacity:.55;cursor:default;}
 #dashboardAddBoxPanel .route-config-save,#dashboardAddBoxPanel button[id*="save"]{background:#e8eef2;color:#111;border-color:#9eafb9;}
-#viewMenuPanel .user-management-panel{background:#fff;border:1px solid #c7d1d7;border-radius:9px;padding:14px!important;gap:12px!important;}
-#viewMenuPanel .user-management-item{border:1px solid #b9c6ce!important;border-radius:9px!important;padding:11px!important;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+#viewMenuPanel .user-management-panel{background:#fff;border:2px solid #899ba6;border-radius:9px;padding:14px!important;gap:12px!important;}
+#viewMenuPanel .user-management-item{border:2px solid #9aaab5!important;border-radius:9px!important;padding:11px!important;box-shadow:0 1px 3px rgba(0,0,0,.05);}
 #viewMenuPanel .user-management-item>div:nth-child(2)>div:first-child{color:#000;font-weight:700;}
 #viewMenuPanel .user-management-panel button,#viewMenuPanel .add-user-panel button{border:1px solid #aebdc6;border-radius:7px;background:#f7f9fa;color:#17232a;font-weight:600;}
 #viewMenuPanel .user-management-panel input{min-height:38px;border:1px solid #c5d0d7;border-radius:6px;padding:8px;}
 #viewMenuPanel .user-management-panel .small{color:#505b62;}
 #viewMenuPanel .user-management-panel [style*="border-top"]{border-color:#c7d1d7!important;}
+#viewMenuPanel .user-management-panel{box-shadow:0 2px 7px rgba(28,48,62,.09);}
+#dashboardAddBoxPanel .custom-box-editor-section{border:2px solid #9aaab5;border-radius:9px;padding:11px;margin:3px 0;background:#fbfcfd;box-shadow:0 2px 6px rgba(28,48,62,.07);}
+#dashboardAddBoxPanel .custom-box-editor-section-title{font-size:.76em;font-weight:800;letter-spacing:.05em;color:#000;margin:0 0 9px;text-transform:uppercase;}
+.weekly-date-rule-editor button,.weekly-date-rule-button{border-radius:6px!important;padding:6px 9px!important;font-size:.75em!important;font-weight:700!important;background:#29495b!important;color:#fff!important;border:1px solid #29495b!important;}
+.weekly-date-rule-editor button:disabled{opacity:.55;}
+#agendaGoogleTools .google-calendar-disconnect,#userAgendaGoogleTools .google-calendar-disconnect{border-radius:6px;padding:6px 9px;font-size:.75em;font-weight:700;background:#fff;border:1px solid #9aaab5;color:#29495b;}
 
 
 /* ==================================================
@@ -5548,6 +5554,7 @@ body.k .dashboard-layout-full > .col {
         <div class="sync-label" id="agendaTimes"></div>
         <button type="button" class="agenda-config-edit" id="agendaConfigEdit">MODIFICA</button>
       </div>
+      <div class="google-calendar-tools" id="agendaGoogleTools"></div>
       <div id="agenda">Caricamento...</div>
     </div>
 
@@ -6456,7 +6463,7 @@ function renderGoogleCalendarTools(scope, userId){
       return;
     }
     host.appendChild(mk("span", "google-calendar-account", "Google: " + (status.email || "collegato")));
-    var disconnect = mk("button", "google-calendar-disconnect", "SCOLLEGA GOOGLE CALENDAR");
+    var disconnect = mk("button", "google-calendar-disconnect", "SCOLLEGA");
     disconnect.type = "button";
     disconnect.onclick = function(){ googleCalendarDisconnect(scope, userId, disconnect); };
     host.appendChild(disconnect);
@@ -6649,6 +6656,7 @@ function scheduleAgendaRefresh(){
 
 function loadAgenda(){
   scheduleAgendaRefresh();
+  renderGoogleCalendarTools("family", null);
   googleCalendarRequest("GET", "/events?scope=family", null, function(err, data){
     var hadAgenda = !!agendaData, changed = true;
     if(!err && data && Array.isArray(data.events)){
@@ -12606,11 +12614,11 @@ function loadWeeklyDateCalendar(def){
     var rule=mk("div","small",showOverdue?"Attività delle settimane precedenti non ancora completate.":"Ricorrenza: "+(weekdays.length?weekdays.map(function(d){return ["dom","lun","mar","mer","gio","ven","sab"][d];}).join(", "):"nessun giorno configurato"));
     host.appendChild(rule);
     if(canEdit&&!showOverdue){
-      var editRule=mk("button","","MODIFICA GIORNI");editRule.type="button";editRule.style.margin="6px 0";
+      var editRule=mk("button","weekly-date-rule-button","MODIFICA GIORNI");editRule.type="button";editRule.style.margin="6px 0";
       editRule.onclick=function(){
         /* Riutilizza un solo editor: click ripetuti non devono accumulare righe. */
         var existingEditor=host.querySelector(".weekly-date-rule-editor");
-        if(existingEditor){existingEditor.remove();return;}
+        if(existingEditor){return;}
         var panel=mk("div","weekly-date-rule-editor","");panel.style.display="flex";panel.style.flexWrap="wrap";panel.style.gap="8px";panel.style.padding="7px 0";
         var checks=[];
         ["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"].forEach(function(day,index){
@@ -12618,7 +12626,7 @@ function loadWeeklyDateCalendar(def){
           var check=document.createElement("input");check.type="checkbox";check.value=String((index+1)%7);check.checked=weekdays.indexOf(Number(check.value))!==-1;checks.push(check);
           label.appendChild(check);label.appendChild(document.createTextNode(day));panel.appendChild(label);
         });
-        var save=mk("button","","SALVA");save.type="button";save.onclick=function(){
+        var save=mk("button","weekly-date-rule-button","SALVA");save.type="button";save.onclick=function(){
           var selected=checks.filter(function(c){return c.checked;}).map(function(c){return Number(c.value);});
           save.disabled=true;
           usersRequest("PUT","/custom-boxes/"+def.custom_box_id+"/weekly-dates",{weekdays:selected},function(e,r){if(e||!r||!r.ok){save.disabled=false;alert(e||(r&&r.error)||"Regola non salvata");return;}load();});
@@ -12794,7 +12802,7 @@ function loadWeeklyDateCalendar(def){
       host.appendChild(overdueActions);
     }
     if(canEdit&&!showOverdue){
-      var add=mk("button","","+ AGGIUNGI DATA");add.type="button";add.style.marginTop="9px";
+      var add=mk("button","weekly-date-rule-button","+ AGGIUNGI DATA");add.type="button";add.style.marginTop="9px";
       add.onclick=function(){var value=prompt("Data aggiuntiva (AAAA-MM-GG)");if(!value)return;usersRequest("POST","/custom-boxes/"+def.custom_box_id+"/weekly-dates/entry",{source_date:value,entry_date:value,entry_type:"extra"},function(e,r){if(e||!r||!r.ok)alert(e||(r&&r.error)||"Data non aggiunta");load();});};host.appendChild(add);
     }
   }
