@@ -15475,6 +15475,63 @@ function initBoxRefresh() {
   }
 }
 
+/* I controlli dei box vengono montati dinamicamente dal layout D1.
+   Gestione delegata: i pulsanti restano funzionanti anche dopo un cambio vista
+   o un rimontaggio del box, senza dipendere dal momento della creazione DOM. */
+(function bindDynamicAddControls(){
+  if(window.__kinotaskAddControlsBound) return;
+  window.__kinotaskAddControlsBound = true;
+
+  document.addEventListener("click", function(ev){
+    var node = ev.target;
+    while(node && node !== document){
+      if(node.id === "taskAddButton" ||
+         node.id === "todoAddButton" ||
+         node.id === "familyShoppingAdd"){
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+
+        if(node.id === "taskAddButton"){
+          var taskInput = $("taskInput");
+          var taskValue = taskInput ? taskInput.value.replace(/^\\s+|\\s+$/g, "") : "";
+          if(taskValue && taskPost({
+            action:"add",
+            date:taskKey(taskSel),
+            text:taskValue
+          }, false)) taskInput.value = "";
+        } else if(node.id === "todoAddButton"){
+          var todoInput = $("todoInput");
+          var todoValue = todoInput ? todoInput.value.replace(/^\\s+|\\s+$/g, "") : "";
+          if(todoValue && todoChange("add", null, todoValue)) todoInput.value = "";
+        } else {
+          addFamilyShoppingItem();
+        }
+        return;
+      }
+      node = node.parentNode;
+    }
+  }, true);
+
+  document.addEventListener("keydown", function(ev){
+    if(ev.key !== "Enter" && ev.keyCode !== 13) return;
+    var node = ev.target;
+    if(!node) return;
+    if(node.id === "taskInput"){
+      ev.preventDefault();
+      var taskButton = $("taskAddButton");
+      if(taskButton) taskButton.click();
+    } else if(node.id === "todoInput"){
+      ev.preventDefault();
+      var todoButton = $("todoAddButton");
+      if(todoButton) todoButton.click();
+    } else if(node.id === "familyShoppingInput" || node.id === "familyShoppingQuantity"){
+      ev.preventDefault();
+      addFamilyShoppingItem();
+    }
+  }, true);
+})();
+
 function startDashboard(preferredView){
   var activeProfile = String(authProfile || "anonymous");
   if(handwrittenNotesActiveProfile !== activeProfile){
