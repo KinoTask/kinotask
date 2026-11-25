@@ -6344,7 +6344,15 @@ function agendaNav(st, redraw){
 }
 
 /* Disegna navigazione, periodo ed eventi. opts.tasks: compiti inline; opts.click: dettagli al clic */
+function eventHasTasksForOwner(event, owner){
+  var wanted = String(owner || "").replace(/^\s+|\s+$/g, "").toLocaleLowerCase();
+  if(!wanted) return true;
+  return parseTasks(event.description).owners.indexOf(wanted) !== -1;
+}
+
+/* Disegna navigazione, periodo ed eventi. opts.tasks: compiti inline; opts.click: dettagli al clic */
 function buildAgenda(box, events, st, redraw, opts){
+  opts = opts || {};
   var today = todayNum();
   var monday = today - ((dateOfDayNum(today).getUTCDay() + 6) % 7) + st.week * 7;
   var start = st.today ? today : monday;
@@ -6361,7 +6369,7 @@ function buildAgenda(box, events, st, redraw, opts){
 
   for(i = 0; i < events.length; i++){
     var e = events[i], span = eventSpan(e);
-    if(!span){ continue; }
+    if(!span || (opts.owner && !eventHasTasksForOwner(e, opts.owner))){ continue; }
     var item = {
       key: span.key,
       eventId: e.id || "",
@@ -6391,10 +6399,10 @@ function buildAgenda(box, events, st, redraw, opts){
       box.appendChild(row);
 
       if(st.today){
-        if(opts.tasks){ inlineTasks(it, box); }
+        if(opts.tasks){ inlineTasks(it, box, opts.owner || null); }
       } else if(opts.click){
         row.className = "ev clickable";
-        row.onclick = (function(x){ return function(){ openEventTasks(x); }; })(it);
+        row.onclick = (function(x, owner){ return function(){ openEventTasks(x, owner); }; })(it, opts.owner || null);
       }
     }
   }
@@ -6418,23 +6426,15 @@ function renderAgenda(){
   setTimes($("agendaTimes"), parseIso(agendaData.generated_at || agendaData.updated_at),
            agendaSyncedAt, agendaErr, 3 * 3600000);
   var visibleEvents = agendaData.events || [];
+  var currentUser = null;
   if(!isSharedView(currentView)){
-    var currentUser = null;
     for(var i = 0; i < USERS.length; i++){
       if(String(USERS[i].view_id) === String(currentView)){ currentUser = USERS[i]; break; }
     }
-    var owner = currentUser ? String(currentUser.task_owner || "").trim().toUpperCase() : "";
-    if(owner){
-      var prefix = owner + " -";
-      visibleEvents = visibleEvents.filter(function(event){
-        return String(event.title || "").trim().toUpperCase().indexOf(prefix) === 0;
-      });
-    } else {
-      visibleEvents = [];
-    }
   }
+  var owner = currentUser ? String(currentUser.name || "").replace(/^\s+|\s+$/g, "").toLocaleLowerCase() : "";
   buildAgenda(box, visibleEvents, agendaSt, function(){ safe(renderAgenda); },
-              {tasks: isSharedView(currentView), click: true, period: true, todayLabel: false, hideTodayDayHeading: isSharedView(currentView)});
+              {tasks: true, owner: owner, click: true, period: true, todayLabel: false, hideTodayDayHeading: isSharedView(currentView)});
 }
 
 function renderUserAgenda(){
@@ -6769,6 +6769,16 @@ if(routesConfigEditButton){routesConfigEditButton.onclick=function(ev){if(ev){ev
 /* ==================================================
    6. COMPITI DEGLI EVENTI (righe "- compito" sotto "TODO:")
    ================================================== */
+function eventTaskOwnerByName(name){
+  var wanted = String(name || "").replace(/^\s+|\s+$/g, "").toLocaleLowerCase();
+  if(!wanted) return "";
+  for(var i=0;i<USERS.length;i++){
+    var candidate = String(USERS[i].name || "").replace(/^\s+|\s+$/g, "");
+    if(candidate && candidate.toLocaleLowerCase() === wanted) return candidate.toLocaleLowerCase();
+  }
+  return "";
+}
+
 function parseTasks(desc){
   var lines = String(desc || "").split(/\r?\n/);
   var tasks = [], owners = [], details = [];
@@ -6783,14 +6793,15 @@ function parseTasks(desc){
     if(/^TODO:$/i.test(line)){ started = true; continue; }
     if(!line){ continue; }
 
-    /* Supporta i task dell'Agenda Famiglia nel formato "W - ...", "I - ..."
-       e "C - ...", anche senza elenco puntato o intestazione TODO. */
     var taskLine = line.replace(/^[-*]\s+/, "");
-    m = taskLine.match(/^([A-Za-z])\s*[-:]\s*(.+)$/);
+    m = taskLine.match(/^([^:]{1,60}):\s*(.+)$/);
     if(m){
-      tasks.push(m[1].toUpperCase() + ": " + m[2]);
-      owners.push(m[1].toUpperCase());
-      continue;
+      var taskOwner = eventTaskOwnerByName(m[1]);
+      if(taskOwner){
+        tasks.push(m[1].replace(/^\s+|\s+$/g, "") + ": " + m[2]);
+        owners.push(taskOwner);
+        continue;
+      }
     }
 
     if((hasMarker && !started) || !/^[-*]\s+/.test(line)){
@@ -6840,8 +6851,9 @@ function eventTaskRow(label, key, done, eventId){
 /* Scarica lo stato e disegna i compiti di un evento (tutti, o solo quelli di owner) */
 function renderEventTasks(ev, box, owner, onDone){
   var data = parseTasks(ev.description), idx = [], i;
+  var normalizedOwner = String(owner || "").replace(/^\s+|\s+$/g, "").toLocaleLowerCase();
   for(i = 0; i < data.tasks.length; i++){
-    if(!owner || data.owners[i] === owner){ idx.push(i); }
+    if(!normalizedOwner || data.owners[i] === normalizedOwner){ idx.push(i); }
   }
   if(!idx.length){ if(onDone){ onDone(); } return; }
 
@@ -6856,7 +6868,7 @@ function renderEventTasks(ev, box, owner, onDone){
       for(var k = 0; k < idx.length; k++){
         var t = data.tasks[idx[k]];
         var key = idx[k] + ":" + t;
-        var label = owner ? t.replace(/^[A-Za-z]\s*:\s*/, "") : t;
+        var label = t.replace(/^[^:]{1,60}:\s*/, "");
         box.appendChild(eventTaskRow(label, key, completed[key] === true, ev.eventId));
       }
     }
@@ -6872,7 +6884,7 @@ function addDetailsLink(ev, parent){
 }
 
 /* Compiti sotto un evento (vista famiglia, "Oggi") */
-function inlineTasks(ev, parent){
+function inlineTasks(ev, parent, owner){
   var data = parseTasks(ev.description);
   if(!data.tasks.length && !data.details){ return; }
 
@@ -6880,7 +6892,7 @@ function inlineTasks(ev, parent){
   parent.appendChild(box);
 
   if(!data.tasks.length){ addDetailsLink(ev, box); return; }
-  renderEventTasks(ev, box, null, function(){
+  renderEventTasks(ev, box, owner || null, function(){
     if(data.details){ addDetailsLink(ev, box); }
   });
 }
@@ -6891,7 +6903,7 @@ function closeOverlay(){
 }
 
 /* Finestra con compiti e dettagli dell'evento */
-function openEventTasks(ev){
+function openEventTasks(ev, owner){
   closeOverlay();
   if(!ev.eventId){ alert("ID evento non disponibile."); return; }
 
@@ -6925,7 +6937,7 @@ function openEventTasks(ev){
     body.appendChild(mk("div", "", "Nessun compito indicato."));
     addDetails();
   } else {
-    renderEventTasks(ev, body, null, addDetails);
+    renderEventTasks(ev, body, owner || null, addDetails);
   }
 }
 
@@ -6952,7 +6964,7 @@ function renderPersonalTasks(){
   
   var name = currentUser ? currentUser.name : currentView;
   var owner = currentUser
-    ? String(currentUser.task_owner || "").toUpperCase()
+    ? String(currentUser.name || "").replace(/^\s+|\s+$/g, "").toLocaleLowerCase()
     : "";
   var target = todayNum() + TASK_OFF[personalPeriod];
 
@@ -11525,9 +11537,6 @@ function openAddUserForm(){
 
   var idInput = createField("ID accesso (es. nonno)", "text", 30);
   var nameInput = createField("Nome visualizzato", "text", 60);
-  var ownerInput = createField("Codice attività (es. N)", "text", 10);
-  ownerInput.style.textTransform = "uppercase";
-
   var pinInput = createField("PIN (6-12 cifre)", "password", 12);
   pinInput.inputMode = "numeric";
   var confirmInput = createField("Conferma PIN", "password", 12);
@@ -11552,7 +11561,6 @@ function openAddUserForm(){
   saveButton.onclick = function(){
     var id = idInput.value.trim().toLowerCase();
     var name = nameInput.value.trim();
-    var taskOwner = ownerInput.value.trim().toUpperCase();
     var pin = pinInput.value.trim();
     var pinConfirm = confirmInput.value.trim();
 
@@ -11565,12 +11573,6 @@ function openAddUserForm(){
     if(!name || name.length > 60){
       error.textContent = "Inserisci un nome valido.";
       nameInput.focus();
-      return;
-    }
-
-    if(!/^[A-Z0-9_-]{1,10}$/.test(taskOwner)){
-      error.textContent = "Inserisci un codice attività valido.";
-      ownerInput.focus();
       return;
     }
 
@@ -11593,7 +11595,7 @@ function openAddUserForm(){
 	usersRequest("POST", "/users", {
 	  id: id,
 	  name: name,
-	  task_owner: taskOwner,
+	  task_owner: null,
 	  pin: pin,
 	  pin_confirm: pinConfirm
 	}, function(err, data){
@@ -14216,7 +14218,7 @@ function openUserManagement(){
     var meta = mk("div", "small", "");
     meta.style.marginTop = "2px";
     var state = !active ? "Disattivato" : (hidden ? "Nascosto" : "Attivo");
-    meta.textContent = (user.task_owner ? "Codice " + user.task_owner + " · " : "") + state;
+    meta.textContent = state;
     meta.style.color = !active ? "#b3261e" : (hidden ? "#946200" : "#555");
     info.appendChild(name);
     info.appendChild(meta);
@@ -14315,12 +14317,9 @@ function openUserManagement(){
     }
     function updateProfile(){
       var newName = nameInput.value.trim();
-      var newOwner = ownerInput.value.trim().toUpperCase();
       if(!newName){ setMessage(statusMessage, "Il nome non può essere vuoto.", true); return; }
-      if(!newOwner){ setMessage(statusMessage, "Il codice attività non può essere vuoto.", true); return; }
-      if(newOwner.length > 30){ setMessage(statusMessage, "Il codice attività può contenere al massimo 30 caratteri.", true); return; }
       saveProfile.disabled = true;
-      usersRequest("PUT", "/users/" + user.id, {name:newName, task_owner:newOwner}, function(err, data){
+      usersRequest("PUT", "/users/" + user.id, {name:newName, task_owner:null}, function(err, data){
         saveProfile.disabled = false;
         if(err || !data || !data.ok){
           setMessage(statusMessage, err || (data && data.error) || "Salvataggio non riuscito.", true);
@@ -14343,7 +14342,6 @@ function openUserManagement(){
     fields.style.flexWrap = "wrap";
     profile.appendChild(fields);
     var nameInput = field(fields, "Nome visualizzato", user.name || "");
-    var ownerInput = field(fields, "Codice attività", user.task_owner || "");
     var saveProfile = actionButton(profile, "SALVA MODIFICHE", updateProfile);
     saveProfile.style.marginTop = "8px";
 
