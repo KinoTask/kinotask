@@ -5928,10 +5928,6 @@ function updateRecurringConfigButton(){
 }
 
 var agendaData = null, agendaErr = false, agendaSyncedAt = null;
-var agendaSt = {today: true, week: 0};
-var userData = null, userErr = false, userSyncedAt = null;
-var userAgendaRequestSequence = 0, userAgendaLoadedFor = null;
-var userSt = {today: true, week: 0};
 var routesData = null, routesErr = false, routesSyncedAt = null;
 
 var menuSel = "oggi", menuSyncedAt = null, menuUpdatedAt = null;
@@ -6413,20 +6409,6 @@ function buildAgenda(box, events, st, redraw, opts){
   scheduleAlign();
 }
 
-function renderAgendaInstance(boxId, timesId, data, err, syncedAt, state, options){
-  var box = $(boxId);
-  if(!box) return;
-  clear(box);
-  if(!data){
-    setText(box, err ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
-    return;
-  }
-  setTimes($(timesId), parseIso(data.generated_at || data.updated_at), syncedAt, err, 3 * 3600000);
-  buildAgenda(box, data.events || [], state, function(){
-    if(boxId === "agenda") safe(renderAgenda);
-    else safe(renderUserAgenda);
-  }, options || {});
-}
 function renderAgenda(){
   var currentUser = null;
   if(!isSharedView(currentView)){
@@ -6435,12 +6417,25 @@ function renderAgenda(){
     }
   }
   var owner = currentUser ? String(currentUser.name || "").replace(/^\\s+|\\s+$/g, "").toLocaleLowerCase() : "";
-  renderAgendaInstance("agenda", "agendaTimes", agendaData, agendaErr, agendaSyncedAt, agendaSt,
-    {tasks: true, owner: owner, click: true, period: true, todayLabel: false, hideTodayDayHeading: isSharedView(currentView)});
-}
-function renderUserAgenda(){
-  renderAgendaInstance("userAgenda", "userAgendaTimes", userData, userErr, userSyncedAt, userSt,
-    {tasks: true, click: true, period: true});
+  var boxes = document.querySelectorAll(".dashboard-box[data-renderer-key='agenda']");
+  for(var b = 0; b < boxes.length; b++){
+    var box = boxes[b];
+    var content = box.querySelector("[data-agenda-content]");
+    var times = box.querySelector("[data-agenda-times]");
+    if(!content) continue;
+    if(!box._agendaStates) box._agendaStates = {};
+    var stateKey = String(currentView || "shared");
+    if(!box._agendaStates[stateKey]) box._agendaStates[stateKey] = {today:true, week:0};
+    var state = box._agendaStates[stateKey];
+    clear(content);
+    if(!agendaData){
+      setText(content, agendaErr ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
+      continue;
+    }
+    setTimes(times, parseIso(agendaData.generated_at || agendaData.updated_at), agendaSyncedAt, agendaErr, 3 * 3600000);
+    buildAgenda(content, agendaData.events || [], state, function(){ safe(renderAgenda); },
+      {tasks:true, owner:owner, click:true, period:true, todayLabel:false, hideTodayDayHeading:isSharedView(currentView)});
+  }
 }
 function googleCalendarRequest(method, path, body, callback){
   var x = new XMLHttpRequest();
@@ -6460,10 +6455,8 @@ function googleCalendarRequest(method, path, body, callback){
   x.send(body === null ? null : JSON.stringify(body));
 }
 
-function googleCalendarConnect(scope, userId){
-  var query = "?scope=" + encodeURIComponent(scope || "family");
-  if(userId) query += "&user_id=" + encodeURIComponent(userId);
-  googleCalendarRequest("GET", "/connect" + query, null, function(err, data){
+function googleCalendarConnect(){
+  googleCalendarRequest("GET", "/connect?scope=family", null, function(err, data){
     if(err || !data || !data.authorization_url){
       showErr(err || "Impossibile avviare il collegamento Google");
       return;
@@ -6472,42 +6465,34 @@ function googleCalendarConnect(scope, userId){
   });
 }
 
-function saveGoogleCalendarSelection(scope, userId, calendarId, callback){
-  googleCalendarRequest("POST", "/selection", {
-    scope: scope,
-    user_id: userId || undefined,
-    calendar_id: calendarId
-  }, callback || function(err){
-    if(err) showErr(err);
-    else if(scope === "family") loadAgenda();
-    else loadUserAgenda(userId);
-  });
-}
-
-function googleCalendarDisconnect(scope, userId, button){
-  if(!window.confirm(scope === "family" ? "Scollegare Google Calendar dall’agenda condivisa?" : "Scollegare Google Calendar dall’Agenda Personale?")) return;
+function googleCalendarDisconnect(button){
+  if(!window.confirm("Scollegare Google Calendar dall’agenda condivisa?")) return;
   if(button) button.disabled = true;
-  googleCalendarRequest("POST", "/disconnect", {scope: scope, user_id: userId || undefined}, function(err){
+  googleCalendarRequest("POST", "/disconnect", {scope: "family"}, function(err){
     if(err){
       if(button) button.disabled = false;
       showErr(err);
       return;
     }
     googleCalendarToolsCache = {};
-    renderGoogleCalendarTools(scope, userId);
-    if(scope === "family") loadAgenda();
-    else loadUserAgenda(userId);
+    renderGoogleCalendarTools();
+    loadAgenda();
   });
 }
 
-function renderGoogleCalendarTools(scope, userId){
-  var host = $(scope === "family" ? "agendaGoogleTools" : "userAgendaGoogleTools");
-  if(!host || !authToken) return;
-  var ownerKey = scope + ":" + String(userId || "");
+function renderGoogleCalendarTools(){
+  if(!authToken) return;
+  var hosts = document.querySelectorAll("[data-agenda-google-tools]");
+  if(!hosts.length) return;
+  var host = hosts[0];
+  for(var i=0;i<hosts.length;i++){
+    clear(hosts[i]);
+    setHidden(hosts[i], i !== 0);
+  }
+  var ownerKey = "family:";
   if(googleCalendarToolsCache[ownerKey] && host.getAttribute("data-owner-key") === ownerKey) return;
   host.setAttribute("data-owner-key", ownerKey);
-  clear(host);
-  googleCalendarRequest("GET", "/status?scope=" + encodeURIComponent(scope) + (userId ? "&user_id=" + encodeURIComponent(userId) : ""), null, function(err, status){
+  googleCalendarRequest("GET", "/status?scope=family", null, function(err, status){
     if(!host || !host.parentNode) return;
     clear(host);
     if(err){
@@ -6517,7 +6502,7 @@ function renderGoogleCalendarTools(scope, userId){
     if(!status || !status.connected){
       var connect = mk("button", "google-calendar-connect", "COLLEGA GOOGLE CALENDAR");
       connect.type = "button";
-      connect.onclick = function(){ googleCalendarConnect(scope, userId); };
+      connect.onclick = function(){ googleCalendarConnect(); };
       host.appendChild(connect);
       googleCalendarToolsCache[ownerKey] = true;
       return;
@@ -6525,46 +6510,13 @@ function renderGoogleCalendarTools(scope, userId){
     host.appendChild(mk("span", "google-calendar-account", "Google: " + (status.email || "collegato")));
     var disconnect = mk("button", "google-calendar-disconnect", "SCOLLEGA");
     disconnect.type = "button";
-    disconnect.onclick = function(){ googleCalendarDisconnect(scope, userId, disconnect); };
+    disconnect.onclick = function(){ googleCalendarDisconnect(disconnect); };
     host.appendChild(disconnect);
-    if(scope === "family"){
-      var manage = mk("button", "google-calendar-manage", "CALENDARI");
-      manage.type = "button";
-      manage.onclick = function(){ googleCalendarToolsCache[ownerKey] = false; openSharedAgendaConfig(manage); };
-      host.appendChild(manage);
-      googleCalendarToolsCache[ownerKey] = true;
-      return;
-    }
-    googleCalendarRequest("GET", "/calendars?scope=" + encodeURIComponent(scope) + (userId ? "&user_id=" + encodeURIComponent(userId) : ""), null, function(calErr, data){
-      if(calErr || !data || !Array.isArray(data.calendars) || !host.parentNode) return;
-      var select = document.createElement("select");
-      select.className = "google-calendar-select";
-      var selectedId = status.calendar_id;
-      data.calendars.forEach(function(cal){
-        var option = document.createElement("option");
-        option.value = cal.id;
-        option.textContent = cal.summary + (cal.primary ? " (principale)" : "");
-        if(String(cal.id) === String(selectedId)) option.selected = true;
-        select.appendChild(option);
-      });
-      var save = mk("button", "google-calendar-save", "SALVA");
-      save.type = "button";
-      save.onclick = function(){
-        save.disabled = true;
-        googleCalendarToolsCache[ownerKey] = false;
-        saveGoogleCalendarSelection(scope, userId, select.value, function(saveErr){
-          save.disabled = false;
-          if(saveErr) showErr(saveErr);
-          else {
-            renderGoogleCalendarTools(scope, userId);
-            loadUserAgenda(userId);
-          }
-        });
-      };
-      host.appendChild(select);
-      host.appendChild(save);
-      googleCalendarToolsCache[ownerKey] = true;
-    });
+    var manage = mk("button", "google-calendar-manage", "CALENDARI");
+    manage.type = "button";
+    manage.onclick = function(){ googleCalendarToolsCache[ownerKey] = false; openSharedAgendaConfig(manage); };
+    host.appendChild(manage);
+    googleCalendarToolsCache[ownerKey] = true;
   });
 }
 
@@ -6682,38 +6634,6 @@ function openSharedAgendaConfig(anchor){
   };
 }
 
-function loadUserAgenda(userId){
-  var requestedView = String(currentView || "");
-  var viewConfig = findItem(DASHBOARD_VIEWS, function(v){
-    return String(v.id) === requestedView;
-  });
-  var agendaUserId = String((viewConfig && viewConfig.owner_user_id) || userId || "");
-  var sequence = ++userAgendaRequestSequence;
-  userData = null;
-  userErr = false;
-  userAgendaLoadedFor = agendaUserId;
-  safe(renderUserAgenda);
-  renderGoogleCalendarTools("personal", agendaUserId);
-  if(!agendaUserId){
-    userErr = true;
-    safe(renderUserAgenda);
-    return;
-  }
-  googleCalendarRequest("GET", "/events?scope=personal&user_id=" + encodeURIComponent(agendaUserId), null, function(err, data){
-    if(sequence !== userAgendaRequestSequence || String(currentView || "") !== requestedView) return;
-    if(!err && data && Array.isArray(data.events)){
-      userData = data;
-      userErr = false;
-      userSyncedAt = new Date();
-    } else {
-      userData = null;
-      userErr = true;
-      if(err) console.error("Google personal calendar:", err);
-    }
-    safe(renderUserAgenda);
-  });
-}
-
 /* Aggiorna l'agenda ogni minuto, al secondo :05 */
 function scheduleAgendaRefresh(){
   var s = new Date().getSeconds();
@@ -6722,7 +6642,7 @@ function scheduleAgendaRefresh(){
 
 function loadAgenda(){
   scheduleAgendaRefresh();
-  renderGoogleCalendarTools("family", null);
+  renderGoogleCalendarTools();
   googleCalendarRequest("GET", "/events?scope=family", null, function(err, data){
     var hadAgenda = !!agendaData, changed = true;
     if(!err && data && Array.isArray(data.events)){
@@ -11310,11 +11230,6 @@ function dashboardBoxRenderer(boxId, def){
     familyShopping: function(){ if(typeof loadFamilyShoppingList === "function") safe(loadFamilyShoppingList, "loadFamilyShoppingList"); },
     recurringTasks: function(){ if(typeof loadRecurringTasks === "function") safe(loadRecurringTasks, "loadRecurringTasks"); },
     personalRoutes: function(){ if(typeof loadRoutes === "function") loadRoutes(currentView); },
-    userAgenda: function(){
-      /* Agenda Personale opzionale: renderer comune, sorgente Google indipendente. */
-      if(typeof renderUserAgenda === "function") safe(renderUserAgenda, "renderUserAgenda");
-      if(typeof loadUserAgenda === "function") safe(loadUserAgenda, "loadUserAgenda");
-    }
   };
   for(var rk = 0; rk < rendererKeys.length; rk++){
     var rendererKey = String(rendererKeys[rk] || "");
@@ -11428,12 +11343,6 @@ function setView(view, manual){
   }
 
   var personal = viewConfig.view_type === "personal";
-
-  /* Invalida subito ogni fetch dell'agenda precedente e scarta i suoi dati. */
-  userAgendaRequestSequence++;
-  userData = null;
-  userErr = false;
-  userAgendaLoadedFor = null;
 
   setHidden($("dashboardContent"), personal);
   setHidden($("personalView"), !personal);
