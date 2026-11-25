@@ -6413,58 +6413,35 @@ function buildAgenda(box, events, st, redraw, opts){
   scheduleAlign();
 }
 
-function renderAgenda(){
-  var box = $("agenda");
-  /* Il caricamento dati può partire prima che il layout DB abbia montato
-     il box Agenda: in quel caso si attende il successivo setView(). */
-  if(!box){ return; }
+function renderAgendaInstance(boxId, timesId, data, err, syncedAt, state, options){
+  var box = $(boxId);
+  if(!box) return;
   clear(box);
-  if(!agendaData){
-    setText(box, agendaErr ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
+  if(!data){
+    setText(box, err ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
     return;
   }
-  setTimes($("agendaTimes"), parseIso(agendaData.generated_at || agendaData.updated_at),
-           agendaSyncedAt, agendaErr, 3 * 3600000);
-  var visibleEvents = agendaData.events || [];
+  setTimes($(timesId), parseIso(data.generated_at || data.updated_at), syncedAt, err, 3 * 3600000);
+  buildAgenda(box, data.events || [], state, function(){
+    if(boxId === "agenda") safe(renderAgenda);
+    else safe(renderUserAgenda);
+  }, options || {});
+}
+function renderAgenda(){
   var currentUser = null;
   if(!isSharedView(currentView)){
     for(var i = 0; i < USERS.length; i++){
       if(String(USERS[i].view_id) === String(currentView)){ currentUser = USERS[i]; break; }
     }
   }
-  var owner = currentUser ? String(currentUser.name || "").replace(/^\s+|\s+$/g, "").toLocaleLowerCase() : "";
-  buildAgenda(box, visibleEvents, agendaSt, function(){ safe(renderAgenda); },
-              {tasks: true, owner: owner, click: true, period: true, todayLabel: false, hideTodayDayHeading: isSharedView(currentView)});
+  var owner = currentUser ? String(currentUser.name || "").replace(/^\\s+|\\s+$/g, "").toLocaleLowerCase() : "";
+  renderAgendaInstance("agenda", "agendaTimes", agendaData, agendaErr, agendaSyncedAt, agendaSt,
+    {tasks: true, owner: owner, click: true, period: true, todayLabel: false, hideTodayDayHeading: isSharedView(currentView)});
 }
-
 function renderUserAgenda(){
-  var box = $("userAgenda");
-  if(!box){ return; }
-
-  clear(box);
-
-  if(!userData){
-    setText(box, userErr ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
-    return;
-  }
-
-  setTimes(
-    $("userAgendaTimes"),
-    parseIso(userData.generated_at || userData.updated_at),
-    userSyncedAt,
-    userErr,
-    3 * 3600000
-  );
-
-  buildAgenda(
-    box,
-    userData.events,
-    userSt,
-    function(){ safe(renderUserAgenda); },
-    {}
-  );
+  renderAgendaInstance("userAgenda", "userAgendaTimes", userData, userErr, userSyncedAt, userSt,
+    {tasks: true, click: true, period: true});
 }
-
 function googleCalendarRequest(method, path, body, callback){
   var x = new XMLHttpRequest();
   x.open(method, GOOGLE_CALENDAR_API_URL + path, true);
@@ -11334,8 +11311,9 @@ function dashboardBoxRenderer(boxId, def){
     recurringTasks: function(){ if(typeof loadRecurringTasks === "function") safe(loadRecurringTasks, "loadRecurringTasks"); },
     personalRoutes: function(){ if(typeof loadRoutes === "function") loadRoutes(currentView); },
     userAgenda: function(){
-      if(typeof renderUserAgenda === "function") renderUserAgenda();
-      if(typeof loadUserAgenda === "function") loadUserAgenda(currentView);
+      /* Agenda Personale opzionale: renderer comune, sorgente Google indipendente. */
+      if(typeof renderUserAgenda === "function") safe(renderUserAgenda, "renderUserAgenda");
+      if(typeof loadUserAgenda === "function") safe(loadUserAgenda, "loadUserAgenda");
     }
   };
   for(var rk = 0; rk < rendererKeys.length; rk++){
