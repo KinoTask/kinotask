@@ -1,130 +1,8 @@
 {
-  "generated_at": "2026-11-25T00:02:31.150582+01:00",
+  "generated_at": "2026-11-26T00:01:04.268816+01:00",
   "site": "U003128",
   "siteType": "02",
   "menus": {
-    "2026-11-24": {
-      "P101308": {
-        "dishCode": "P101308",
-        "name": "Minestra di lenticchie con crostini con farina integrale biologica",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "LENTICCHIE SECCHE",
-            "quantity": "35",
-            "unit": "Gr"
-          },
-          {
-            "name": "PATATE",
-            "quantity": "30",
-            "unit": "Gr"
-          },
-          {
-            "name": "CROSTINI CON FARINA INTEGRALE BIOLOGICA",
-            "quantity": "20",
-            "unit": "Gr"
-          },
-          {
-            "name": "CIPOLLE",
-            "quantity": "7,5",
-            "unit": "Gr"
-          },
-          {
-            "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "2,5",
-            "unit": "Gr"
-          },
-          {
-            "name": "ESTRATTO PER BRODO VEGETALE",
-            "quantity": "1,7",
-            "unit": "Gr"
-          },
-          {
-            "name": "SALE IODATO",
-            "quantity": "0,2",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P100197": {
-        "dishCode": "P100197",
-        "name": "Bastoncini di pesce",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "BASTONCINI DI PESCE",
-            "quantity": "60",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P100904": {
-        "dishCode": "P100904",
-        "name": "Spinaci e patate saporiti",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "PATATE",
-            "quantity": "40",
-            "unit": "Gr"
-          },
-          {
-            "name": "SPINACI",
-            "quantity": "40",
-            "unit": "Gr"
-          },
-          {
-            "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "4,8",
-            "unit": "Gr"
-          },
-          {
-            "name": "AGLIO",
-            "quantity": "0,8",
-            "unit": "Gr"
-          },
-          {
-            "name": "SALE IODATO",
-            "quantity": "0,2",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P00001": {
-        "dishCode": "P00001",
-        "name": "Frutta fresca di stagione",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "MELE",
-            "quantity": "150",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P01891": {
-        "dishCode": "P01891",
-        "name": "Pane ai cereali ",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "PANE AI CEREALI",
-            "quantity": "30",
-            "unit": "Gr"
-          }
-        ]
-      }
-    },
     "2026-11-25": {
       "P01982": {
         "dishCode": "P01982",
@@ -328,6 +206,94 @@
         "ingredients": [
           {
             "name": "PANE DI FARINA INTEGRALE BIOLOGICA",
+            "quantity": "30",
+            "unit": "Gr"
+          }
+        ]
+      }
+    },
+    "2026-11-27": {
+      "P102033": {
+        "dishCode": "P102033",
+        "name": "Pasta biologica al pomodoro ",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "PASTA BIOLOGICA",
+            "quantity": "50",
+            "unit": "Gr"
+          },
+          {
+            "name": "POLPA DI POMODORO",
+            "quantity": "33",
+            "unit": "Gr"
+          },
+          {
+            "name": "OLIO DI OLIVA EXTRAVERGINE",
+            "quantity": "3,6",
+            "unit": "Gr"
+          },
+          {
+            "name": "CAROTE",
+            "quantity": "3,3",
+            "unit": "Gr"
+          },
+          {
+            "name": "CIPOLLE",
+            "quantity": "2,8",
+            "unit": "Gr"
+          },
+          {
+            "name": "PARMIGIANO REGGIANO",
+            "quantity": "3",
+            "unit": "Gr"
+          },
+          {
+            "name": "SALE IODATO",
+            "quantity": "0,2",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P101312": {
+        "dishCode": "P101312",
+        "name": "Torta salata con ricotta e spinaci",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "TORTA SALATA CON RICOTTA E SPINACI",
+            "quantity": "75",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P00007": {
+        "dishCode": "P00007",
+        "name": "Frutta fresca di stagione",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "ARANCE",
+            "quantity": "143",
+            "unit": "Gr"
+          }
+        ]
+      },
+      "P01889": {
+        "dishCode": "P01889",
+        "name": "Pane tipo 0",
+        "alternative": 40,
+        "label": "Ricetta Infanzia",
+        "photo": "band",
+        "ingredients": [
+          {
+            "name": "PANE",
             "quantity": "30",
             "unit": "Gr"
           }
