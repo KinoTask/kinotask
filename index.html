@@ -6413,61 +6413,35 @@ function buildAgenda(box, events, st, redraw, opts){
   scheduleAlign();
 }
 
+function renderAgendaInstance(boxId, timesId, data, err, syncedAt, state, options){
+  var box = $(boxId);
+  if(!box) return;
+  clear(box);
+  if(!data){
+    setText(box, err ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
+    return;
+  }
+  setTimes($(timesId), parseIso(data.generated_at || data.updated_at), syncedAt, err, 3 * 3600000);
+  buildAgenda(box, data.events || [], state, function(){
+    if(boxId === "agenda") safe(renderAgenda);
+    else safe(renderUserAgenda);
+  }, options || {});
+}
 function renderAgenda(){
-  var targets = [
-    {boxId: "agenda", timesId: "agendaTimes"},
-    {boxId: "userAgenda", timesId: "userAgendaTimes"}
-  ];
   var currentUser = null;
   if(!isSharedView(currentView)){
     for(var i = 0; i < USERS.length; i++){
       if(String(USERS[i].view_id) === String(currentView)){ currentUser = USERS[i]; break; }
     }
   }
-  var owner = currentUser ? String(currentUser.name || "").replace(/^\s+|\s+$/g, "").toLocaleLowerCase() : "";
-  var visibleEvents = agendaData && agendaData.events || [];
-  for(var t = 0; t < targets.length; t++){
-    var target = targets[t], box = $(target.boxId);
-    if(!box) continue;
-    clear(box);
-    if(!agendaData){
-      setText(box, agendaErr ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
-      continue;
-    }
-    setTimes($(target.timesId), parseIso(agendaData.generated_at || agendaData.updated_at),
-             agendaSyncedAt, agendaErr, 3 * 3600000);
-    buildAgenda(box, visibleEvents, agendaSt, function(){ safe(renderAgenda); },
-                {tasks: true, owner: owner, click: true, period: true, todayLabel: false, hideTodayDayHeading: isSharedView(currentView)});
-  }
+  var owner = currentUser ? String(currentUser.name || "").replace(/^\\s+|\\s+$/g, "").toLocaleLowerCase() : "";
+  renderAgendaInstance("agenda", "agendaTimes", agendaData, agendaErr, agendaSyncedAt, agendaSt,
+    {tasks: true, owner: owner, click: true, period: true, todayLabel: false, hideTodayDayHeading: isSharedView(currentView)});
 }
 function renderUserAgenda(){
-  var box = $("userAgenda");
-  if(!box){ return; }
-
-  clear(box);
-
-  if(!userData){
-    setText(box, userErr ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
-    return;
-  }
-
-  setTimes(
-    $("userAgendaTimes"),
-    parseIso(userData.generated_at || userData.updated_at),
-    userSyncedAt,
-    userErr,
-    3 * 3600000
-  );
-
-  buildAgenda(
-    box,
-    userData.events,
-    userSt,
-    function(){ safe(renderUserAgenda); },
-    {}
-  );
+  renderAgendaInstance("userAgenda", "userAgendaTimes", userData, userErr, userSyncedAt, userSt,
+    {tasks: true, click: true, period: true});
 }
-
 function googleCalendarRequest(method, path, body, callback){
   var x = new XMLHttpRequest();
   x.open(method, GOOGLE_CALENDAR_API_URL + path, true);
@@ -6708,8 +6682,37 @@ function openSharedAgendaConfig(anchor){
   };
 }
 
-/* Alias compatibile con configurazioni precedenti: usa il calendario condiviso. */
-function loadUserAgenda(){ loadAgenda(); }
+function loadUserAgenda(userId){
+  var requestedView = String(currentView || "");
+  var viewConfig = findItem(DASHBOARD_VIEWS, function(v){
+    return String(v.id) === requestedView;
+  });
+  var agendaUserId = String((viewConfig && viewConfig.owner_user_id) || userId || "");
+  var sequence = ++userAgendaRequestSequence;
+  userData = null;
+  userErr = false;
+  userAgendaLoadedFor = agendaUserId;
+  safe(renderUserAgenda);
+  renderGoogleCalendarTools("personal", agendaUserId);
+  if(!agendaUserId){
+    userErr = true;
+    safe(renderUserAgenda);
+    return;
+  }
+  googleCalendarRequest("GET", "/events?scope=personal&user_id=" + encodeURIComponent(agendaUserId), null, function(err, data){
+    if(sequence !== userAgendaRequestSequence || String(currentView || "") !== requestedView) return;
+    if(!err && data && Array.isArray(data.events)){
+      userData = data;
+      userErr = false;
+      userSyncedAt = new Date();
+    } else {
+      userData = null;
+      userErr = true;
+      if(err) console.error("Google personal calendar:", err);
+    }
+    safe(renderUserAgenda);
+  });
+}
 
 /* Aggiorna l'agenda ogni minuto, al secondo :05 */
 function scheduleAgendaRefresh(){
