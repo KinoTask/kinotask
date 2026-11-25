@@ -11311,9 +11311,9 @@ function dashboardBoxRenderer(boxId, def){
     recurringTasks: function(){ if(typeof loadRecurringTasks === "function") safe(loadRecurringTasks, "loadRecurringTasks"); },
     personalRoutes: function(){ if(typeof loadRoutes === "function") loadRoutes(currentView); },
     userAgenda: function(){
-      /* Agenda personale: stessa sorgente condivisa, sotto-compiti filtrati per utente. */
-      if(typeof loadAgenda === "function") safe(loadAgenda, "loadAgenda");
-      if(typeof renderAgenda === "function") safe(renderAgenda, "renderAgenda");
+      /* Agenda Personale opzionale: renderer comune, sorgente Google indipendente. */
+      if(typeof renderUserAgenda === "function") safe(renderUserAgenda, "renderUserAgenda");
+      if(typeof loadUserAgenda === "function") safe(loadUserAgenda, "loadUserAgenda");
     }
   };
   for(var rk = 0; rk < rendererKeys.length; rk++){
