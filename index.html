@@ -6424,7 +6424,7 @@ function renderAgenda(){
       if(String(USERS[i].view_id) === String(currentView)){ currentUser = USERS[i]; break; }
     }
   }
-  var owner = currentUser ? String(currentUser.name || "").replace(/^\\s+|\\s+$/g, "").toLocaleLowerCase() : "";
+  var owner = currentUser ? String(currentUser.name || "").replace(/^\s+|\s+$/g, "").toLocaleLowerCase() : "";
   var visibleEvents = agendaData && agendaData.events || [];
   for(var t = 0; t < targets.length; t++){
     var target = targets[t], box = $(target.boxId);
