@@ -1032,7 +1032,24 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   flex:0 0 auto;
   flex-wrap:nowrap;
 }
-.recurring-config-header-actions button { float:none!important; margin:0!important; white-space:nowrap; }
+.recurring-config-header-actions button {
+  box-sizing:border-box;
+  min-height:34px;
+  margin:0;
+  padding:9px 10px;
+  border:1px solid #d4dce1;
+  border-radius:7px;
+  background:#fff;
+  color:#46545d;
+  font:700 .82em/1.2 Arial,sans-serif;
+  white-space:nowrap;
+}
+.recurring-config-header-actions button.route-config-save {
+  border-color:#29495b;
+  background:#29495b;
+  color:#fff;
+}
+.recurring-permissions-panel[hidden] { display:none!important; }
 .recurring-config-header-actions #recurringConfigClose {
   flex:0 0 auto;
 }
@@ -8493,8 +8510,7 @@ function renderRecurringPermissions(users) {
 }
 
 function canManageRecurringUserPermissions(){
-  var role = String(authUserType || "").toLowerCase();
-  return role === "family" || role === "family_admin";
+  return String(authUserType || "").toLowerCase() === "family";
 }
 
 function openRecurringPermissions() {
@@ -8532,8 +8548,17 @@ function openRecurringConfig(anchor) {
   buildRecurringOwners();
   resetRecurringForm();
   setText($("recurringConfigStatus"), "");
-  setHidden($("recurringPermissionsPanel"), true);
-  setHidden($("recurringPermissionsToggle"), !canManageRecurringUserPermissions());
+  var permissionsPanel = $("recurringPermissionsPanel");
+  var permissionsToggle = $("recurringPermissionsToggle");
+  setHidden(permissionsPanel, true);
+  setHidden(permissionsToggle, !canManageRecurringUserPermissions());
+  if(permissionsToggle){
+    permissionsToggle.onclick = function(){
+      var show = permissionsPanel && permissionsPanel.hasAttribute("hidden");
+      setHidden(permissionsPanel, !show);
+      if(show) openRecurringPermissions();
+    };
+  }
   setHidden(panel, false);
   var rect = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
   if(typeof positionCustomBoxPanel === "function") {
