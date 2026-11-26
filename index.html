@@ -5412,6 +5412,67 @@ body:has(#loginPage:not([hidden])) #dashboardToolbar {
   display:none!important;
 }
 
+
+/* Correzione overflow orizzontale nelle viste personali.
+   Le righe Bootstrap hanno margini negativi: nel contenitore personale
+   non esiste la colonna esterna che normalmente compensa quei margini. */
+#personalView,
+#personalView #personalLayoutRow{
+  display:block;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin-left:0!important;
+  margin-right:0!important;
+  padding-left:0!important;
+  padding-right:0!important;
+  box-sizing:border-box!important;
+}
+#personalView{overflow-x:hidden!important;}
+#personalView .dashboard-layout-row{
+  display:flex;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin-left:0!important;
+  margin-right:0!important;
+  padding-left:0!important;
+  padding-right:0!important;
+  box-sizing:border-box!important;
+  overflow:visible;
+}
+#personalView .dashboard-layout-full,
+#personalView .dashboard-layout-full>.col,
+#personalView .dashboard-layout-columns>.dashboard-layout-column{
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+#personalView .dashboard-layout-columns>.dashboard-layout-column{
+  flex:0 0 50%!important;
+  width:50%!important;
+  padding-left:2px!important;
+  padding-right:2px!important;
+}
+#personalView .dashboard-layout-columns>.dashboard-layout-column:only-child{
+  flex-basis:100%!important;
+  width:100%!important;
+}
+#personalView .dashboard-layout-row>.col,
+#personalView .dashboard-layout-column>.box,
+#personalView .dashboard-layout-full>.col>.box{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin-left:0!important;
+  margin-right:0!important;
+  box-sizing:border-box!important;
+}
+#personalView .dashboard-layout-full>.col{
+  width:100%!important;
+  padding-left:0!important;
+  padding-right:0!important;
+}
 </style>
 
 <style>#dashboardToolbar #dashboardReorderButton{background:#edf4ff;border:1px solid #9bbce5;color:#174a7e;white-space:nowrap;}#dashboardToolbar #dashboardReorderButton[hidden]{display:none!important;}.dashboard-layout-row{width:100%;box-sizing:border-box;}.dashboard-layout-row>.col{margin:0!important;}@media(max-width:800px){#dashboardToolbar #dashboardReorderButton{padding:5px 6px;font-size:11px;}}</style>
