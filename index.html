@@ -11883,6 +11883,10 @@ function setView(view, manual){
   }
 
   loadConfiguredViewBoxes(viewConfig);
+  /* Il renderer può creare il box ricorrente solo dopo il primo controllo
+     dei permessi eseguito all'inizio di setView: riallinea la visibilità
+     del pulsante quando il relativo elemento è effettivamente nel DOM. */
+  updateRecurringConfigButton();
   /* Le box possono essere montate/ricreate dal layout: applica i titoli
      solo dopo il montaggio, così gli h2 dinamici non restano vuoti. */
   updateDashboardBoxTitles();
