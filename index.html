@@ -10516,9 +10516,10 @@ function createDashboardBoxElement(def){
   box.className="box dashboard-box";
   /* Il contenitore mantiene l'element_id previsto dai renderer:
      titoli, refresh e callback lo risolvono tramite getElementById. */
-  if(def.element_id)box.id=String(def.element_id);
+  if(def.element_id)box.id=String(def.element_key==="agenda"&&arguments.length>1&&arguments[1]?"agendaInstance_"+String(arguments[1]).replace(/[^a-zA-Z0-9_-]/g,"_"):def.element_id);
   box.setAttribute("data-dashboard-box-id",String(def.id));
   box.setAttribute("data-renderer-key",String(def.element_key));
+  if(def.element_key==="agenda"&&arguments.length>1&&arguments[1])box.setAttribute("data-agenda-instance-id",String(arguments[1]));
   box.innerHTML=template;
   return box;
 }
@@ -10560,7 +10561,7 @@ function buildLayout(view, previewSections){
     return (section.columns||[]).some(function(col){return (col.items||[]).length>0;});
   });
   sections=previewSections || dashboardGetSections() || (hasSectionItems
-    ? vc.sections.map(function(section){return {type:section.type,columns:(section.columns||[]).map(function(col){return (col.items||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(item){return {box_id:item.box_id,is_public:item.is_public};});})};})
+    ? vc.sections.map(function(section){return {type:section.type,columns:(section.columns||[]).map(function(col){return (col.items||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(item){return {box_id:item.box_id,is_public:item.is_public,instance_id:item.instance_id,agenda_config:item.agenda_config};});})};})
     : dashboardLegacyRowsToSections(vc.rows||[]));
   /* Le sezioni consecutive a colonne formano un'unica coppia di pile:
      nessuna colonna deve attendere l'altezza dell'altra prima di proseguire. */
@@ -10615,8 +10616,8 @@ function buildLayout(view, previewSections){
         return String(x.element_id||"")===String(item.box_id);
       });
     }
-    b=def?dashboardResolveBoxElement(def):dashboardElementForLayoutItem(item);
-    if(!b)b=dashboardElementForLayoutItem(item);
+    b=def&&def.element_key==="agenda"?null:(def?dashboardResolveBoxElement(def):dashboardElementForLayoutItem(item));
+    if(!b&&def&&def.element_key!=="agenda")b=dashboardElementForLayoutItem(item);
     /* I box custom sono generati dal catalogo DB, non devono esistere
        come markup statico nell'HTML. */
     if(!b && def && def.custom_box_id && def.box_key){
@@ -10624,7 +10625,7 @@ function buildLayout(view, previewSections){
       b=$(def.element_id);
     }
     if(!b && def && !def.custom_box_id){
-      b=createDashboardBoxElement(def);
+      b=createDashboardBoxElement(def,item.instance_id||item.id||("agenda_"+Math.random().toString(36).slice(2)));
     }
     /* Se il catalogo non dispone di un renderer, salta soltanto il box
        non implementato e lascia proseguire il rendering della vista. */
@@ -10779,7 +10780,7 @@ function dashboardGetSections(){
     return (section.columns||[]).some(function(col){return (col.items||[]).length>0;});
   });
   var sections=hasSectionItems
-    ? vc.sections.map(function(section){return {type:section.type,columns:(section.columns||[]).map(function(col){return (col.items||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(item){return {box_id:item.box_id,is_public:item.is_public===undefined?1:item.is_public};});})};})
+    ? vc.sections.map(function(section){return {type:section.type,columns:(section.columns||[]).map(function(col){return (col.items||[]).slice().sort(function(a,b){return a.position-b.position;}).map(function(item){return {box_id:item.box_id,is_public:item.is_public===undefined?1:item.is_public,instance_id:item.instance_id,agenda_config:item.agenda_config};});})};})
     : dashboardLegacyRowsToSections(vc.rows||[]);
   return dashboardCloneSections(sections);
 }
@@ -13538,6 +13539,7 @@ function openLayoutManagement(){
 				for(var j = 0; j < items.length; j++){
 					rowItems.push({
 						box_id: items[j].box_id,
+						instance_id: items[j].instance_id || null,
 						is_public: items[j].is_public === undefined
 							? 1
 							: items[j].is_public
@@ -13686,7 +13688,7 @@ function openLayoutManagement(){
 		addSelect.appendChild(firstOption);
 		for(var i = 0; i < availableBoxes.length; i++){
 			var catalogBox = availableBoxes[i];
-			if(used.indexOf(catalogBox.id) !== -1){ continue; }
+			if(used.indexOf(catalogBox.id) !== -1 && catalogBox.element_key!=="agenda"){ continue; }
 			var option = document.createElement("option");
 			option.value = catalogBox.id;
 			option.textContent = catalogBox.title;
@@ -13878,6 +13880,7 @@ function openLayoutManagement(){
 
 		currentRows.push([{
 			box_id: boxId,
+			instance_id: (findItem(DASHBOARD_BOXES,function(x){return String(x.id)===String(boxId);})||{}).element_key==="agenda"?(window.crypto&&crypto.randomUUID?crypto.randomUUID():("agenda_"+Date.now()+"_"+Math.random().toString(36).slice(2))):null,
 			is_public: 1
 		}]);
 
@@ -13900,6 +13903,7 @@ function openLayoutManagement(){
 					return row.map(function(item){
 						return {
 							box_id: item.box_id,
+							instance_id: item.instance_id || null,
 							enabled: true,
 							is_public: item.is_public === true ||
 								Number(item.is_public) === 1
