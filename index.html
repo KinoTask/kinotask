@@ -6432,6 +6432,7 @@ function buildAgenda(box, events, st, redraw, opts){
 var agendaInstanceConfigs = {};
 var agendaInstanceEvents = {};
 var agendaInstanceLoading = {};
+var agendaFetchCache = {};
 var agendaManagePermissions = {};
 function agendaCanManageView(viewId,callback){
   var key=String(viewId||"");
@@ -6475,8 +6476,16 @@ function agendaLoadInstance(box,force){
     var owner=agendaOwnerForCurrentView();
     var scope=config.scope==="personal"?"personal":"family";
     var userId=scope==="personal"?(owner?owner.id:""):"";
+    var selectedIds=config.calendar_ids||[];
+    var cacheKey=scope+"|"+userId+"|"+selectedIds.slice().sort().join(",");
+    if(agendaFetchCache[cacheKey]){
+      agendaInstanceEvents[id]=agendaFetchCache[cacheKey];
+      agendaInstanceLoading[id]=false;
+      renderAgendaBox(box);
+      return;
+    }
     var path="/events?scope="+scope+(userId?"&user_id="+encodeURIComponent(userId):"")+
-      ((config.calendar_ids&&config.calendar_ids.length)?"&calendar_ids="+encodeURIComponent(config.calendar_ids.join(",")):"");
+      (selectedIds.length?"&calendar_ids="+encodeURIComponent(selectedIds.join(",")):"");
     googleCalendarRequest("GET",path,null,function(err,data){
       agendaInstanceLoading[id]=false;
       if(err || !data || !Array.isArray(data.events)){
@@ -6485,6 +6494,7 @@ function agendaLoadInstance(box,force){
         var selected=config.calendar_ids||[];
         var events=selected.length?data.events.filter(function(e){return selected.indexOf(String(e.calendar_id||""))!==-1;}):data.events;
         agendaInstanceEvents[id]={events:events,generated_at:data.generated_at,calendar:data.calendar};
+        agendaFetchCache[cacheKey]=agendaInstanceEvents[id];
       }
       renderAgendaBox(box);
     });
@@ -6821,6 +6831,7 @@ function loadAgenda(){
     }else{
       agendaErr=true;if(err)console.error("Google family calendar:",err);
     }
+    agendaFetchCache={};
     var boxes=document.querySelectorAll(".dashboard-box[data-renderer-key='agenda']");
     for(var i=0;i<boxes.length;i++){
       var id=agendaInstanceId(boxes[i]);
