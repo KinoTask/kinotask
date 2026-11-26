@@ -10809,6 +10809,7 @@ function buildLayout(view, previewSections){
     host.appendChild(row);
   });
   applyDashboardReorderMode();
+  if(typeof renderAgenda==="function")safe(renderAgenda);
 }
 
 /* Riordino delle box direttamente sulla dashboard. */
