@@ -6409,34 +6409,166 @@ function buildAgenda(box, events, st, redraw, opts){
   scheduleAlign();
 }
 
-function renderAgenda(){
-  var currentUser = null;
-  if(!isSharedView(currentView)){
-    for(var i = 0; i < USERS.length; i++){
-      if(String(USERS[i].view_id) === String(currentView)){ currentUser = USERS[i]; break; }
+var agendaInstanceConfigs = {};
+var agendaInstanceEvents = {};
+var agendaInstanceLoading = {};
+
+function agendaOwnerForCurrentView(){
+  if(isSharedView(currentView)) return null;
+  for(var i=0;i<USERS.length;i++) if(String(USERS[i].view_id)===String(currentView)) return USERS[i];
+  return null;
+}
+function agendaInstanceId(box){
+  return String(box && box.getAttribute("data-agenda-instance-id") || "");
+}
+function agendaInstanceConfig(box){
+  var id=agendaInstanceId(box);
+  return agendaInstanceConfigs[id] || (box && box._agendaConfig) || null;
+}
+function agendaLoadInstance(box,force){
+  var id=agendaInstanceId(box);
+  if(!id || agendaInstanceLoading[id]) return;
+  if(!force && agendaInstanceEvents[id] && agendaInstanceConfigs[id]){renderAgendaBox(box);return;}
+  agendaInstanceLoading[id]=true;
+  usersRequest("GET","/agenda-instances/"+encodeURIComponent(id),null,function(configErr,result){
+    if(configErr || !result || !result.ok){
+      agendaInstanceLoading[id]=false;
+      agendaInstanceConfigs[id]={scope:isSharedView(currentView)?"family":"family_assigned",calendar_ids:[]};
+      box._agendaConfigError=configErr || (result&&result.error) || "Configurazione agenda non disponibile";
+      renderAgendaBox(box);
+      return;
     }
+    var config=result.config||{};
+    if(["family","family_assigned","personal"].indexOf(config.scope)<0)config.scope=isSharedView(currentView)?"family":"family_assigned";
+    if(!Array.isArray(config.calendar_ids))config.calendar_ids=[];
+    agendaInstanceConfigs[id]=config;box._agendaConfig=config;
+    var owner=agendaOwnerForCurrentView();
+    var scope=config.scope==="personal"?"personal":"family";
+    var userId=scope==="personal"?(owner?owner.id:(authUserId||"")):"";
+    var path="/events?scope="+scope+(userId?"&user_id="+encodeURIComponent(userId):"");
+    googleCalendarRequest("GET",path,null,function(err,data){
+      agendaInstanceLoading[id]=false;
+      if(err || !data || !Array.isArray(data.events)){
+        agendaInstanceEvents[id]={error:err||(data&&data.error)||"Google Calendar non disponibile",events:[]};
+      }else{
+        var selected=config.calendar_ids||[];
+        var events=selected.length?data.events.filter(function(e){return selected.indexOf(String(e.calendar_id||""))!==-1;}):data.events;
+        agendaInstanceEvents[id]={events:events,generated_at:data.generated_at,calendar:data.calendar};
+      }
+      renderAgendaBox(box);
+    });
+  });
+}
+function renderAgendaBox(box){
+  var id=agendaInstanceId(box),content=box.querySelector("[data-agenda-content]"),times=box.querySelector("[data-agenda-times]");
+  if(!content)return;
+  var config=agendaInstanceConfigs[id]||box._agendaConfig||{};
+  var data=agendaInstanceEvents[id];
+  var owner=agendaOwnerForCurrentView();
+  if(!data){
+    clear(content);setText(content,box._agendaConfigError||"Caricamento...");
+    return;
   }
-  var owner = currentUser ? String(currentUser.name || "").replace(/^\\s+|\\s+$/g, "").toLocaleLowerCase() : "";
-  var boxes = document.querySelectorAll(".dashboard-box[data-renderer-key='agenda']");
-  for(var b = 0; b < boxes.length; b++){
-    var box = boxes[b];
-    var content = box.querySelector("[data-agenda-content]");
-    var times = box.querySelector("[data-agenda-times]");
-    if(!content) continue;
-    if(!box._agendaStates) box._agendaStates = {};
-    var stateKey = String(currentView || "shared");
-    if(!box._agendaStates[stateKey]) box._agendaStates[stateKey] = {today:true, week:0};
-    var state = box._agendaStates[stateKey];
-    clear(content);
-    if(!agendaData){
-      setText(content, agendaErr ? "Google Calendar non disponibile. Verifica il collegamento o riprova." : "Caricamento...");
-      continue;
-    }
-    setTimes(times, parseIso(agendaData.generated_at || agendaData.updated_at), agendaSyncedAt, agendaErr, 3 * 3600000);
-    buildAgenda(content, agendaData.events || [], state, function(){ safe(renderAgenda); },
-      {tasks:true, owner:owner, click:true, period:true, todayLabel:false, hideTodayDayHeading:isSharedView(currentView)});
+  clear(content);
+  if(data.error){setText(content,data.error);return;}
+  var stateKey=String(currentView||"shared");
+  if(!box._agendaStates)box._agendaStates={};
+  if(!box._agendaStates[stateKey])box._agendaStates[stateKey]={today:true,week:0};
+  var assignedOnly=config.scope==="family_assigned";
+  var eventOwner=assignedOnly&&owner?String(owner.name||"").toLocaleLowerCase():"";
+  setTimes(times,parseIso(data.generated_at),agendaSyncedAt,false,3*3600000);
+  buildAgenda(content,data.events||[],box._agendaStates[stateKey],function(){safe(function(){renderAgendaBox(box);});},
+    {tasks:true,owner:eventOwner,click:true,period:true,todayLabel:false,hideTodayDayHeading:isSharedView(currentView)});
+}
+function renderAgenda(){
+  var boxes=document.querySelectorAll(".dashboard-box[data-renderer-key='agenda']");
+  for(var i=0;i<boxes.length;i++){
+    (function(box){
+      var id=agendaInstanceId(box);
+      var configButton=box.querySelector("[data-agenda-config]");
+      if(configButton&&!configButton._agendaBound){
+        configButton._agendaBound=true;
+        configButton.onclick=function(){openAgendaInstanceConfig(box);};
+      }
+      if(!id){setText(box.querySelector("[data-agenda-content]"),"Salva il layout per configurare questa agenda.");continue;}
+      if(!agendaInstanceConfigs[id] || !agendaInstanceEvents[id]) agendaLoadInstance(box,false);
+      else renderAgendaBox(box);
+    })(boxes[i]);
   }
 }
+function agendaConnect(scope,userId,callback){
+  var path="/connect?scope="+encodeURIComponent(scope);
+  if(userId)path+="&user_id="+encodeURIComponent(userId);
+  googleCalendarRequest("GET",path,null,function(err,data){
+    if(err||!data||!data.authorization_url){if(callback)callback(err||(data&&data.error)||"Impossibile collegare Google Calendar");return;}
+    window.location.href=data.authorization_url;
+  });
+}
+function openAgendaInstanceConfig(box){
+  var id=agendaInstanceId(box),owner=agendaOwnerForCurrentView();
+  if(!id){alert("Salva prima il layout per assegnare un identificativo a questa agenda.");return;}
+  var panel=$("dashboardAddBoxPanel");
+  if(!panel){panel=mk("div","dashboard-add-box-panel","");panel.id="dashboardAddBoxPanel";document.body.appendChild(panel);}
+  if(panel.parentNode!==document.body)document.body.appendChild(panel);
+  setHidden($("dashboardLayoutMenu"),true);setHidden(panel,false);clear(panel);
+  panel.style.position="fixed";panel.style.zIndex="10050";panel.style.width="390px";panel.style.maxWidth="calc(100vw - 16px)";
+  panel.style.boxSizing="border-box";panel.style.background="#fff";panel.style.border="1px solid #999";panel.style.borderRadius="5px";panel.style.boxShadow="0 4px 18px rgba(0,0,0,.25)";
+  var wrap=mk("div","","");wrap.style.padding="12px";wrap.style.display="flex";wrap.style.flexDirection="column";wrap.style.gap="9px";
+  wrap.appendChild(mk("div","","CONFIGURA AGENDA GOOGLE"));
+  var mode=document.createElement("select");mode.style.width="100%";mode.style.padding="8px";
+  [["family","Agenda Google condivisa: tutti gli eventi"],["family_assigned","Agenda Google condivisa: solo i miei sottotask"],["personal","Il mio Google Calendar personale"]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=x[1];mode.appendChild(o);});
+  var saved=agendaInstanceConfigs[id]||{scope:isSharedView(currentView)?"family":"family_assigned",calendar_ids:[]};
+  mode.value=saved.scope||"family";if(!owner){mode.querySelector('option[value="family_assigned"]').disabled=true;}
+  wrap.appendChild(mode);
+  var account=mk("div","small","Verifica collegamento Google…");wrap.appendChild(account);
+  var calendarSelect=document.createElement("select");calendarSelect.multiple=true;calendarSelect.size=5;calendarSelect.style.width="100%";calendarSelect.style.padding="6px";wrap.appendChild(calendarSelect);
+  var connect=mk("button","","COLLEGA ACCOUNT GOOGLE");connect.type="button";wrap.appendChild(connect);
+  var status=mk("div","small","Seleziona uno o più calendari. Nessuna selezione significa tutti quelli disponibili.");wrap.appendChild(status);
+  var footer=mk("div","route-config-footer","");
+  var save=mk("button","route-config-save","SALVA");save.type="button";
+  var close=mk("button","route-config-back","CHIUDI");close.type="button";close.onclick=function(){setHidden(panel,true);};
+  footer.appendChild(save);footer.appendChild(close);wrap.appendChild(footer);panel.appendChild(wrap);
+  var accountScope=mode.value==="personal"?"personal":"family";
+  var accountUser=accountScope==="personal"?(owner?owner.id:""):"";
+  function loadAccount(){
+    accountScope=mode.value==="personal"?"personal":"family";
+    accountUser=accountScope==="personal"?(owner?owner.id:""):"";
+    var suffix=accountUser?"&user_id="+encodeURIComponent(accountUser):"";
+    googleCalendarRequest("GET","/status?scope="+accountScope+suffix,null,function(err,connection){
+      clear(calendarSelect);
+      if(err||!connection||!connection.connected){
+        account.textContent="Account Google non collegato.";
+        connect.hidden=false;calendarSelect.disabled=true;save.disabled=true;
+        return;
+      }
+      account.textContent="Collegato: "+(connection.email||"Google");
+      connect.hidden=true;calendarSelect.disabled=false;save.disabled=false;
+      googleCalendarRequest("GET","/calendars?scope="+accountScope+suffix,null,function(calErr,data){
+        if(calErr||!data||!Array.isArray(data.calendars)){status.textContent=calErr||"Impossibile caricare i calendari.";return;}
+        data.calendars.forEach(function(cal){
+          var option=document.createElement("option");option.value=cal.id;option.textContent=cal.summary+(cal.primary?" (principale)":"");
+          option.selected=(saved.calendar_ids||[]).indexOf(cal.id)!==-1;calendarSelect.appendChild(option);
+        });
+      });
+    });
+  }
+  mode.onchange=function(){saved={scope:mode.value,calendar_ids:[]};loadAccount();};
+  connect.onclick=function(){agendaConnect(accountScope,accountUser,function(err){status.textContent=err;});};
+  save.onclick=function(){
+    var config={scope:mode.value,calendar_ids:Array.prototype.filter.call(calendarSelect.options,function(o){return o.selected;}).map(function(o){return o.value;})};
+    save.disabled=true;
+    usersRequest("PUT","/agenda-instances/"+encodeURIComponent(id),config,function(err,result){
+      save.disabled=false;
+      if(err||!result||!result.ok){status.textContent=err||(result&&result.error)||"Salvataggio non riuscito.";return;}
+      agendaInstanceConfigs[id]=config;agendaInstanceEvents[id]=null;box._agendaConfig=config;
+      setHidden(panel,true);agendaLoadInstance(box,true);
+    });
+  };
+  loadAccount();
+  positionCustomBoxPanel(panel,box.getBoundingClientRect());
+  bindCustomBoxPanelPosition(panel,box.getBoundingClientRect());
+}
+
 function googleCalendarRequest(method, path, body, callback){
   var x = new XMLHttpRequest();
   x.open(method, GOOGLE_CALENDAR_API_URL + path, true);
@@ -6642,21 +6774,9 @@ function scheduleAgendaRefresh(){
 
 function loadAgenda(){
   scheduleAgendaRefresh();
-  renderGoogleCalendarTools();
-  googleCalendarRequest("GET", "/events?scope=family", null, function(err, data){
-    var hadAgenda = !!agendaData, changed = true;
-    if(!err && data && Array.isArray(data.events)){
-      if(hadAgenda) changed = JSON.stringify(agendaData.events) !== JSON.stringify(data.events);
-      agendaData = data;
-      agendaErr = false;
-      agendaSyncedAt = new Date();
-    } else {
-      agendaErr = true;
-      if(err) console.error("Google family calendar:", err);
-    }
-    if(changed || err) safe(renderAgenda);
-    if(!isSharedView(currentView)) safe(renderPersonalTasks);
-  });
+  agendaSyncedAt=new Date();
+  safe(renderAgenda);
+  if(!isSharedView(currentView)) safe(renderPersonalTasks);
 }
 
 var routesConfigEditButton=$("routesConfigEdit");
