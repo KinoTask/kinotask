@@ -959,7 +959,48 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
 /* Popup ricorrenti: pannello flottante ancorato al pulsante, come Modifica Box. */
 .recurring-config-popup[hidden] { display:none!important; }
 .recurring-config-popup:not([hidden]) { display:block; }
+
 .recurring-config-panel { max-width:680px; }
+.recurring-config-panel-title {
+  font-weight:800!important;
+  text-transform:uppercase!important;
+  letter-spacing:.025em;
+}
+.recurring-config-popup button {
+  box-sizing:border-box!important;
+  min-height:34px;
+  margin:0;
+  padding:8px 10px!important;
+  border:1px solid #d4dce1!important;
+  border-radius:7px!important;
+  background:#fff!important;
+  color:#46545d!important;
+  font:700 .82em/1.2 "Trebuchet MS",Arial,sans-serif!important;
+  cursor:pointer;
+}
+.recurring-config-popup #recurringSaveButton,
+.recurring-config-popup #recurringPermissionsToggle,
+.recurring-config-popup #recurringSubtaskAddButton {
+  border-color:#29495b!important;
+  background:#29495b!important;
+  color:#fff!important;
+}
+.recurring-config-popup button:disabled {
+  opacity:.55;
+  cursor:default;
+}
+.agenda-config-card {
+  box-sizing:border-box;
+  border:2px solid #9aaab5;
+  border-radius:9px;
+  background:#fbfcfd;
+  box-shadow:0 2px 6px rgba(28,48,62,.07);
+}
+.agenda-config-title {
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.025em;
+}
 .recurring-config-section {
   border:2px solid #9aaab5!important;
   border-radius:9px!important;
@@ -6074,7 +6115,7 @@ body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
 <div id="recurringConfigOverlay" class="recurring-config-popup" hidden>
   <div class="recurring-config-panel">
     <div class="overlay-head">
-      <div class="recurring-config-panel-title">Configurazione attività ricorrenti</div>
+      <div class="recurring-config-panel-title">CONFIGURAZIONE ATTIVITÀ RICORRENTI</div>
       <div id="recurringConfigHeaderActions" class="recurring-config-header-actions">
         <button type="button" id="recurringPermissionsToggle" class="recurring-permissions-toggle" hidden>Autorizza utenti</button>
         <button type="button" id="recurringConfigClose">Chiudi</button>
@@ -6980,8 +7021,8 @@ function openAgendaInstanceConfig(box){
   setHidden($("dashboardLayoutMenu"),true);setHidden(panel,false);clear(panel);
   panel.style.position="fixed";panel.style.zIndex="10050";panel.style.width="390px";panel.style.maxWidth="calc(100vw - 16px)";
   panel.style.boxSizing="border-box";panel.style.background="#fff";panel.style.border="1px solid #999";panel.style.borderRadius="5px";panel.style.boxShadow="0 4px 18px rgba(0,0,0,.25)";
-  var wrap=mk("div","","");wrap.style.padding="12px";wrap.style.display="flex";wrap.style.flexDirection="column";wrap.style.gap="9px";
-  wrap.appendChild(mk("div","","CONFIGURA AGENDA GOOGLE"));
+  var wrap=mk("div","agenda-config-card","");wrap.style.padding="12px";wrap.style.display="flex";wrap.style.flexDirection="column";wrap.style.gap="9px";
+  wrap.appendChild(mk("div","agenda-config-title","CONFIGURA AGENDA GOOGLE"));
   var mode=document.createElement("select");mode.style.width="100%";mode.style.padding="8px";
   [["family","Agenda Google condivisa: tutti gli eventi"],["family_assigned","Agenda Google condivisa: solo i miei sottotask"],["instance","Un altro account Google"]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=x[1];mode.appendChild(o);});
   var saved=agendaInstanceConfigs[id]||{scope:isSharedView(currentView)?"family":"family_assigned",calendar_ids:[]};
