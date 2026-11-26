@@ -6695,7 +6695,7 @@ function parseTasks(desc){
     if(m){
       var taskOwner = eventTaskOwnerByName(m[1]);
       if(taskOwner){
-        tasks.push(m[1].replace(/^\s+|\s+$/g, "") + ": " + m[2]);
+        tasks.push(m[2].replace(/^\s+|\s+$/g, ""));
         owners.push(taskOwner);
         continue;
       }
