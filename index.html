@@ -312,7 +312,7 @@ input[type=checkbox] {
 #dashboardAddBoxPanel .custom-box-editor-title,#dashboardAddBoxPanel>div>div,
 #viewMenuPanel .user-management-panel>div:first-child,
 #viewMenuPanel .user-management-panel strong{color:#000!important;}
-#dashboardAddBoxPanel .custom-box-editor-title{font-size:18px;font-weight:700;letter-spacing:.2px;padding-bottom:8px;border-bottom:1px solid #d5dde2;}
+#dashboardAddBoxPanel .custom-box-editor-title,.recurring-config-panel-title{font-size:18px;font-weight:700;letter-spacing:.2px;padding:0;margin:0 0 2px;border:0!important;}
 #dashboardAddBoxPanel .custom-weekly-days{margin-top:10px!important;gap:10px 14px!important;}
 #dashboardAddBoxPanel .custom-weekly-days label{display:inline-flex!important;align-items:center;gap:7px!important;margin:2px 4px 2px 0;padding:3px 5px;color:#202a30;}
 #dashboardAddBoxPanel .custom-weekly-days input[type=checkbox]{width:16px!important;height:16px!important;min-width:16px;flex:0 0 16px;border-radius:5px!important;}
@@ -968,6 +968,7 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   background:#fbfcfd!important;
   box-shadow:0 2px 6px rgba(28,48,62,.07)!important;
 }
+.recurring-config-panel-title{color:#000!important;}
 .recurring-config-section .custom-box-editor-section-title {
   font-size:.76em;
   font-weight:800;
@@ -5557,8 +5558,8 @@ body:has(#loginPage:not([hidden])) #dashboardToolbar {
 #dashboardAddBoxPanel .agenda-calendar-choice input[type=checkbox]{accent-color:#29495b!important;width:16px!important;height:16px!important;min-width:16px!important;margin:0!important;}
 #dashboardAddBoxPanel .custom-box-edit,#dashboardAddBoxPanel button.custom-box-edit{display:inline-flex!important;align-items:center!important;justify-content:center!important;position:absolute!important;top:50%!important;right:6px!important;left:auto!important;transform:translateY(-50%)!important;width:24px!important;height:24px!important;min-width:24px!important;flex:0 0 24px!important;margin:0!important;padding:0!important;border:1px solid #783B4A!important;border-radius:5px!important;background:#783B4A!important;color:#fff!important;font-size:15px!important;line-height:1!important;box-shadow:0 1px 3px rgba(0,0,0,.18)!important;}
 /* La rotella appartiene all'intestazione del box, non al pannello editor. */
-.dashboard-box .section-heading { position:relative; padding-right:34px; }
-.dashboard-box button.custom-box-edit {
+.box .section-heading { position:relative; padding-right:34px; }
+.box button.custom-box-edit {
   display:inline-flex!important;
   align-items:center!important;
   justify-content:center!important;
@@ -5581,6 +5582,17 @@ body:has(#loginPage:not([hidden])) #dashboardToolbar {
   line-height:1!important;
   box-shadow:0 1px 3px rgba(0,0,0,.18)!important;
 }
+/* I box custom hanno classe .box: questa regola aggancia la rotella al loro header. */
+.box .section-heading > button.custom-box-edit {
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  position:absolute!important;top:50%!important;right:6px!important;left:auto!important;
+  transform:translateY(-50%)!important;width:24px!important;height:24px!important;
+  min-width:24px!important;max-width:24px!important;flex:0 0 24px!important;
+  margin:0!important;padding:0!important;border:1px solid #783B4A!important;
+  border-radius:5px!important;background:#783B4A!important;color:#fff!important;
+  font-size:15px!important;line-height:1!important;box-shadow:0 1px 3px rgba(0,0,0,.18)!important;
+}
+
 .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button{position:absolute!important;top:-5px!important;right:0!important;left:auto!important;width:24px!important;height:24px!important;min-width:24px!important;flex:0 0 24px!important;margin:0!important;padding:0!important;border:1px solid #783B4A!important;border-radius:4px!important;background:#783B4A!important;color:#fff!important;font-size:14px!important;line-height:1!important;}
 .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button span{font-size:14px!important;}
 
@@ -6046,12 +6058,12 @@ body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
 <div id="recurringConfigOverlay" class="recurring-config-popup" hidden>
   <div class="recurring-config-panel">
     <div class="overlay-head">
-      <h2>Configurazione attività ricorrenti</h2>
+      <div class="custom-box-editor-title recurring-config-panel-title">Configurazione attività ricorrenti</div>
       <div id="recurringConfigHeaderActions" class="recurring-config-header-actions">
+        <button type="button" id="recurringPermissionsToggle" class="recurring-permissions-toggle" hidden>Autorizza utenti</button>
         <button type="button" id="recurringConfigClose">Chiudi</button>
       </div>
     </div>
-    <button type="button" id="recurringPermissionsToggle" class="recurring-permissions-toggle" hidden>Autorizza utenti</button>
     <div id="recurringPermissionsPanel" class="recurring-permissions-panel" hidden></div>
     <div class="custom-box-editor-section recurring-config-section">
       <div class="custom-box-editor-section-title">CONFIGURAZIONE ATTIVITÀ RICORRENTI</div>
@@ -6953,7 +6965,7 @@ function openAgendaInstanceConfig(box){
   panel.style.position="fixed";panel.style.zIndex="10050";panel.style.width="390px";panel.style.maxWidth="calc(100vw - 16px)";
   panel.style.boxSizing="border-box";panel.style.background="#fff";panel.style.border="1px solid #999";panel.style.borderRadius="5px";panel.style.boxShadow="0 4px 18px rgba(0,0,0,.25)";
   var wrap=mk("div","","");wrap.style.padding="12px";wrap.style.display="flex";wrap.style.flexDirection="column";wrap.style.gap="9px";
-  wrap.appendChild(mk("div","","CONFIGURA AGENDA GOOGLE"));
+  wrap.appendChild(mk("div","custom-box-editor-title","CONFIGURA AGENDA GOOGLE"));
   var mode=document.createElement("select");mode.style.width="100%";mode.style.padding="8px";
   [["family","Agenda Google condivisa: tutti gli eventi"],["family_assigned","Agenda Google condivisa: solo i miei sottotask"],["instance","Un altro account Google"]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=x[1];mode.appendChild(o);});
   var saved=agendaInstanceConfigs[id]||{scope:isSharedView(currentView)?"family":"family_assigned",calendar_ids:[]};
