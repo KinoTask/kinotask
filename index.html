@@ -6981,7 +6981,7 @@ function scheduleAgendaRefresh(){
   setTimeout(function(){ safe(loadAgenda); }, ((65 - s) % 60 || 60) * 1000);
 }
 
-function loadAgenda(){
+function loadAgenda(preserveInstances){
   scheduleAgendaRefresh();
   /* Il box SOTTOTASK legge esclusivamente i calendari selezionati
      nell'istanza Agenda Google della vista condivisa. */
@@ -6993,9 +6993,22 @@ function loadAgenda(){
     }else{
       agendaErr=true;if(err)console.error("Google family calendar:",err);
     }
-    /* Il fetch condiviso serve ai sottotask personali, ma non deve
-       invalidare i dati già caricati dalle singole istanze agenda:
-       al cambio vista il calendario resta immediatamente disponibile. */
+    /* Nei cambi vista conserviamo la cache per mostrare subito l'agenda.
+       Nei refresh programmati invece invalidiamo e ricarichiamo le istanze,
+       così i dati restano aggiornati anche senza cambiare schermata. */
+    if(!preserveInstances){
+      agendaFetchCache={};
+      var boxes=document.querySelectorAll(".dashboard-box[data-renderer-key='agenda']");
+      for(var i=0;i<boxes.length;i++){
+        var id=agendaInstanceId(boxes[i]);
+        if(id){
+          agendaInstanceEvents[id]=null;
+          agendaInstanceVersion[id]=(agendaInstanceVersion[id]||0)+1;
+          agendaInstanceLoading[id]=false;
+        }
+      }
+      safe(renderAgenda);
+    }
     if(!isSharedView(currentView))safe(renderPersonalTasks);
   });
 }
@@ -11734,7 +11747,7 @@ function setView(view, manual){
   if(personal){
     var personalTasksHost = $("personalTasks");
     if(personalTasksHost) setText(personalTasksHost, "Aggiornamento compiti dall'Agenda Famiglia...");
-    safe(loadAgenda, "loadAgenda");
+    safe(function(){loadAgenda(true);}, "loadAgenda");
   }
 
   closeViewMenu();
