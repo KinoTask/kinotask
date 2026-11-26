@@ -5527,7 +5527,21 @@ body .recurring-task-time,body.k .recurring-task-time,body:not(.k) .recurring-ta
 }
 
 .dashboard-box[data-renderer-key="agenda"] .section-heading {
+  display:flex!important;
+  flex-flow:row nowrap!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
   padding-right:32px;
+}
+.dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
+  float:none!important;
+  flex:0 1 auto!important;
+  width:auto!important;
+  min-width:0!important;
+}
+body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
+  white-space:nowrap!important;
 }
 .dashboard-box[data-renderer-key="agenda"] [data-agenda-config] {
   display:inline-flex;
@@ -5554,7 +5568,8 @@ body .recurring-task-time,body.k .recurring-task-time,body:not(.k) .recurring-ta
   display:inline-flex;
   align-items:center;
   gap:6px;
-  margin-left:auto;
+  flex:0 1 auto;
+  margin:0;
   padding:3px 7px;
   border:1px solid #9bb9a9;
   border-radius:999px;
@@ -5565,6 +5580,10 @@ body .recurring-task-time,body.k .recurring-task-time,body:not(.k) .recurring-ta
   line-height:1.2;
 }
 .dashboard-box[data-renderer-key="agenda"] [data-agenda-account][hidden]{display:none!important;}
+.dashboard-box[data-renderer-key="agenda"] [data-agenda-times]{
+  margin-left:auto!important;
+  flex:0 1 auto!important;
+}
 .dashboard-box[data-renderer-key="agenda"] [data-agenda-account] .google-calendar-disconnect{
   margin:0;
   padding:2px 6px;
