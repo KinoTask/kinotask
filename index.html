@@ -7023,6 +7023,17 @@ function openAgendaInstanceConfig(box){
   panel.style.boxSizing="border-box";panel.style.background="#fff";panel.style.border="1px solid #999";panel.style.borderRadius="5px";panel.style.boxShadow="0 4px 18px rgba(0,0,0,.25)";
   var wrap=mk("div","agenda-config-card","");wrap.style.padding="12px";wrap.style.display="flex";wrap.style.flexDirection="column";wrap.style.gap="9px";
   wrap.appendChild(mk("div","agenda-config-title","CONFIGURA AGENDA GOOGLE"));
+  var addSharedAgenda=mk("button","route-config-save","AGGIUNGI AGENDA CON TASK CONDIVISI");
+  addSharedAgenda.type="button";
+  addSharedAgenda.style.width="100%";
+  addSharedAgenda.title="Aggiunge una seconda Agenda Google a questa vista personale";
+  addSharedAgenda.onclick=function(){
+    setHidden(panel,true);
+    var layoutPanel=$("viewMenuPanel");
+    if(layoutPanel)setHidden(layoutPanel,false);
+    openLayoutManagement();
+  };
+  wrap.appendChild(addSharedAgenda);
   var mode=document.createElement("select");mode.style.width="100%";mode.style.padding="8px";
   [["family","Agenda Google condivisa: tutti gli eventi"],["family_assigned","Agenda Google condivisa: solo i miei sottotask"],["instance","Un altro account Google"]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=x[1];mode.appendChild(o);});
   var saved=agendaInstanceConfigs[id]||{scope:isSharedView(currentView)?"family":"family_assigned",calendar_ids:[]};
