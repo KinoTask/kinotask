@@ -980,20 +980,28 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
 }
 /* Riproduce esplicitamente le varianti SALVA e CHIUDI di Configura Agenda Google:
    le regole generiche del popup non devono sovrascrivere i colori dei pulsanti. */
+.recurring-config-popup button.route-config-save,
 .recurring-config-popup #recurringSaveButton,
 .recurring-config-popup #recurringPermissionsToggle,
 .recurring-config-popup .recurring-button-save {
   border:1px solid #29495b!important;
+  border-radius:7px!important;
   background:#29495b!important;
   color:#fff!important;
+  font:700 .82em/1.2 "Trebuchet MS",Arial,sans-serif!important;
+  padding:8px 10px!important;
 }
+.recurring-config-popup button.route-config-back,
 .recurring-config-popup #recurringConfigClose,
 .recurring-config-popup #recurringCancelEditButton,
 .recurring-config-popup #recurringSubtaskAddButton,
 .recurring-config-popup .recurring-button-close {
   border:1px solid #d4dce1!important;
+  border-radius:7px!important;
   background:#fff!important;
   color:#46545d!important;
+  font:700 .82em/1.2 "Trebuchet MS",Arial,sans-serif!important;
+  padding:8px 10px!important;
 }
 
 .recurring-config-popup button:disabled {
@@ -6128,8 +6136,8 @@ body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
     <div class="overlay-head">
       <div class="recurring-config-panel-title">CONFIGURAZIONE ATTIVITÀ RICORRENTI</div>
       <div id="recurringConfigHeaderActions" class="recurring-config-header-actions">
-        <button type="button" id="recurringPermissionsToggle" class="recurring-permissions-toggle" hidden>Autorizza utenti</button>
-        <button type="button" id="recurringConfigClose">Chiudi</button>
+        <button type="button" id="recurringPermissionsToggle" class="recurring-permissions-toggle route-config-save" hidden>Autorizza utenti</button>
+        <button type="button" id="recurringConfigClose" class="route-config-back">Chiudi</button>
       </div>
     </div>
     <div id="recurringPermissionsPanel" class="recurring-permissions-panel" hidden></div>
@@ -6143,7 +6151,7 @@ body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
       <div class="recurring-field">
         <span>Sottoattività (facoltative)</span>
         <div id="recurringSubtasks" class="recurring-subtask-editor"></div>
-        <button type="button" id="recurringSubtaskAddButton" class="recurring-subtask-add">+ Aggiungi sottoattività</button>
+        <button type="button" id="recurringSubtaskAddButton" class="recurring-subtask-add route-config-back">+ Aggiungi sottoattività</button>
       </div>
       <label class="recurring-field">
         <span>Ricorrenza</span>
@@ -7326,34 +7334,72 @@ function scheduleAgendaRefresh(){
   setTimeout(function(){ safe(loadAgenda); }, ((65 - s) % 60 || 60) * 1000);
 }
 
+function refreshAgendaInstancesFromFamilyData(data){
+  var boxes=document.querySelectorAll(".dashboard-box[data-renderer-key='agenda']");
+  for(var i=0;i<boxes.length;i++){
+    (function(box){
+      var id=agendaInstanceId(box);
+      if(!id)return;
+      var config=agendaInstanceConfigs[id]||box._agendaConfig;
+      if(!config){
+        agendaLoadInstance(box,false);
+        return;
+      }
+      if(config.scope==="instance"){
+        if(agendaInstanceLoading[id])return;
+        agendaInstanceLoading[id]=true;
+        var version=(agendaInstanceVersion[id]||0)+1;
+        agendaInstanceVersion[id]=version;
+        var ids=Array.isArray(config.calendar_ids)?config.calendar_ids:[];
+        var path="/events?scope=instance&instance_id="+encodeURIComponent(id)+
+          (ids.length?"&calendar_ids="+encodeURIComponent(ids.join(",")):"");
+        googleCalendarRequest("GET",path,null,function(err,result){
+          if(agendaInstanceVersion[id]!==version)return;
+          agendaInstanceLoading[id]=false;
+          if(err||!result||!Array.isArray(result.events)){
+            if(err)console.error("Google Calendar istanza:",err);
+            return;
+          }
+          var value={events:result.events,generated_at:result.generated_at,calendar:result.calendar};
+          var key="instance||"+id+"||"+ids.slice().sort().join(",");
+          agendaFetchCache[key]=value;
+          agendaInstanceEvents[id]=value;
+          renderAgendaBox(box);
+        });
+        return;
+      }
+      var selectedIds=isSharedView(currentView)
+        ? (Array.isArray(config.calendar_ids)?config.calendar_ids:[])
+        : sharedAgendaCalendarIds();
+      var events=selectedIds.length
+        ? (data.events||[]).filter(function(event){
+            return selectedIds.indexOf(String(event.calendar_id||""))!==-1;
+          })
+        : (data.events||[]).slice();
+      var value={events:events,generated_at:data.generated_at,calendar:data.calendar};
+      var key="family||||"+selectedIds.slice().sort().join(",");
+      agendaFetchCache[key]=value;
+      agendaInstanceEvents[id]=value;
+      renderAgendaBox(box);
+    })(boxes[i]);
+  }
+}
+
 function loadAgenda(preserveInstances){
   scheduleAgendaRefresh();
-  /* Il box SOTTOTASK legge esclusivamente i calendari selezionati
-     nell'istanza Agenda Google della vista condivisa. */
+  /* Una sola lettura dei calendari condivisi aggiorna tutte le istanze
+     family/family_assigned. Non svuotiamo la cache né ricarichiamo la
+     configurazione D1 di ogni box ad ogni refresh. */
   var sharedIds=sharedAgendaCalendarIds();
   var familyEventsPath="/events?scope=family"+(sharedIds.length?"&calendar_ids="+encodeURIComponent(sharedIds.join(",")):"");
   googleCalendarRequest("GET",familyEventsPath,null,function(err,data){
     if(!err&&data&&Array.isArray(data.events)){
       agendaData=data;agendaErr=false;agendaSyncedAt=new Date();
+      refreshAgendaInstancesFromFamilyData(data);
     }else{
       agendaErr=true;if(err)console.error("Google family calendar:",err);
     }
-    /* Nei cambi vista conserviamo la cache per mostrare subito l'agenda.
-       Nei refresh programmati invece invalidiamo e ricarichiamo le istanze,
-       così i dati restano aggiornati anche senza cambiare schermata. */
-    if(!preserveInstances){
-      agendaFetchCache={};
-      var boxes=document.querySelectorAll(".dashboard-box[data-renderer-key='agenda']");
-      for(var i=0;i<boxes.length;i++){
-        var id=agendaInstanceId(boxes[i]);
-        if(id){
-          agendaInstanceEvents[id]=null;
-          agendaInstanceVersion[id]=(agendaInstanceVersion[id]||0)+1;
-          agendaInstanceLoading[id]=false;
-        }
-      }
-      safe(renderAgenda);
-    }
+    if(!preserveInstances)safe(renderAgenda);
     if(!isSharedView(currentView))safe(renderPersonalTasks);
   });
 }
@@ -14305,9 +14351,11 @@ function openLayoutManagement(){
 
 		var locked = Number(selectedView.layout_locked) === 1;
 
-		canEdit = isOwner || (
-			authUserType === "family" && !locked
-		);
+		/* Usa la stessa autorizzazione del menu Layout e dell'API:
+		   il vecchio controllo owner/family nascondeva i comandi anche
+		   quando il profilo aveva can_edit=1 sulla vista. */
+		canEdit = canManageDashboardLayout(selectedView) &&
+			(!locked || isOwner);
 
 		currentRows = [];
 
