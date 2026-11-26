@@ -955,6 +955,30 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   max-width:680px;
   margin:0 auto;
 }
+
+/* Configurazione ricorrenti come finestra popup, non overlay a pagina intera. */
+.recurring-config-overlay:not([hidden]) {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  padding:16px;
+  overflow:auto;
+  background:rgba(0,0,0,.38);
+}
+.recurring-config-overlay .recurring-config-panel {
+  width: min(680px, calc(100vw - 32px));
+  max-width:680px;
+  max-height:calc(100vh - 32px);
+  margin:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  box-sizing:border-box;
+  border:1px solid #b9c3c9;
+  border-radius:9px;
+  box-shadow:0 8px 30px rgba(0,0,0,.24);
+}
+
 .recurring-config-header-actions {
   display:flex;
   align-items:center;
@@ -1029,6 +1053,53 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   gap:4px;
   white-space:nowrap;
 }
+
+/* Scelte assegnatari: stesso aspetto a pillola della sezione COLLABORATORI. */
+.recurring-owner-choice {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
+  width:auto!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:6px 8px!important;
+  border:1px solid #d5dee4!important;
+  border-radius:6px!important;
+  background:#fff!important;
+  color:#202a30!important;
+  box-shadow:none!important;
+  font:normal .8em/1.2 inherit!important;
+  cursor:pointer!important;
+}
+.recurring-owner-choice[aria-pressed="true"] {
+  border-color:#29495b!important;
+  background:#29495b!important;
+  color:#fff!important;
+}
+.recurring-owner-choice input[type="checkbox"] { display:none!important; }
+.recurring-owner-choice-mark {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  width:15px;
+  height:15px;
+  min-width:15px;
+  border:1px solid #697780;
+  border-radius:3px;
+  background:#fff;
+  color:#29495b;
+  font-size:11px;
+  font-weight:bold;
+}
+.recurring-owner-choice[aria-pressed="true"] .recurring-owner-choice-mark {
+  border-color:#fff;
+  background:#fff;
+  color:#29495b;
+}
+.recurring-subtask-assign { display:flex; flex-wrap:wrap; gap:5px 6px; }
+
 .recurring-config-actions {
   display:flex;
   gap:8px;
@@ -5946,7 +6017,7 @@ body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
   </div>
 </div>
 
-<div id="recurringConfigOverlay" class="overlay" hidden>
+<div id="recurringConfigOverlay" class="overlay recurring-config-overlay" hidden>
   <div class="panel recurring-config-panel">
     <div class="overlay-head">
       <h2>Configurazione attività ricorrenti</h2>
@@ -8103,12 +8174,9 @@ function addRecurringSubtask(value, id, owners) {
   row.appendChild(input); row.appendChild(remove);
   var assign = mk("div", "recurring-subtask-assign");
   assign.appendChild(mk("span", "small", "Assegnatari (vuoto = eredita dal task):"));
-  for (var u = 0; u < USERS.length; u++) {
-    var label = mk("label", "");
-    var check = mk("input"); check.type = "checkbox"; check.value = USERS[u].id;
-    check.checked = (owners || []).some(function(ownerId) { return String(ownerId) === String(USERS[u].id); });
-    label.appendChild(check); label.appendChild(document.createTextNode(USERS[u].name)); assign.appendChild(label);
-  }
+  renderRecurringOwnerChoices(assign, owners || [], function(){
+    if(recurringConfigEditingId !== null) recurringFormDirty = true;
+  });
   row.appendChild(assign); container.appendChild(row);
 }
 function renderRecurringSubtasks(items) {
@@ -8138,19 +8206,42 @@ function updateRecurringFields() {
   setHidden($("recurringTime"), $("recurringTimeMode").value !== "specific");
 }
 
-function buildRecurringOwners() {
-  var container = $("recurringOwners");
+function renderRecurringOwnerChoices(container, selectedIds, onChange) {
   clear(container);
-  for (var i = 0; i < USERS.length; i++) {
-    var label = mk("label", "");
-    var check = mk("input", "");
-    check.type = "checkbox";
-    check.value = USERS[i].id;
-    label.appendChild(check);
-    label.appendChild(document.createTextNode(USERS[i].name));
-    container.appendChild(label);
+  if (!USERS.length) {
+    container.appendChild(mk("div", "small", "Nessun utente disponibile."));
+    return;
   }
-  if (!USERS.length) container.appendChild(mk("div", "small", "Nessun utente disponibile."));
+  USERS.forEach(function(user) {
+    var selected = (selectedIds || []).some(function(id){ return String(id) === String(user.id); });
+    var button = mk("button", "recurring-owner-choice");
+    button.type = "button";
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
+    var check = mk("input");
+    check.type = "checkbox";
+    check.value = String(user.id);
+    check.checked = selected;
+    check.tabIndex = -1;
+    check.setAttribute("aria-hidden", "true");
+    var mark = mk("span", "recurring-owner-choice-mark", selected ? "✓" : "");
+    button.appendChild(check);
+    button.appendChild(mark);
+    button.appendChild(document.createTextNode(user.name));
+    button.onclick = function(ev) {
+      if(ev && ev.preventDefault) ev.preventDefault();
+      check.checked = !check.checked;
+      button.setAttribute("aria-pressed", check.checked ? "true" : "false");
+      mark.textContent = check.checked ? "✓" : "";
+      if(typeof onChange === "function") onChange();
+    };
+    container.appendChild(button);
+  });
+}
+
+function buildRecurringOwners() {
+  renderRecurringOwnerChoices($("recurringOwners"), [], function(){
+    if(recurringConfigEditingId !== null) recurringFormDirty = true;
+  });
 }
 
 function editRecurringDefinition(id) {
