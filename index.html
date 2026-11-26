@@ -6438,8 +6438,9 @@ function agendaCanManageView(viewId,callback){
   var key=String(viewId||"");
   if(Object.prototype.hasOwnProperty.call(agendaManagePermissions,key)){callback(agendaManagePermissions[key]);return;}
   usersRequest("GET","/views",null,function(err,data){
-    var view=data&&data.views?findItem(data.views,function(x){return String(x.id)===key;}):null;
-    var allowed=!err&&canManageDashboardLayout(view);
+    if(err||!data||!Array.isArray(data.views)){callback(false);return;}
+    var view=findItem(data.views,function(x){return String(x.id)===key;});
+    var allowed=canManageDashboardLayout(view);
     agendaManagePermissions[key]=!!allowed;callback(!!allowed);
   });
 }
