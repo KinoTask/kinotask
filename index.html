@@ -1069,7 +1069,10 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   background:#fff!important;
   color:#202a30!important;
   box-shadow:none!important;
-  font:normal .8em/1.2 inherit!important;
+  font-family:inherit!important;
+  font-size:.8em!important;
+  font-weight:normal!important;
+  line-height:1.2!important;
   cursor:pointer!important;
 }
 .recurring-owner-choice[aria-pressed="true"] {
@@ -8244,6 +8247,18 @@ function buildRecurringOwners() {
   });
 }
 
+function syncRecurringOwnerChoices(container) {
+  if(!container) return;
+  var buttons = container.querySelectorAll(".recurring-owner-choice");
+  for(var i = 0; i < buttons.length; i++) {
+    var check = buttons[i].querySelector('input[type="checkbox"]');
+    var mark = buttons[i].querySelector(".recurring-owner-choice-mark");
+    if(!check) continue;
+    buttons[i].setAttribute("aria-pressed", check.checked ? "true" : "false");
+    if(mark) mark.textContent = check.checked ? "✓" : "";
+  }
+}
+
 function editRecurringDefinition(id) {
   var item = null;
   for (var i = 0; i < recurringDefinitions.length; i++) {
@@ -8272,6 +8287,7 @@ function editRecurringDefinition(id) {
       return String(ownerId) === String(checks[j].value);
     });
   }
+  syncRecurringOwnerChoices($("recurringOwners"));
   updateRecurringFields();
   $("recurringText").focus();
 }
