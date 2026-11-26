@@ -1,33 +1,28 @@
 {
   "available": true,
-  "date": "2026-11-26",
+  "date": "2026-11-27",
   "site": "U003128",
-  "generated_at": "2026-11-26T00:01:04.268816+01:00",
+  "generated_at": "2026-11-27T00:01:23.676597+01:00",
   "plates": [
     {
-      "position": "3432",
-      "dishCode": "P100192",
-      "name": "Risotto allo zafferano"
+      "position": "3532",
+      "dishCode": "P102033",
+      "name": "Pasta biologica al pomodoro "
     },
     {
-      "position": "3433",
-      "dishCode": "P100198",
-      "name": "Cotoletta di lonza alla milanese"
+      "position": "3535",
+      "dishCode": "P101312",
+      "name": "Torta salata con ricotta e spinaci"
     },
     {
-      "position": "3436",
-      "dishCode": "P101306",
-      "name": "Cavolo viola e insalata"
-    },
-    {
-      "position": "3437",
-      "dishCode": "P00004",
+      "position": "3537",
+      "dishCode": "P00007",
       "name": "Frutta fresca di stagione"
     },
     {
-      "position": "3439",
-      "dishCode": "P01890",
-      "name": "Pane di farina integrale biologica "
+      "position": "3539",
+      "dishCode": "P01889",
+      "name": "Pane tipo 0"
     }
   ]
 }
