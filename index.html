@@ -988,8 +988,8 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   border-radius:7px!important;
   background:#29495b!important;
   color:#fff!important;
-  font:700 .82em/1.2 "Trebuchet MS",Arial,sans-serif!important;
-  padding:8px 10px!important;
+  font:700 .82em/1.2 Arial,sans-serif!important;
+  padding:9px 10px!important;
 }
 .recurring-config-popup button.route-config-back,
 .recurring-config-popup #recurringConfigClose,
@@ -1000,8 +1000,8 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   border-radius:7px!important;
   background:#fff!important;
   color:#46545d!important;
-  font:700 .82em/1.2 "Trebuchet MS",Arial,sans-serif!important;
-  padding:8px 10px!important;
+  font:700 .82em/1.2 Arial,sans-serif!important;
+  padding:9px 10px!important;
 }
 
 .recurring-config-popup button:disabled {
@@ -6202,7 +6202,7 @@ body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
         <span>Proprietari / assegnatari</span>
         <div id="recurringOwners" class="recurring-owner-options"></div>
       </div>
-      <div class="recurring-config-actions" id="recurringConfigActions">
+      <div class="recurring-config-actions route-config-footer" id="recurringConfigActions">
         <button type="button" id="recurringSaveButton" class="route-config-save">Salva attività</button>
         <button type="button" id="recurringCancelEditButton" class="route-config-back">Annulla</button>
       </div>
@@ -13187,12 +13187,16 @@ function openAddBoxPanel(anchor){
        /config è il catalogo generale, mentre /custom-boxes esclude gli
        elementi archiviati. Un box custom compare solo se presente in entrambi. */
     function appendAvailableBox(def){
-      var button=mk("button","","+ "+(def.title||def.id));button.type="button";
+      var isAgenda=String(def.element_key||"")==="agenda";
+      var button=mk("button","",isAgenda?"+ AGENDA":"+ "+(def.title||def.id));button.type="button";
+      if(isAgenda)button.title="Aggiungi un'altra istanza di Agenda Google";
       button.onclick=function(){
-        /* Elimina le eventuali colonne vuote ereditate dal layout prima
-           di aggiungere la nuova sezione: il backend non accetta colonne vuote. */
+        /* Ogni Agenda deve avere un instance_id distinto: il solo box_id
+           identifica il renderer, non la singola agenda configurabile. */
         var next=dashboardCleanupSections(dashboardGetSections()||[]);
-        next.push({type:"full",columns:[[{box_id:def.id,is_public:1}]]});
+        var item={box_id:def.id,is_public:1};
+        if(isAgenda)item.instance_id=dashboardNewInstanceId();
+        next.push({type:"full",columns:[[item]]});
         dashboardSaveSections(next,function(){
           closeViewMenu();
           if(def.custom_box_id && def.box_key)loadCustomBoxTasks(def);
@@ -13203,11 +13207,14 @@ function openAddBoxPanel(anchor){
     /* I box standard vengono caricati senza dipendere dall'API dei custom.
        "both" significa disponibile sia nelle viste condivise sia personali. */
     var standardCandidates=(DASHBOARD_BOXES||[]).filter(function(b){
-      /* Il catalogo D1 decide quali box possono essere aggiunti al layout. */
-      if(!b || b.custom_family_id || Number(b.can_add_to_layout)!==1 || present[b.id])return false;
+      if(!b || b.custom_family_id)return false;
+      var isAgenda=String(b.element_key||"")==="agenda";
+      /* Agenda è multi-istanza: non va esclusa perché già presente e il suo
+         catalog flag non deve impedire di aggiungerne altre. */
+      if(!isAgenda && (Number(b.can_add_to_layout)!==1 || present[b.id]))return false;
       return String(b.view_type)==="both" || String(b.view_type)===String(view.view_type);
     });
-    standardCandidates.forEach(appendAvailableBox);
+    standardCandidates.sort(function(a,b){var aa=String(a.element_key||"")==="agenda"?-1:0;var bb=String(b.element_key||"")==="agenda"?-1:0;return aa-bb;}).forEach(appendAvailableBox);
     positionCustomBoxPanel(panel,addAnchorRect,true);
     usersRequest("GET","/custom-boxes",null,function(customErr,customData){
       if(!customErr && customData && customData.ok && Array.isArray(customData.boxes)){
