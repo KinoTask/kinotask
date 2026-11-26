@@ -5525,6 +5525,25 @@ body .recurring-task-time,body.k .recurring-task-time,body:not(.k) .recurring-ta
 .weekly-date-nav>.weekly-date-overdue-button{flex:1 1 100%!important;min-width:0!important;font-size:clamp(9px,2.8vw,12px)!important;padding:5px 2px!important;height:auto!important;min-height:30px!important;white-space:normal!important;}
 .weekly-date-nav>button:not(.weekly-date-overdue-button){flex:1 1 calc(25% - 4px)!important;min-width:0!important;width:auto!important;max-width:calc(25% - 4px)!important;height:auto!important;min-height:32px!important;padding:4px 1px!important;font-size:clamp(9px,2.8vw,12px)!important;line-height:1.15!important;white-space:normal!important;overflow-wrap:anywhere!important;}
 }
+
+.dashboard-box[data-renderer-key="agenda"] [data-agenda-config] {
+  display:inline-flex;
+  position:relative;
+  align-items:center;
+  justify-content:center;
+  width:24px;
+  height:24px;
+  min-width:24px;
+  margin:0 6px 0 2px;
+  padding:0;
+  border:1px solid #783B4A;
+  border-radius:4px;
+  background:#783B4A;
+  color:#fff;
+  font-size:14px;
+  line-height:1;
+  cursor:pointer;
+}
 </style>
 </head>
 <body>
@@ -6497,6 +6516,10 @@ function renderAgenda(){
     (function(box){
       var id=agendaInstanceId(box);
       var configButton=box.querySelector("[data-agenda-config]");
+      var agendaHeading=box.querySelector(".section-heading");
+      var legacyTools=box.querySelector("[data-agenda-google-tools]");
+      if(legacyTools)legacyTools.hidden=true;
+      if(configButton&&agendaHeading&&configButton.parentNode!==agendaHeading)agendaHeading.appendChild(configButton);
       if(configButton){
         configButton.hidden=true;
         agendaCanManageView(currentView,function(allowed){if(configButton)configButton.hidden=!allowed;});
