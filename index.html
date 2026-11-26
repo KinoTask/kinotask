@@ -349,7 +349,7 @@ input[type=checkbox] {
   opacity:1!important;
   appearance:auto!important;
   -webkit-appearance:checkbox!important;
-  accent-color:#783B4A!important;
+  accent-color:#29495b!important;
   background-color:#fff!important;
   border:1px solid #555!important;
   width:16px!important;
@@ -5477,15 +5477,18 @@ body:has(#loginPage:not([hidden])) #dashboardToolbar {
 /* Checkbox coerenti nell'editor box custom e nella configurazione agenda. */
 #dashboardAddBoxPanel .custom-weekly-days{gap:6px!important;margin-top:10px!important;}
 #dashboardAddBoxPanel .custom-weekly-days label{display:inline-flex!important;align-items:center!important;gap:6px!important;margin:0!important;padding:6px 8px!important;border:1px solid #d5dee4!important;border-radius:6px!important;background:#fff!important;color:#202a30!important;font-size:.8em!important;line-height:1.2!important;cursor:pointer!important;}
-#dashboardAddBoxPanel .custom-weekly-days label:has(input:checked){border-color:#29495b!important;background:#29495b!important;color:#fff!important;}
+#dashboardAddBoxPanel .custom-weekly-days label:has(input:checked){border-color:#8eafc2!important;background:#dceaf3!important;color:#202a30!important;}
 #dashboardAddBoxPanel .custom-box-share-users,#dashboardAddBoxPanel .custom-box-visible-users{margin-top:10px!important;}
 #dashboardAddBoxPanel .agenda-calendar-checkboxes{margin-top:10px!important;gap:6px!important;}
-#dashboardAddBoxPanel .custom-box-edit,#dashboardAddBoxPanel button.custom-box-edit{display:inline-flex!important;align-items:center!important;justify-content:center!important;position:absolute!important;top:-5px!important;right:0!important;left:auto!important;width:24px!important;height:24px!important;min-width:24px!important;margin:0!important;padding:0!important;border:1px solid #783B4A!important;border-radius:4px!important;background:#783B4A!important;color:#fff!important;font-size:14px!important;line-height:1!important;box-shadow:none!important;}
+#dashboardAddBoxPanel .agenda-calendar-choice{display:inline-flex!important;align-items:center!important;gap:6px!important;margin:0!important;padding:6px 8px!important;border:1px solid #d5dee4!important;border-radius:6px!important;background:#fff!important;color:#202a30!important;font-size:.8em!important;line-height:1.2!important;cursor:pointer!important;}
+#dashboardAddBoxPanel .agenda-calendar-choice:has(input:checked){border-color:#8eafc2!important;background:#dceaf3!important;color:#202a30!important;}
+#dashboardAddBoxPanel .agenda-calendar-choice input[type=checkbox]{accent-color:#29495b!important;width:16px!important;height:16px!important;min-width:16px!important;margin:0!important;}
+#dashboardAddBoxPanel .custom-box-edit,#dashboardAddBoxPanel button.custom-box-edit{display:inline-flex!important;align-items:center!important;justify-content:center!important;position:absolute!important;top:50%!important;right:6px!important;left:auto!important;transform:translateY(-50%)!important;width:24px!important;height:24px!important;min-width:24px!important;flex:0 0 24px!important;margin:0!important;padding:0!important;border:1px solid #783B4A!important;border-radius:5px!important;background:#783B4A!important;color:#fff!important;font-size:15px!important;line-height:1!important;box-shadow:0 1px 3px rgba(0,0,0,.18)!important;}
 .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button{position:absolute!important;top:-5px!important;right:0!important;left:auto!important;width:24px!important;height:24px!important;min-width:24px!important;flex:0 0 24px!important;margin:0!important;padding:0!important;border:1px solid #783B4A!important;border-radius:4px!important;background:#783B4A!important;color:#fff!important;font-size:14px!important;line-height:1!important;}
 .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button span{font-size:14px!important;}
 
 #dashboardAddBoxPanel .custom-box-check-choice{display:inline-flex!important;align-items:center!important;gap:6px!important;margin:6px 0 0!important;padding:6px 8px!important;border:1px solid #d5dee4!important;border-radius:6px!important;background:#fff!important;color:#202a30!important;font-size:.8em!important;line-height:1.2!important;}
-#dashboardAddBoxPanel .custom-box-check-choice:has(input:checked){border-color:#29495b!important;background:#29495b!important;color:#fff!important;}
+#dashboardAddBoxPanel .custom-box-check-choice:has(input:checked){border-color:#8eafc2!important;background:#dceaf3!important;color:#202a30!important;}
 </style>
 
 <style>#dashboardToolbar #dashboardReorderButton{background:#edf4ff;border:1px solid #9bbce5;color:#174a7e;white-space:nowrap;}#dashboardToolbar #dashboardReorderButton[hidden]{display:none!important;}.dashboard-layout-row{width:100%;box-sizing:border-box;}.dashboard-layout-row>.col{margin:0!important;}@media(max-width:800px){#dashboardToolbar #dashboardReorderButton{padding:5px 6px;font-size:11px;}}</style>
@@ -6057,17 +6060,28 @@ function canManageRecurringTasks(){
 }
 
 function updateRecurringConfigButton(){
-  var button = $("recurringConfigButton");
-  if(!button) return;
+  var buttons = document.querySelectorAll("#recurringConfigButton");
   var allowed = !!authToken && canManageRecurringTasks();
-  if(allowed){
-    button.removeAttribute("hidden");
-    button.style.removeProperty("display");
-  } else {
-    button.setAttribute("hidden", "hidden");
-    button.style.setProperty("display", "none", "important");
+  for(var i=0;i<buttons.length;i++){
+    if(allowed){
+      buttons[i].removeAttribute("hidden");
+      buttons[i].style.removeProperty("display");
+    } else {
+      buttons[i].setAttribute("hidden", "hidden");
+      buttons[i].style.setProperty("display", "none", "important");
+    }
   }
 }
+
+document.addEventListener("click",function(ev){
+  var node=ev.target;
+  while(node && node!==document && node.id!=="recurringConfigButton")node=node.parentNode;
+  if(!node || node===document)return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  if(!canManageRecurringTasks()){updateRecurringConfigButton();return;}
+  openRecurringConfig();
+},true);
 
 var agendaData = null, agendaErr = false, agendaSyncedAt = null;
 var routesData = null, routesErr = false, routesSyncedAt = null;
@@ -6866,7 +6880,7 @@ function openAgendaInstanceConfig(box){
     });
   };
   save.onclick=function(){
-    var config={scope:mode.value,calendar_ids:(owner && mode.value!=="instance")?[]:Array.prototype.filter.call(calendarSelect.options,function(o){return o.selected;}).map(function(o){return o.value;})};
+    var config={scope:mode.value,calendar_ids:(owner && mode.value!=="instance")?[]:Array.prototype.map.call(calendarSelect.querySelectorAll("input[type=checkbox]:checked"),function(o){return o.value;})};
     save.disabled=true;
     usersRequest("PUT","/agenda-instances/"+encodeURIComponent(id),config,function(err,result){
       save.disabled=false;
@@ -6878,8 +6892,10 @@ function openAgendaInstanceConfig(box){
     });
   };
   loadAccount();
-  positionCustomBoxPanel(panel,box.getBoundingClientRect());
-  bindCustomBoxPanelPosition(panel,box.getBoundingClientRect());
+  var configTrigger=box.querySelector("[data-agenda-config]")||box;
+  var configAnchorRect=configTrigger.getBoundingClientRect();
+  positionCustomBoxPanel(panel,configAnchorRect,true);
+  bindCustomBoxPanelPosition(panel,configAnchorRect,true);
 }
 
 function googleCalendarRequest(method, path, body, callback){
@@ -13218,9 +13234,12 @@ function createCustomBoxElement(def){
     if(!existingEdit){
       existingEdit=mk("button","custom-box-edit","⚙");
       var existingHeader=existingBox.querySelector(".section-heading");
-      if(existingHeader)existingHeader.appendChild(existingEdit);
+      if(existingHeader){existingHeader.style.position="relative";existingHeader.style.paddingRight="34px";existingHeader.appendChild(existingEdit);}
     }
+    var currentHeader=existingBox.querySelector(".section-heading");
+    if(currentHeader){currentHeader.style.position="relative";currentHeader.style.paddingRight="34px";if(existingEdit.parentNode!==currentHeader)currentHeader.appendChild(existingEdit);}
     existingEdit.type="button";
+    existingEdit.classList.add("recurring-config-button");
     existingEdit.title="Configura box";
     existingEdit.setAttribute("aria-label","Configura box");
     /* Aggiorna sempre il riferimento: il box può essere stato ricreato
@@ -13242,8 +13261,9 @@ function createCustomBoxElement(def){
   box.setAttribute("data-custom-box-kind",def.box_kind||"tasklist");
 
   var heading=mk("div","section-heading","");
+  heading.style.position="relative";heading.style.paddingRight="34px";
   heading.appendChild(mk("h2","",def.title || "Attività"));
-  var edit=mk("button","custom-box-edit","⚙");
+  var edit=mk("button","custom-box-edit recurring-config-button","⚙");
   edit.type="button";edit.title="Configura box";edit.setAttribute("aria-label","Configura box");
   edit.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}openCustomBoxEditor(def, edit);};
   edit.hidden=true;
@@ -15966,14 +15986,10 @@ function startDashboard(preferredView){
   // I controlli delle attività ricorrenti possono non essere presenti
   // nel DOM in alcune configurazioni/vista: non devono interrompere
   // l'inizializzazione generale della dashboard.
-  var recurringConfigButton = $("recurringConfigButton");
-  if(recurringConfigButton) recurringConfigButton.onclick = function(){
-    if(!canManageRecurringTasks()){
-      updateRecurringConfigButton();
-      return;
-    }
-    openRecurringConfig();
-  };
+  /* Il renderer può ricreare il pulsante dopo l'inizializzazione.
+     Il click viene gestito in delega, così resta attivo anche dopo
+     un cambio vista o il refresh del box. */
+  updateRecurringConfigButton();
   var recurringConfigClose = $("recurringConfigClose");
   if(recurringConfigClose) recurringConfigClose.onclick = closeRecurringConfig;
   var recurringPermissionsToggle = $("recurringPermissionsToggle");
