@@ -6575,7 +6575,7 @@ function openAgendaInstanceConfig(box){
   var mode=document.createElement("select");mode.style.width="100%";mode.style.padding="8px";
   [["family","Agenda Google condivisa: tutti gli eventi"],["family_assigned","Agenda Google condivisa: solo i miei sottotask"],["personal","Il mio Google Calendar personale"],["instance","Un altro account Google (solo questa agenda)"]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=x[1];mode.appendChild(o);});
   var saved=agendaInstanceConfigs[id]||{scope:isSharedView(currentView)?"family":"family_assigned",calendar_ids:[]};
-  mode.value=saved.scope||"family";if(!owner){mode.querySelector('option[value="family_assigned"]').disabled=true;mode.querySelector('option[value="personal"]').disabled=true;if(mode.value!=="family")mode.value="family";}
+  mode.value=saved.scope||"family";if(!owner){mode.querySelector('option[value="family_assigned"]').disabled=true;mode.querySelector('option[value="personal"]').disabled=true;if(mode.value==="personal"||mode.value==="family_assigned")mode.value="family";}
   wrap.appendChild(mode);
   var account=mk("div","small","Verifica collegamento Google…");wrap.appendChild(account);
   var calendarSelect=document.createElement("select");calendarSelect.multiple=true;calendarSelect.size=5;calendarSelect.style.width="100%";calendarSelect.style.padding="6px";wrap.appendChild(calendarSelect);
