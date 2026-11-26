@@ -6442,7 +6442,16 @@ function agendaCanManageView(viewId,callback){
   usersRequest("GET","/views",null,function(err,data){
     if(err||!data||!Array.isArray(data.views)){callback(false);return;}
     var view=findItem(data.views,function(x){return String(x.id)===key;});
-    var allowed=canManageDashboardLayout(view);
+    var isFamilyAdmin=false;
+    for(var i=0;i<(AUTH_PERMISSIONS||[]).length;i++){
+      var permission=AUTH_PERMISSIONS[i];
+      if(permission==="users.manage" || (permission && permission.key==="users.manage")){
+        isFamilyAdmin=true;break;
+      }
+    }
+    /* La configurazione dell'istanza agenda richiede can_edit; il riordino
+       dell'intera vista condivisa resta invece riservato all'amministratore. */
+    var allowed=!!view && (Number(view.can_edit)===1 || isFamilyAdmin);
     agendaManagePermissions[key]=!!allowed;callback(!!allowed);
   });
 }
@@ -11449,7 +11458,7 @@ function canManageDashboardLayout(viewPermission){
     }
   }
   if(String(viewPermission.view_type)==="shared"){
-    return Number(viewPermission.can_edit)===1 || isFamilyAdmin;
+    return Number(viewPermission.can_edit)===1 && isFamilyAdmin;
   }
   /* L'amministratore può gestire anche il layout delle viste personali:
      il Worker applica lo stesso criterio anche al comando di nascondimento. */
