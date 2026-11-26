@@ -6445,7 +6445,8 @@ function agendaLoadInstance(box,force){
     var owner=agendaOwnerForCurrentView();
     var scope=config.scope==="personal"?"personal":"family";
     var userId=scope==="personal"?(owner?owner.id:""):"";
-    var path="/events?scope="+scope+(userId?"&user_id="+encodeURIComponent(userId):"");
+    var path="/events?scope="+scope+(userId?"&user_id="+encodeURIComponent(userId):"")+
+      ((config.calendar_ids&&config.calendar_ids.length)?"&calendar_ids="+encodeURIComponent(config.calendar_ids.join(",")):"");
     googleCalendarRequest("GET",path,null,function(err,data){
       agendaInstanceLoading[id]=false;
       if(err || !data || !Array.isArray(data.events)){
