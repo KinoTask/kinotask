@@ -6610,8 +6610,24 @@ function renderAgendaBox(box){
               agendaInstanceAccountLoading[id]=false;
               agendaInstanceEvents[id]=null;
               agendaFetchCache={};
-              renderAgendaBox(box);
-              if(accountScope==="family")agendaInstanceConfigs[id]=config;
+              if(accountScope==="family"){
+                var allAgendaBoxes=document.querySelectorAll(".dashboard-box[data-renderer-key='agenda']");
+                for(var ai=0;ai<allAgendaBoxes.length;ai++){
+                  var otherId=agendaInstanceId(allAgendaBoxes[ai]);
+                  var otherConfig=agendaInstanceConfigs[otherId]||{};
+                  if(otherId&&otherConfig.scope!=="instance"){
+                    agendaInstanceAccounts[otherId]=null;
+                    agendaInstanceEvents[otherId]=null;
+                    agendaInstanceVersion[otherId]=(agendaInstanceVersion[otherId]||0)+1;
+                    agendaInstanceLoading[otherId]=false;
+                    agendaLoadInstance(allAgendaBoxes[ai],true);
+                  }
+                }
+              }else{
+                agendaInstanceVersion[id]=(agendaInstanceVersion[id]||0)+1;
+                agendaInstanceLoading[id]=false;
+                agendaLoadInstance(box,true);
+              }
             });
           };
           accountNode.appendChild(disconnect);
