@@ -956,27 +956,25 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   margin:0 auto;
 }
 
-/* Configurazione ricorrenti come finestra popup, non overlay a pagina intera. */
-.recurring-config-overlay:not([hidden]) {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-sizing:border-box;
-  padding:16px;
-  overflow:auto;
-  background:rgba(0,0,0,.38);
+/* Popup ricorrenti: pannello flottante ancorato al pulsante, come Modifica Box. */
+.recurring-config-popup[hidden] { display:none!important; }
+.recurring-config-popup:not([hidden]) { display:block; }
+.recurring-config-panel { max-width:680px; }
+.recurring-config-section {
+  border:2px solid #9aaab5!important;
+  border-radius:9px!important;
+  padding:11px!important;
+  margin:8px 0!important;
+  background:#fbfcfd!important;
+  box-shadow:0 2px 6px rgba(28,48,62,.07)!important;
 }
-.recurring-config-overlay .recurring-config-panel {
-  width: min(680px, calc(100vw - 32px));
-  max-width:680px;
-  max-height:calc(100vh - 32px);
-  margin:0;
-  overflow-y:auto;
-  overscroll-behavior:contain;
-  box-sizing:border-box;
-  border:1px solid #b9c3c9;
-  border-radius:9px;
-  box-shadow:0 8px 30px rgba(0,0,0,.24);
+.recurring-config-section .custom-box-editor-section-title {
+  font-size:.76em;
+  font-weight:800;
+  letter-spacing:.05em;
+  color:#000;
+  margin:0 0 9px;
+  text-transform:uppercase;
 }
 
 .recurring-config-header-actions {
@@ -5558,6 +5556,31 @@ body:has(#loginPage:not([hidden])) #dashboardToolbar {
 #dashboardAddBoxPanel .agenda-calendar-choice:has(input:checked){border-color:#8eafc2!important;background:#dceaf3!important;color:#202a30!important;}
 #dashboardAddBoxPanel .agenda-calendar-choice input[type=checkbox]{accent-color:#29495b!important;width:16px!important;height:16px!important;min-width:16px!important;margin:0!important;}
 #dashboardAddBoxPanel .custom-box-edit,#dashboardAddBoxPanel button.custom-box-edit{display:inline-flex!important;align-items:center!important;justify-content:center!important;position:absolute!important;top:50%!important;right:6px!important;left:auto!important;transform:translateY(-50%)!important;width:24px!important;height:24px!important;min-width:24px!important;flex:0 0 24px!important;margin:0!important;padding:0!important;border:1px solid #783B4A!important;border-radius:5px!important;background:#783B4A!important;color:#fff!important;font-size:15px!important;line-height:1!important;box-shadow:0 1px 3px rgba(0,0,0,.18)!important;}
+/* La rotella appartiene all'intestazione del box, non al pannello editor. */
+.dashboard-box .section-heading { position:relative; padding-right:34px; }
+.dashboard-box button.custom-box-edit {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  position:absolute!important;
+  top:50%!important;
+  right:6px!important;
+  left:auto!important;
+  transform:translateY(-50%)!important;
+  width:24px!important;
+  height:24px!important;
+  min-width:24px!important;
+  flex:0 0 24px!important;
+  margin:0!important;
+  padding:0!important;
+  border:1px solid #783B4A!important;
+  border-radius:5px!important;
+  background:#783B4A!important;
+  color:#fff!important;
+  font-size:15px!important;
+  line-height:1!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.18)!important;
+}
 .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button{position:absolute!important;top:-5px!important;right:0!important;left:auto!important;width:24px!important;height:24px!important;min-width:24px!important;flex:0 0 24px!important;margin:0!important;padding:0!important;border:1px solid #783B4A!important;border-radius:4px!important;background:#783B4A!important;color:#fff!important;font-size:14px!important;line-height:1!important;}
 .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button span{font-size:14px!important;}
 
@@ -6020,8 +6043,8 @@ body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
   </div>
 </div>
 
-<div id="recurringConfigOverlay" class="overlay recurring-config-overlay" hidden>
-  <div class="panel recurring-config-panel">
+<div id="recurringConfigOverlay" class="recurring-config-popup" hidden>
+  <div class="recurring-config-panel">
     <div class="overlay-head">
       <h2>Configurazione attività ricorrenti</h2>
       <div id="recurringConfigHeaderActions" class="recurring-config-header-actions">
@@ -6030,7 +6053,9 @@ body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
     </div>
     <button type="button" id="recurringPermissionsToggle" class="recurring-permissions-toggle" hidden>Autorizza utenti</button>
     <div id="recurringPermissionsPanel" class="recurring-permissions-panel" hidden></div>
-    <div class="recurring-config-form" id="recurringConfigForm">
+    <div class="custom-box-editor-section recurring-config-section">
+      <div class="custom-box-editor-section-title">CONFIGURAZIONE ATTIVITÀ RICORRENTI</div>
+      <div class="recurring-config-form" id="recurringConfigForm">
       <label class="recurring-field">
         <span>Titolo attività</span>
         <input type="text" id="recurringText" maxlength="200" placeholder="Es. Piscina">
@@ -6094,9 +6119,12 @@ body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
         <button type="button" id="recurringCancelEditButton">Annulla</button>
       </div>
       <div class="small" id="recurringConfigStatus"></div>
+      </div>
     </div>
-    <h3>Attività configurate</h3>
-    <div id="recurringDefinitions"></div>
+    <div class="custom-box-editor-section recurring-config-section">
+      <div class="custom-box-editor-section-title">ATTIVITÀ CONFIGURATE</div>
+      <div id="recurringDefinitions"></div>
+    </div>
   </div>
 </div>
 
@@ -6197,7 +6225,7 @@ document.addEventListener("click",function(ev){
   ev.preventDefault();
   ev.stopPropagation();
   if(!canManageRecurringTasks()){updateRecurringConfigButton();return;}
-  openRecurringConfig();
+  openRecurringConfig(node);
 },true);
 
 var agendaData = null, agendaErr = false, agendaSyncedAt = null;
@@ -8389,14 +8417,36 @@ function openRecurringPermissions() {
   });
 }
 
-function openRecurringConfig() {
+function openRecurringConfig(anchor) {
   if(!canManageRecurringTasks()) return;
+  var panel = $("recurringConfigOverlay");
+  if(!panel) return;
+  if(panel.parentNode !== document.body) document.body.appendChild(panel);
+  panel.style.position = "fixed";
+  panel.style.zIndex = "10050";
+  panel.style.width = "680px";
+  panel.style.maxWidth = "calc(100vw - 16px)";
+  panel.style.maxHeight = "calc(100vh - 16px)";
+  panel.style.overflowY = "auto";
+  panel.style.boxSizing = "border-box";
+  panel.style.padding = "10px";
+  panel.style.background = "#fff";
+  panel.style.border = "1px solid #9aaab5";
+  panel.style.borderRadius = "9px";
+  panel.style.boxShadow = "0 4px 18px rgba(0,0,0,.25)";
+  panel.style.left = "8px";
+  panel.style.top = "8px";
   buildRecurringOwners();
   resetRecurringForm();
   setText($("recurringConfigStatus"), "");
   setHidden($("recurringPermissionsPanel"), true);
   setHidden($("recurringPermissionsToggle"), authUserType !== "family");
-  setHidden($("recurringConfigOverlay"), false);
+  setHidden(panel, false);
+  var rect = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
+  if(typeof positionCustomBoxPanel === "function") {
+    positionCustomBoxPanel(panel, rect, false);
+    bindCustomBoxPanelPosition(panel, rect, false);
+  }
   loadRecurringTasks(true);
   renderRecurringDefinitions();
 }
@@ -8409,6 +8459,12 @@ function closeRecurringConfig() {
   resetRecurringForm();
   setHidden($("recurringPermissionsPanel"), true);
   setHidden($("recurringConfigOverlay"), true);
+  var panel = $("recurringConfigOverlay");
+  if(panel && panel._customBoxPositionHandler) {
+    window.removeEventListener("resize", panel._customBoxPositionHandler);
+    window.removeEventListener("scroll", panel._customBoxPositionHandler, true);
+    panel._customBoxPositionHandler = null;
+  }
 }
 
 function cancelRecurringEdit() {
