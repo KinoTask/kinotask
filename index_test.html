@@ -5692,14 +5692,14 @@ body.k .view-switcher-personal .view-switcher-button.sel {
    ================================================== */
 var q = window.location.search;
 
-var AUTH_API_URL = "https://auth-api.iletarta-633.workers.dev";
-var USERS_API_URL = "https://users-api.iletarta-633.workers.dev";
-// Durante il rollout mantiene compatibilità con users-api; dopo il deploy del Worker dedicato basta cambiare questo URL.
-var CUSTOM_BOX_API_URL = "https://users-api.iletarta-633.workers.dev";
-var DASHBOARD_API_URL = "https://dashboard-api.iletarta-633.workers.dev";
-var SHOPPING_API_URL = "https://amazon-shopping-api.iletarta-633.workers.dev";
-var FAMILY_SHOPPING_API_URL = "https://shopping-api.iletarta-633.workers.dev";
-var HANDWRITTEN_NOTES_API_URL = "https://handwritten-notes-api.iletarta-633.workers.dev";
+var AUTH_API_URL = "https://auth-api-v01.kinotask.workers.dev";
+var USERS_API_URL = "https://user-api-v01.kinotask.workers.dev";
+// La pagina di test usa esclusivamente i Worker -v01 definiti in wranglers/test.
+var CUSTOM_BOX_API_URL = "https://user-api-v01.kinotask.workers.dev";
+var DASHBOARD_API_URL = "https://dashboard-api-v01.kinotask.workers.dev";
+var SHOPPING_API_URL = "https://amazon-shopping-api-v01.kinotask.workers.dev";
+var FAMILY_SHOPPING_API_URL = "https://shopping-api-v01.kinotask.workers.dev";
+var HANDWRITTEN_NOTES_API_URL = "https://handwritten-notes-api-v01.kinotask.workers.dev";
 
 var authToken = "";
 var authUserType = "";
@@ -5718,7 +5718,7 @@ var CONFIG = {
   base: "https://raw.githubusercontent.com/KinoTask/kinotask/main/",
   lat: 45.484, lon: 9.233,
   weatherMin: 5,
-  todoWorkerUrl: "https://todo-sync.iletarta-633.workers.dev"
+  todoWorkerUrl: "https://todo-sync-v01.kinotask.workers.dev"
 };
 CONFIG.routesUrl = function(userId){
  // return CONFIG.base + "routes_" + String(userId).toLowerCase() + ".json";
