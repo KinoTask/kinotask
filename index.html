@@ -8552,13 +8552,6 @@ function openRecurringConfig(anchor) {
   var permissionsToggle = $("recurringPermissionsToggle");
   setHidden(permissionsPanel, true);
   setHidden(permissionsToggle, !canManageRecurringUserPermissions());
-  if(permissionsToggle){
-    permissionsToggle.onclick = function(){
-      var show = permissionsPanel && permissionsPanel.hasAttribute("hidden");
-      setHidden(permissionsPanel, !show);
-      if(show) openRecurringPermissions();
-    };
-  }
   setHidden(panel, false);
   var rect = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
   if(typeof positionCustomBoxPanel === "function") {
@@ -16353,11 +16346,16 @@ function startDashboard(preferredView){
   var recurringConfigClose = $("recurringConfigClose");
   if(recurringConfigClose) recurringConfigClose.onclick = closeRecurringConfig;
   var recurringPermissionsToggle = $("recurringPermissionsToggle");
-  if(recurringPermissionsToggle) recurringPermissionsToggle.onclick = function(){
-    var panel = $("recurringPermissionsPanel");
-    if(!panel) return;
-    var show = panel.hidden;
-    setHidden(panel, !show);
+  if(recurringPermissionsToggle) recurringPermissionsToggle.onclick = function(ev){
+    if(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+    var permissionsPanel = $("recurringPermissionsPanel");
+    if(!permissionsPanel) return;
+    var show = permissionsPanel.hidden ||
+      permissionsPanel.hasAttribute("hidden");
+    permissionsPanel.hidden = !show;
     if(show) openRecurringPermissions();
   };
   var recurringCancelEditButton = $("recurringCancelEditButton");
