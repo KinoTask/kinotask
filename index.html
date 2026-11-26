@@ -10605,15 +10605,15 @@ function dashboardLegacyRowsToSections(rows){
   while(i<rows.length){
     var row=rows[i],items=(row.items||[]).slice().sort(function(a,b){return a.position-b.position;});
     if(items.length===1){
-      sections.push({type:"full",columns:[items.map(function(x){return {box_id:x.box_id,is_public:x.is_public};})]});i++;continue;
+      sections.push({type:"full",columns:[items.map(function(x){return {box_id:x.box_id,is_public:x.is_public,instance_id:x.instance_id||null,agenda_config:x.agenda_config||null};})]});i++;continue;
     }
     if(items.length===2){
       var left=[],right=[];
       while(i<rows.length){
         row=rows[i];items=(row.items||[]).slice().sort(function(a,b){return a.position-b.position;});
         if(items.length!==2)break;
-        left.push({box_id:items[0].box_id,is_public:items[0].is_public});
-        right.push({box_id:items[1].box_id,is_public:items[1].is_public});
+        left.push({box_id:items[0].box_id,is_public:items[0].is_public,instance_id:items[0].instance_id||null,agenda_config:items[0].agenda_config||null});
+        right.push({box_id:items[1].box_id,is_public:items[1].is_public,instance_id:items[1].instance_id||null,agenda_config:items[1].agenda_config||null});
         i++;
       }
       sections.push({type:"columns",columns:[left,right]});continue;
@@ -10853,6 +10853,7 @@ function dashboardBoxId(el){
    ma il riordino deve cercare nelle sezioni la chiave effettivamente salvata. */
 function dashboardLayoutItemId(el){
   if(!el)return null;
+  if(el.getAttribute&&el.getAttribute("data-agenda-instance-id"))return String(el.getAttribute("data-agenda-instance-id"));
   var def=null;
   for(var i=0;i<(DASHBOARD_BOXES||[]).length;i++){
     if(DASHBOARD_BOXES[i].element_id===el.id||dashboardResolveBoxElement(DASHBOARD_BOXES[i])===el){
@@ -11086,7 +11087,7 @@ function dashboardSaveSections(sections,onSuccess,options){
     var v=meta&&meta.views?findItem(meta.views,function(x){return String(x.id)===String(currentView);}):null;
     var allowed=canManageDashboardLayout(v);
     if(metaErr||!allowed){buildLayout(currentView);if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;alert(metaErr||"Non hai i permessi per modificare questo layout.");return;}
-    var payload=sections.map(function(section){return {type:section.type,columns:section.columns.map(function(column){return column.map(function(item){return {box_id:item.box_id,enabled:true,is_public:item.is_public===true||Number(item.is_public)===1};});})};});
+    var payload=sections.map(function(section){return {type:section.type,columns:section.columns.map(function(column){return column.map(function(item){return {box_id:item.box_id,instance_id:item.instance_id||null,enabled:true,is_public:item.is_public===true||Number(item.is_public)===1};});})};});
     usersRequest("PUT","/views/"+encodeURIComponent(currentView)+"/layout",{sections:payload},function(err,result){
       if(err||!result||!result.ok){buildLayout(currentView);if(btn){btn.disabled=false;btn.textContent="FINE";}if(cancelBtn)cancelBtn.disabled=false;alert(err||(result&&result.error)||"Salvataggio del layout non riuscito.");return;}
       loadAuthorizedConfig(function(configErr){
