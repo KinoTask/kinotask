@@ -8552,6 +8552,16 @@ function openRecurringConfig(anchor) {
   var permissionsToggle = $("recurringPermissionsToggle");
   setHidden(permissionsPanel, true);
   setHidden(permissionsToggle, !canManageRecurringUserPermissions());
+  if(permissionsToggle){
+    permissionsToggle.onclick = function(ev){
+      if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+      var target = $("recurringPermissionsPanel");
+      if(!target) return;
+      var show = target.hasAttribute("hidden");
+      setHidden(target, !show);
+      if(show) openRecurringPermissions();
+    };
+  }
   setHidden(panel, false);
   var rect = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
   if(typeof positionCustomBoxPanel === "function") {
