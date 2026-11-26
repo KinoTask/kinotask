@@ -6530,7 +6530,7 @@ function agendaLoadInstance(box,force){
       if(err || !data || !Array.isArray(data.events)){
         agendaInstanceEvents[id]={error:err||(data&&data.error)||"Google Calendar non disponibile",events:[]};
       }else{
-        var selected=config.calendar_ids||[];
+        var selected=selectedIds||[];
         var events=selected.length?data.events.filter(function(e){return selected.indexOf(String(e.calendar_id||""))!==-1;}):data.events;
         agendaInstanceEvents[id]={events:events,generated_at:data.generated_at,calendar:data.calendar};
         agendaFetchCache[cacheKey]=agendaInstanceEvents[id];
@@ -6640,6 +6640,18 @@ function openAgendaInstanceConfig(box){
   var accountScope=mode.value==="instance"?"instance":"family";
   function loadAccount(){
     accountScope=mode.value==="instance"?"instance":"family";
+    if(owner && accountScope==="family"){
+      clear(calendarSelect);
+      calendarSelect.hidden=true;
+      calendarSelect.disabled=true;
+      connect.hidden=true;
+      account.textContent="Usa l'account e i calendari configurati nella vista condivisa.";
+      status.textContent="Per modificare i calendari, configura l'Agenda Google nella vista Condivisa.";
+      save.disabled=false;
+      return;
+    }
+    calendarSelect.hidden=false;
+    calendarSelect.disabled=false;
     var suffix=accountScope==="instance"?"&instance_id="+encodeURIComponent(id):"";
     googleCalendarRequest("GET","/status?scope="+accountScope+suffix,null,function(err,connection){
       clear(calendarSelect);
@@ -6661,7 +6673,7 @@ function openAgendaInstanceConfig(box){
   }
   mode.onchange=function(){saved={scope:mode.value,calendar_ids:[]};loadAccount();};
   connect.onclick=function(){
-    var pendingConfig={scope:accountScope,calendar_ids:Array.prototype.filter.call(calendarSelect.options,function(o){return o.selected;}).map(function(o){return o.value;})};
+    var pendingConfig={scope:mode.value,calendar_ids:Array.prototype.filter.call(calendarSelect.options,function(o){return o.selected;}).map(function(o){return o.value;})};
     connect.disabled=true;
     usersRequest("PUT","/agenda-instances/"+encodeURIComponent(id),pendingConfig,function(saveErr,saveResult){
       connect.disabled=false;
@@ -6671,7 +6683,7 @@ function openAgendaInstanceConfig(box){
     });
   };
   save.onclick=function(){
-    var config={scope:mode.value,calendar_ids:Array.prototype.filter.call(calendarSelect.options,function(o){return o.selected;}).map(function(o){return o.value;})};
+    var config={scope:mode.value,calendar_ids:(owner && mode.value!=="instance")?[]:Array.prototype.filter.call(calendarSelect.options,function(o){return o.selected;}).map(function(o){return o.value;})};
     save.disabled=true;
     usersRequest("PUT","/agenda-instances/"+encodeURIComponent(id),config,function(err,result){
       save.disabled=false;
@@ -15491,7 +15503,14 @@ function updateDashboardBoxTitles(){
         var text = box.title || "";
         /* Titoli funzionali: non dipendono dal testo del catalogo D1,
            così restano visibili anche durante la migrazione delle etichette. */
-        if(String(box.element_key||"")==="agenda") text = "AGENDA GOOGLE";
+        if(String(box.element_key||"")==="agenda"){
+            text = "AGENDA GOOGLE";
+            var agendaId = agendaInstanceId(container);
+            var agendaConfig = agendaInstanceConfigs[agendaId] || container._agendaConfig || null;
+            if(agendaConfig && agendaConfig.scope==="family_assigned" && !isSharedView(currentView)){
+                text = "AGENDA GOOGLE: SOTTOTASK";
+            }
+        }
         if(String(box.element_key||"")==="personalTasks") text = "AGENDA GOOGLE: SOTTOTASK";
 
         /* Nelle viste personali il titolo resta generico, senza il nome utente.
