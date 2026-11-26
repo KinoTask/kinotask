@@ -5489,6 +5489,46 @@ body:has(#loginPage:not([hidden])) #dashboardToolbar {
 
 #dashboardAddBoxPanel .custom-box-check-choice{display:inline-flex!important;align-items:center!important;gap:6px!important;margin:6px 0 0!important;padding:6px 8px!important;border:1px solid #d5dee4!important;border-radius:6px!important;background:#fff!important;color:#202a30!important;font-size:.8em!important;line-height:1.2!important;}
 #dashboardAddBoxPanel .custom-box-check-choice:has(input:checked){border-color:#8eafc2!important;background:#dceaf3!important;color:#202a30!important;}
+
+/* Checkbox dell'editor e dell'agenda: replica esattamente il controllo
+   a pillola usato in COLLABORATORI (sfondo blu e quadratino bianco). */
+#dashboardAddBoxPanel .custom-weekly-days label,
+#dashboardAddBoxPanel .custom-box-check-choice,
+#dashboardAddBoxPanel .agenda-calendar-choice{
+  display:inline-flex!important;align-items:center!important;gap:6px!important;
+  margin:0!important;padding:6px 8px!important;border:1px solid #d5dee4!important;
+  border-radius:6px!important;background:#fff!important;color:#202a30!important;
+  font-family:inherit!important;font-size:.8em!important;font-weight:normal!important;
+  line-height:1.2!important;cursor:pointer!important;
+}
+#dashboardAddBoxPanel .custom-weekly-days label:has(input[type=checkbox]:checked),
+#dashboardAddBoxPanel .custom-box-check-choice:has(input[type=checkbox]:checked),
+#dashboardAddBoxPanel .agenda-calendar-choice:has(input[type=checkbox]:checked){
+  border-color:#29495b!important;background:#29495b!important;color:#fff!important;
+}
+#dashboardAddBoxPanel .custom-weekly-days input[type=checkbox],
+#dashboardAddBoxPanel .custom-box-check-choice input[type=checkbox],
+#dashboardAddBoxPanel .agenda-calendar-choice input[type=checkbox]{
+  appearance:none!important;-webkit-appearance:none!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  box-sizing:border-box!important;width:15px!important;height:15px!important;
+  min-width:15px!important;flex:0 0 15px!important;margin:0!important;padding:0!important;
+  border:1px solid #697780!important;border-radius:3px!important;
+  background:#fff!important;accent-color:#fff!important;cursor:pointer!important;
+}
+#dashboardAddBoxPanel .custom-weekly-days input[type=checkbox]:checked,
+#dashboardAddBoxPanel .custom-box-check-choice input[type=checkbox]:checked,
+#dashboardAddBoxPanel .agenda-calendar-choice input[type=checkbox]:checked{
+  border-color:#fff!important;background:#fff!important;
+}
+#dashboardAddBoxPanel .custom-weekly-days input[type=checkbox]:checked:after,
+#dashboardAddBoxPanel .custom-box-check-choice input[type=checkbox]:checked:after,
+#dashboardAddBoxPanel .agenda-calendar-choice input[type=checkbox]:checked:after{
+  content:"✓";display:block;color:#29495b!important;font-size:11px!important;
+  font-weight:700!important;line-height:13px!important;text-align:center!important;
+}
+#dashboardAddBoxPanel .agenda-calendar-choice{cursor:pointer!important;}
+
 </style>
 
 <style>#dashboardToolbar #dashboardReorderButton{background:#edf4ff;border:1px solid #9bbce5;color:#174a7e;white-space:nowrap;}#dashboardToolbar #dashboardReorderButton[hidden]{display:none!important;}.dashboard-layout-row{width:100%;box-sizing:border-box;}.dashboard-layout-row>.col{margin:0!important;}@media(max-width:800px){#dashboardToolbar #dashboardReorderButton{padding:5px 6px;font-size:11px;}}</style>
