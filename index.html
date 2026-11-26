@@ -5526,15 +5526,20 @@ body .recurring-task-time,body.k .recurring-task-time,body:not(.k) .recurring-ta
 .weekly-date-nav>button:not(.weekly-date-overdue-button){flex:1 1 calc(25% - 4px)!important;min-width:0!important;width:auto!important;max-width:calc(25% - 4px)!important;height:auto!important;min-height:32px!important;padding:4px 1px!important;font-size:clamp(9px,2.8vw,12px)!important;line-height:1.15!important;white-space:normal!important;overflow-wrap:anywhere!important;}
 }
 
+.dashboard-box[data-renderer-key="agenda"] .section-heading {
+  padding-right:32px;
+}
 .dashboard-box[data-renderer-key="agenda"] [data-agenda-config] {
   display:inline-flex;
-  position:relative;
+  position:absolute;
+  right:0;
+  top:-5px;
   align-items:center;
   justify-content:center;
   width:24px;
   height:24px;
   min-width:24px;
-  margin:0 6px 0 2px;
+  margin:0;
   padding:0;
   border:1px solid #783B4A;
   border-radius:4px;
@@ -5545,6 +5550,31 @@ body .recurring-task-time,body.k .recurring-task-time,body:not(.k) .recurring-ta
   cursor:pointer;
 }
 .dashboard-box[data-renderer-key="agenda"] [data-agenda-config][hidden] { display:none !important; }
+.dashboard-box[data-renderer-key="agenda"] [data-agenda-account]{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-left:auto;
+  padding:3px 7px;
+  border:1px solid #9bb9a9;
+  border-radius:999px;
+  background:#e8f2ec;
+  color:#245b43;
+  font-size:.68em!important;
+  font-weight:700;
+  line-height:1.2;
+}
+.dashboard-box[data-renderer-key="agenda"] [data-agenda-account][hidden]{display:none!important;}
+.dashboard-box[data-renderer-key="agenda"] [data-agenda-account] .google-calendar-disconnect{
+  margin:0;
+  padding:2px 6px;
+  border:1px solid #b9c9bf;
+  border-radius:5px;
+  background:#fff;
+  color:#783B4A;
+  font-size:.9em;
+  font-weight:700;
+}
 </style>
 </head>
 <body>
@@ -6560,19 +6590,41 @@ function renderAgendaBox(box){
   if(titleNode)titleNode.textContent=(config.scope==="family_assigned"&&!isSharedView(currentView))?"AGENDA GOOGLE: SOTTOTASK":"AGENDA GOOGLE";
   var accountNode=box.querySelector("[data-agenda-account]");
   if(accountNode){
-    accountNode.hidden=true;accountNode.textContent="";
-    if(config.scope==="instance"){
-      if(agendaInstanceAccounts[id]){
-        accountNode.textContent=agendaInstanceAccounts[id];
-        accountNode.hidden=false;
-      }else if(!agendaInstanceAccountLoading[id]){
-        agendaInstanceAccountLoading[id]=true;
-        googleCalendarRequest("GET","/status?scope=instance&instance_id="+encodeURIComponent(id),null,function(err,status){
-          agendaInstanceAccountLoading[id]=false;
-          agendaInstanceAccounts[id]=(!err&&status&&status.connected)?(status.email||"Account Google collegato"):"Account non collegato";
-          renderAgendaBox(box);
-        });
+    accountNode.hidden=true;clear(accountNode);
+    var accountScope=config.scope==="instance"?"instance":"family";
+    if(agendaInstanceAccounts[id]){
+      accountNode.textContent=agendaInstanceAccounts[id];
+      accountNode.hidden=false;
+      if(agendaInstanceAccounts[id]!=="Account non collegato"){
+        var disconnectAllowed=(accountScope==="instance" || isSharedView(currentView));
+        if(disconnectAllowed){
+          var disconnect=mk("button","google-calendar-disconnect","SCOLLEGA");
+          disconnect.type="button";
+          disconnect.onclick=function(ev){
+            if(ev){ev.preventDefault();ev.stopPropagation();}
+            if(!window.confirm("Scollegare questo account Google Calendar?"))return;
+            disconnect.disabled=true;
+            googleCalendarRequest("POST","/disconnect",{scope:accountScope,instance_id:accountScope==="instance"?id:undefined},function(err){
+              if(err){disconnect.disabled=false;alert("Disconnessione non riuscita: "+err);return;}
+              agendaInstanceAccounts[id]=null;
+              agendaInstanceAccountLoading[id]=false;
+              agendaInstanceEvents[id]=null;
+              agendaFetchCache={};
+              renderAgendaBox(box);
+              if(accountScope==="family")agendaInstanceConfigs[id]=config;
+            });
+          };
+          accountNode.appendChild(disconnect);
+        }
       }
+    }else if(!agendaInstanceAccountLoading[id]){
+      agendaInstanceAccountLoading[id]=true;
+      var statusPath="/status?scope="+accountScope+(accountScope==="instance"?"&instance_id="+encodeURIComponent(id):"");
+      googleCalendarRequest("GET",statusPath,null,function(err,status){
+        agendaInstanceAccountLoading[id]=false;
+        agendaInstanceAccounts[id]=(!err&&status&&status.connected)?(status.email||"Account Google collegato"):"Account non collegato";
+        renderAgendaBox(box);
+      });
     }
   }
   if(!data){
@@ -6588,7 +6640,7 @@ function renderAgendaBox(box){
   var eventOwner=assignedOnly&&owner?String(owner.name||"").toLocaleLowerCase():"";
   setTimes(times,parseIso(data.generated_at),agendaSyncedAt,false,3*3600000);
   buildAgenda(content,data.events||[],box._agendaStates[stateKey],function(){safe(function(){renderAgendaBox(box);});},
-    {tasks:true,owner:eventOwner,click:true,period:true,todayLabel:false,hideTodayDayHeading:isSharedView(currentView)});
+    {tasks:true,owner:eventOwner,click:true,period:true,todayLabel:false,hideTodayDayHeading:true});
 }
 function renderAgenda(){
   var boxes=document.querySelectorAll(".dashboard-box[data-renderer-key='agenda']");
@@ -6925,13 +6977,9 @@ function loadAgenda(){
     }else{
       agendaErr=true;if(err)console.error("Google family calendar:",err);
     }
-    agendaFetchCache={};
-    var boxes=document.querySelectorAll(".dashboard-box[data-renderer-key='agenda']");
-    for(var i=0;i<boxes.length;i++){
-      var id=agendaInstanceId(boxes[i]);
-      if(id)agendaInstanceEvents[id]=null;
-    }
-    safe(renderAgenda);
+    /* Il fetch condiviso serve ai sottotask personali, ma non deve
+       invalidare i dati già caricati dalle singole istanze agenda:
+       al cambio vista il calendario resta immediatamente disponibile. */
     if(!isSharedView(currentView))safe(renderPersonalTasks);
   });
 }
