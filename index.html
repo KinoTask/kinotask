@@ -7361,7 +7361,7 @@ function refreshAgendaInstancesFromFamilyData(data){
             return;
           }
           var value={events:result.events,generated_at:result.generated_at,calendar:result.calendar};
-          var key="instance||"+id+"||"+ids.slice().sort().join(",");
+          var key="instance||"+id+"|"+ids.slice().sort().join(",");
           agendaFetchCache[key]=value;
           agendaInstanceEvents[id]=value;
           renderAgendaBox(box);
@@ -7377,7 +7377,7 @@ function refreshAgendaInstancesFromFamilyData(data){
           })
         : (data.events||[]).slice();
       var value={events:events,generated_at:data.generated_at,calendar:data.calendar};
-      var key="family||||"+selectedIds.slice().sort().join(",");
+      var key="family|||"+selectedIds.slice().sort().join(",");
       agendaFetchCache[key]=value;
       agendaInstanceEvents[id]=value;
       renderAgendaBox(box);
