@@ -6412,6 +6412,16 @@ function buildAgenda(box, events, st, redraw, opts){
 var agendaInstanceConfigs = {};
 var agendaInstanceEvents = {};
 var agendaInstanceLoading = {};
+var agendaManagePermissions = {};
+function agendaCanManageView(viewId,callback){
+  var key=String(viewId||"");
+  if(Object.prototype.hasOwnProperty.call(agendaManagePermissions,key)){callback(agendaManagePermissions[key]);return;}
+  usersRequest("GET","/views",null,function(err,data){
+    var view=data&&data.views?findItem(data.views,function(x){return String(x.id)===key;}):null;
+    var allowed=!err&&canManageDashboardLayout(view);
+    agendaManagePermissions[key]=!!allowed;callback(!!allowed);
+  });
+}
 
 function agendaOwnerForCurrentView(){
   if(isSharedView(currentView)) return null;
@@ -6487,9 +6497,13 @@ function renderAgenda(){
     (function(box){
       var id=agendaInstanceId(box);
       var configButton=box.querySelector("[data-agenda-config]");
-      if(configButton&&!configButton._agendaBound){
-        configButton._agendaBound=true;
-        configButton.onclick=function(){openAgendaInstanceConfig(box);};
+      if(configButton){
+        configButton.hidden=true;
+        agendaCanManageView(currentView,function(allowed){if(configButton)configButton.hidden=!allowed;});
+        if(!configButton._agendaBound){
+          configButton._agendaBound=true;
+          configButton.onclick=function(){openAgendaInstanceConfig(box);};
+        }
       }
       if(!id){setText(box.querySelector("[data-agenda-content]"),"Salva il layout per configurare questa agenda.");continue;}
       if(!agendaInstanceConfigs[id] || !agendaInstanceEvents[id]) agendaLoadInstance(box,false);
@@ -10922,7 +10936,7 @@ function dashboardGetSections(){
 }
 function dashboardFindItemLocation(sections,id){
   for(var si=0;si<sections.length;si++)for(var ci=0;ci<sections[si].columns.length;ci++)for(var ii=0;ii<sections[si].columns[ci].length;ii++){
-    if(sections[si].columns[ci][ii].box_id===id)return {section:si,column:ci,item:ii};
+    if(String(sections[si].columns[ci][ii].instance_id||sections[si].columns[ci][ii].box_id)===String(id))return {section:si,column:ci,item:ii};
   }
   return null;
 }
