@@ -1,70 +1,8 @@
 {
-  "generated_at": "2026-11-26T00:01:04.268816+01:00",
+  "generated_at": "2026-11-27T00:01:23.676597+01:00",
   "site": "U003128",
   "siteType": "02",
   "menus": {
-    "2026-11-25": {
-      "P01982": {
-        "dishCode": "P01982",
-        "name": "Pizza margherita",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "PIZZA MARGHERITA",
-            "quantity": "133",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P01991": {
-        "dishCode": "P01991",
-        "name": "Carote julienne",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "CAROTE",
-            "quantity": "32",
-            "unit": "Gr"
-          },
-          {
-            "name": "OLIO DI OLIVA EXTRAVERGINE",
-            "quantity": "3,4",
-            "unit": "Gr"
-          },
-          {
-            "name": "SALE IODATO",
-            "quantity": "0,2",
-            "unit": "Gr"
-          }
-        ]
-      },
-      "P00959": {
-        "dishCode": "P00959",
-        "name": "Frutta fresca di stagione",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": []
-      },
-      "P01892": {
-        "dishCode": "P01892",
-        "name": "Pane tipo 0",
-        "alternative": 40,
-        "label": "Ricetta Infanzia",
-        "photo": "band",
-        "ingredients": [
-          {
-            "name": "PANE",
-            "quantity": "30",
-            "unit": "Gr"
-          }
-        ]
-      }
-    },
     "2026-11-26": {
       "P100192": {
         "dishCode": "P100192",
