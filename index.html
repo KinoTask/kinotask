@@ -5873,7 +5873,7 @@ body .recurring-task-time,body.k .recurring-task-time,body:not(.k) .recurring-ta
 var q = window.location.search;
 
 var AUTH_API_URL = "https://auth-api.kinotask.workers.dev";
-var USERS_API_URL = "https://user-api.kinotask.workers.dev";
+var USER_API_URL = "https://user-api.kinotask.workers.dev";
 // API utenti e istanze agenda: user-api.
 var CUSTOM_BOX_API_URL = "https://custom-box-api.kinotask.workers.dev";
 var DASHBOARD_API_URL = "https://dashboard-api.kinotask.workers.dev";
@@ -14970,7 +14970,7 @@ function usersRequest(method, path, body, callback){
   var x = new XMLHttpRequest();
   var apiBase = /^\/(?:custom-boxes|custom-tasks|family-users)(?:[/?]|$)/.test(path)
     ? CUSTOM_BOX_API_URL
-    : USERS_API_URL;
+    : USER_API_URL;
   x.open(method, apiBase + path, true);
   x.timeout = 20000;
 
