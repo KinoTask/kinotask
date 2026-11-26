@@ -6737,7 +6737,7 @@ function openAgendaInstanceConfig(box){
   mode.value=saved.scope||"family";if(!owner){mode.querySelector('option[value="family_assigned"]').disabled=true;if(mode.value==="family_assigned")mode.value="family";}
   wrap.appendChild(mode);
   var account=mk("div","small","Verifica collegamento Google…");wrap.appendChild(account);
-  var calendarSelect=document.createElement("select");calendarSelect.multiple=true;calendarSelect.size=5;calendarSelect.style.width="100%";calendarSelect.style.padding="6px";wrap.appendChild(calendarSelect);
+  var calendarSelect=mk("div","agenda-calendar-checkboxes","");calendarSelect.style.display="flex";calendarSelect.style.flexDirection="column";calendarSelect.style.gap="5px";calendarSelect.style.maxHeight="190px";calendarSelect.style.overflowY="auto";calendarSelect.style.padding="7px";calendarSelect.style.border="1px solid #c5d0d7";calendarSelect.style.borderRadius="6px";wrap.appendChild(calendarSelect);function selectedCalendarIds(){return Array.prototype.map.call(calendarSelect.querySelectorAll("input[type=checkbox]:checked"),function(check){return check.value;});}
   var connect=mk("button","","COLLEGA ACCOUNT GOOGLE");connect.type="button";wrap.appendChild(connect);
   var status=mk("div","small","Seleziona uno o più calendari. Nessuna selezione significa tutti quelli disponibili.");wrap.appendChild(status);
   var footer=mk("div","route-config-footer","");
@@ -6750,7 +6750,6 @@ function openAgendaInstanceConfig(box){
     if(owner && accountScope==="family"){
       clear(calendarSelect);
       calendarSelect.hidden=true;
-      calendarSelect.disabled=true;
       connect.hidden=true;
       account.textContent="Usa l'account e i calendari configurati nella vista condivisa.";
       status.textContent="Per modificare i calendari, configura l'Agenda Google nella vista Condivisa.";
@@ -6758,29 +6757,29 @@ function openAgendaInstanceConfig(box){
       return;
     }
     calendarSelect.hidden=false;
-    calendarSelect.disabled=false;
     var suffix=accountScope==="instance"?"&instance_id="+encodeURIComponent(id):"";
     googleCalendarRequest("GET","/status?scope="+accountScope+suffix,null,function(err,connection){
       clear(calendarSelect);
       if(err||!connection||!connection.connected){
         account.textContent="Account Google non collegato.";
-        connect.hidden=false;calendarSelect.disabled=true;save.disabled=true;
+        connect.hidden=false;save.disabled=true;
         return;
       }
       account.textContent="Collegato: "+(connection.email||"Google");
-      connect.hidden=true;calendarSelect.disabled=false;save.disabled=false;
+      connect.hidden=true;save.disabled=false;
       googleCalendarRequest("GET","/calendars?scope="+accountScope+suffix,null,function(calErr,data){
         if(calErr||!data||!Array.isArray(data.calendars)){status.textContent=calErr||"Impossibile caricare i calendari.";return;}
         data.calendars.forEach(function(cal){
-          var option=document.createElement("option");option.value=cal.id;option.textContent=cal.summary+(cal.primary?" (principale)":"");
-          option.selected=(saved.calendar_ids||[]).indexOf(cal.id)!==-1;calendarSelect.appendChild(option);
+          var label=mk("label","agenda-calendar-choice","");label.style.display="flex";label.style.alignItems="center";label.style.gap="8px";label.style.padding="5px 7px";label.style.borderRadius="5px";label.style.background="#f7f8fa";label.style.color="#263746";label.style.fontSize=".86em";
+          var check=document.createElement("input");check.type="checkbox";check.value=cal.id;check.checked=(saved.calendar_ids||[]).indexOf(cal.id)!==-1;check.style.width="16px";check.style.height="16px";check.style.flex="0 0 16px";check.style.accentColor="#783B4A";
+          label.appendChild(check);label.appendChild(document.createTextNode(cal.summary+(cal.primary?" (principale)":"")));calendarSelect.appendChild(label);
         });
       });
     });
   }
   mode.onchange=function(){saved={scope:mode.value,calendar_ids:[]};loadAccount();};
   connect.onclick=function(){
-    var pendingConfig={scope:mode.value,calendar_ids:Array.prototype.filter.call(calendarSelect.options,function(o){return o.selected;}).map(function(o){return o.value;})};
+    var pendingConfig={scope:mode.value,calendar_ids:selectedCalendarIds()};
     connect.disabled=true;
     usersRequest("PUT","/agenda-instances/"+encodeURIComponent(id),pendingConfig,function(saveErr,saveResult){
       connect.disabled=false;
