@@ -6540,7 +6540,7 @@ function openAgendaInstanceConfig(box){
   var connect=mk("button","","COLLEGA ACCOUNT GOOGLE");connect.type="button";wrap.appendChild(connect);
   var status=mk("div","small","Seleziona uno o più calendari. Nessuna selezione significa tutti quelli disponibili.");wrap.appendChild(status);
   var footer=mk("div","route-config-footer","");
-  var save=mk("button","route-config-save","SALVA");save.type="button";
+  var save=mk("button","route-config-save","SALVA");save.type="button";save.disabled=true;
   var close=mk("button","route-config-back","CHIUDI");close.type="button";close.onclick=function(){setHidden(panel,true);};
   footer.appendChild(save);footer.appendChild(close);wrap.appendChild(footer);panel.appendChild(wrap);
   var accountScope=mode.value==="personal"?"personal":"family";
