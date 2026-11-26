@@ -5483,6 +5483,9 @@ body:has(#loginPage:not([hidden])) #dashboardToolbar {
 #dashboardAddBoxPanel .custom-box-edit,#dashboardAddBoxPanel button.custom-box-edit{display:inline-flex!important;align-items:center!important;justify-content:center!important;position:absolute!important;top:-5px!important;right:0!important;left:auto!important;width:24px!important;height:24px!important;min-width:24px!important;margin:0!important;padding:0!important;border:1px solid #783B4A!important;border-radius:4px!important;background:#783B4A!important;color:#fff!important;font-size:14px!important;line-height:1!important;box-shadow:none!important;}
 .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button{position:absolute!important;top:-5px!important;right:0!important;left:auto!important;width:24px!important;height:24px!important;min-width:24px!important;flex:0 0 24px!important;margin:0!important;padding:0!important;border:1px solid #783B4A!important;border-radius:4px!important;background:#783B4A!important;color:#fff!important;font-size:14px!important;line-height:1!important;}
 .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-button span{font-size:14px!important;}
+
+#dashboardAddBoxPanel .custom-box-check-choice{display:inline-flex!important;align-items:center!important;gap:6px!important;margin:6px 0 0!important;padding:6px 8px!important;border:1px solid #d5dee4!important;border-radius:6px!important;background:#fff!important;color:#202a30!important;font-size:.8em!important;line-height:1.2!important;}
+#dashboardAddBoxPanel .custom-box-check-choice:has(input:checked){border-color:#29495b!important;background:#29495b!important;color:#fff!important;}
 </style>
 
 <style>#dashboardToolbar #dashboardReorderButton{background:#edf4ff;border:1px solid #9bbce5;color:#174a7e;white-space:nowrap;}#dashboardToolbar #dashboardReorderButton[hidden]{display:none!important;}.dashboard-layout-row{width:100%;box-sizing:border-box;}.dashboard-layout-row>.col{margin:0!important;}@media(max-width:800px){#dashboardToolbar #dashboardReorderButton{padding:5px 6px;font-size:11px;}}</style>
@@ -13005,7 +13008,7 @@ function openCustomBoxEditor(def, anchor){
   [1,2,3,4,5].forEach(function(n){var option=document.createElement('option');option.value=String(n);option.textContent=n+' '+(n===1?'settimana':'settimane');retentionSelect.appendChild(option);});
   retentionLabel.appendChild(retentionSelect);retentionWrap.appendChild(retentionLabel);
   var keepOverdue=document.createElement('input');keepOverdue.type='checkbox';keepOverdue.checked=true;
-  var keepOverdueLabel=mk('label','','');keepOverdueLabel.style.display='flex';keepOverdueLabel.style.alignItems='center';keepOverdueLabel.style.gap='7px';keepOverdueLabel.appendChild(keepOverdue);keepOverdueLabel.appendChild(document.createTextNode('Mantieni arretrati non completati'));retentionWrap.appendChild(keepOverdueLabel);
+  var keepOverdueLabel=mk('label','custom-box-check-choice','');keepOverdueLabel.style.display='flex';keepOverdueLabel.style.alignItems='center';keepOverdueLabel.style.gap='7px';keepOverdueLabel.appendChild(keepOverdue);keepOverdueLabel.appendChild(document.createTextNode('Mantieni arretrati non completati'));retentionWrap.appendChild(keepOverdueLabel);
   ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'].forEach(function(day,index){
     var label=mk('label','','');label.style.display='flex';label.style.alignItems='center';label.style.gap='4px';
     var check=document.createElement('input');check.type='checkbox';check.value=String((index+1)%7);editWeekdayChecks.push(check);
@@ -13023,7 +13026,7 @@ function openCustomBoxEditor(def, anchor){
   wrap.appendChild(visibilityScope);
   var visibleUsers=mk('div','custom-box-visible-users','');
   var assignment=document.createElement('input');assignment.type='checkbox';assignment.checked=!!def.assignment_enabled;
-  var assignmentLabel=mk('label','','');assignmentLabel.style.display='flex';assignmentLabel.style.alignItems='center';assignmentLabel.style.gap='7px';assignmentLabel.style.margin='8px 0 0';assignmentLabel.style.padding='4px 0';assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode('Abilita assegnazione delle attività'));
+  var assignmentLabel=mk('label','custom-box-check-choice','');assignmentLabel.style.display='flex';assignmentLabel.style.alignItems='center';assignmentLabel.style.gap='7px';assignmentLabel.style.margin='8px 0 0';assignmentLabel.style.padding='4px 0';assignmentLabel.appendChild(assignment);assignmentLabel.appendChild(document.createTextNode('Abilita assegnazione delle attività'));
   var grantPanel=mk('div','custom-box-permissions-panel','');
   grantPanel.style.borderTop='1px solid #ccc';grantPanel.style.paddingTop='12px';grantPanel.style.marginTop='12px';
   grantPanel.appendChild(mk('div','','AUTORIZZAZIONI PER GLI UTENTI CONDIVISI'));
