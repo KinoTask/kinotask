@@ -6050,11 +6050,14 @@ function canManageRecurringTasks(){
   if(role === "family" || role === "family_admin") return true;
   for(var i=0;i<AUTH_PERMISSIONS.length;i++){
     var permission = AUTH_PERMISSIONS[i];
-    if(permission === "recurring_tasks.manage") return true;
+    if(permission === "recurring_tasks.manage" || permission === "users.manage") return true;
     if(permission && typeof permission === "object" &&
        (permission.key === "recurring_tasks.manage" ||
         permission.name === "recurring_tasks.manage" ||
-        permission.permission === "recurring_tasks.manage")) return true;
+        permission.permission === "recurring_tasks.manage" ||
+        permission.key === "users.manage" ||
+        permission.name === "users.manage" ||
+        permission.permission === "users.manage")) return true;
   }
   return false;
 }
