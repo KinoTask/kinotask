@@ -6433,6 +6433,7 @@ var agendaInstanceConfigs = {};
 var agendaInstanceEvents = {};
 var agendaInstanceLoading = {};
 var agendaFetchCache = {};
+var agendaInstanceVersion = {};
 var agendaManagePermissions = {};
 function agendaCanManageView(viewId,callback){
   var key=String(viewId||"");
@@ -6462,7 +6463,10 @@ function agendaLoadInstance(box,force){
   if(!id || agendaInstanceLoading[id]) return;
   if(!force && agendaInstanceEvents[id] && agendaInstanceConfigs[id]){renderAgendaBox(box);return;}
   agendaInstanceLoading[id]=true;
+  var requestVersion=(agendaInstanceVersion[id]||0)+1;
+  agendaInstanceVersion[id]=requestVersion;
   usersRequest("GET","/agenda-instances/"+encodeURIComponent(id),null,function(configErr,result){
+    if(agendaInstanceVersion[id]!==requestVersion)return;
     if(configErr || !result || !result.ok){
       agendaInstanceLoading[id]=false;
       agendaInstanceConfigs[id]={scope:isSharedView(currentView)?"family":"family_assigned",calendar_ids:[]};
@@ -6488,6 +6492,7 @@ function agendaLoadInstance(box,force){
     var path="/events?scope="+scope+(userId?"&user_id="+encodeURIComponent(userId):"")+
       (selectedIds.length?"&calendar_ids="+encodeURIComponent(selectedIds.join(",")):"");
     googleCalendarRequest("GET",path,null,function(err,data){
+      if(agendaInstanceVersion[id]!==requestVersion)return;
       agendaInstanceLoading[id]=false;
       if(err || !data || !Array.isArray(data.events)){
         agendaInstanceEvents[id]={error:err||(data&&data.error)||"Google Calendar non disponibile",events:[]};
@@ -6610,6 +6615,8 @@ function openAgendaInstanceConfig(box){
     usersRequest("PUT","/agenda-instances/"+encodeURIComponent(id),config,function(err,result){
       save.disabled=false;
       if(err||!result||!result.ok){status.textContent=err||(result&&result.error)||"Salvataggio non riuscito.";return;}
+      agendaInstanceVersion[id]=(agendaInstanceVersion[id]||0)+1;
+      agendaInstanceLoading[id]=false;
       agendaInstanceConfigs[id]=config;agendaInstanceEvents[id]=null;agendaFetchCache={};box._agendaConfig=config;
       setHidden(panel,true);agendaLoadInstance(box,true);
     });
