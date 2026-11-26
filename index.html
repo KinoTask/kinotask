@@ -6505,7 +6505,7 @@ function renderAgenda(){
           configButton.onclick=function(){openAgendaInstanceConfig(box);};
         }
       }
-      if(!id){setText(box.querySelector("[data-agenda-content]"),"Salva il layout per configurare questa agenda.");continue;}
+      if(!id){setText(box.querySelector("[data-agenda-content]"),"Salva il layout per configurare questa agenda.");return;}
       if(!agendaInstanceConfigs[id] || !agendaInstanceEvents[id]) agendaLoadInstance(box,false);
       else renderAgendaBox(box);
     })(boxes[i]);
