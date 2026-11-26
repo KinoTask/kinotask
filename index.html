@@ -6455,31 +6455,33 @@ function agendaOwnerForCurrentView(){
 function sharedAgendaCalendarIds(){
   var sharedView=findItem(DASHBOARD_VIEWS||[],function(v){return String(v.view_type||"")==="shared";});
   if(!sharedView)return [];
-  function findInItems(items){
+  var selected=[],hasAgenda=false,useAllCalendars=false;
+  function collect(items){
     for(var i=0;i<(items||[]).length;i++){
       var item=items[i]||{};
       var def=dashboardDefinitionForLayoutItem(item);
-      if(def&&String(def.element_key||"")==="agenda"){
-        var cfg=item.agenda_config||agendaInstanceConfigs[String(item.instance_id||item.id||"")];
-        if(cfg&&Array.isArray(cfg.calendar_ids))return cfg.calendar_ids.slice();
+      if(!def||String(def.element_key||"")!=="agenda")continue;
+      hasAgenda=true;
+      var cfg=item.agenda_config||agendaInstanceConfigs[String(item.instance_id||item.id||"")];
+      if(!cfg||!Array.isArray(cfg.calendar_ids)||!cfg.calendar_ids.length){
+        useAllCalendars=true;
+        continue;
       }
+      cfg.calendar_ids.forEach(function(id){
+        id=String(id||"");
+        if(id&&selected.indexOf(id)===-1)selected.push(id);
+      });
     }
-    return null;
   }
   var sections=sharedView.sections||[];
   for(var s=0;s<sections.length;s++){
     var columns=sections[s].columns||[];
-    for(var c=0;c<columns.length;c++){
-      var found=findInItems(columns[c]);
-      if(found!==null)return found;
-    }
+    for(var c=0;c<columns.length;c++)collect(columns[c]);
   }
   var rows=sharedView.rows||[];
-  for(var r=0;r<rows.length;r++){
-    var found=findInItems(rows[r].items||[]);
-    if(found!==null)return found;
-  }
-  return [];
+  for(var r=0;r<rows.length;r++)collect(rows[r].items||[]);
+  if(!hasAgenda||useAllCalendars)return [];
+  return selected;
 }
 function agendaInstanceId(box){
   return String(box && box.getAttribute("data-agenda-instance-id") || "");
