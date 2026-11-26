@@ -978,11 +978,22 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   font:700 .82em/1.2 "Trebuchet MS",Arial,sans-serif!important;
   cursor:pointer;
 }
+/* Riproduce esplicitamente le varianti SALVA e CHIUDI di Configura Agenda Google:
+   le regole generiche del popup non devono sovrascrivere i colori dei pulsanti. */
 .recurring-config-popup #recurringSaveButton,
-.recurring-config-popup #recurringPermissionsToggle {
-  border-color:#29495b!important;
+.recurring-config-popup #recurringPermissionsToggle,
+.recurring-config-popup .recurring-button-save {
+  border:1px solid #29495b!important;
   background:#29495b!important;
   color:#fff!important;
+}
+.recurring-config-popup #recurringConfigClose,
+.recurring-config-popup #recurringCancelEditButton,
+.recurring-config-popup #recurringSubtaskAddButton,
+.recurring-config-popup .recurring-button-close {
+  border:1px solid #d4dce1!important;
+  background:#fff!important;
+  color:#46545d!important;
 }
 
 .recurring-config-popup button:disabled {
