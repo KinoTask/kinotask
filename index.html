@@ -6609,7 +6609,7 @@ function openAgendaInstanceConfig(box){
     usersRequest("PUT","/agenda-instances/"+encodeURIComponent(id),config,function(err,result){
       save.disabled=false;
       if(err||!result||!result.ok){status.textContent=err||(result&&result.error)||"Salvataggio non riuscito.";return;}
-      agendaInstanceConfigs[id]=config;agendaInstanceEvents[id]=null;box._agendaConfig=config;
+      agendaInstanceConfigs[id]=config;agendaInstanceEvents[id]=null;agendaFetchCache={};box._agendaConfig=config;
       setHidden(panel,true);agendaLoadInstance(box,true);
     });
   };
