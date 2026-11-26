@@ -8563,11 +8563,18 @@ function openRecurringConfig(anchor) {
     };
   }
   setHidden(panel, false);
-  var rect = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
-  if(typeof positionCustomBoxPanel === "function") {
-    positionCustomBoxPanel(panel, rect, false);
-    bindCustomBoxPanelPosition(panel, rect, false);
+  /* La configurazione è un dialogo autonomo: non ancorarla al pulsante
+     della testata del box, dove può coprire il refresh e rubargli i tocchi. */
+  if(panel._customBoxPositionHandler){
+    window.removeEventListener("resize",panel._customBoxPositionHandler);
+    window.removeEventListener("scroll",panel._customBoxPositionHandler,true);
+    panel._customBoxPositionHandler = null;
   }
+  var viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+  var panelWidth = panel.getBoundingClientRect().width || Math.min(680, viewportWidth - 16);
+  panel.style.left = Math.max(8, Math.round((viewportWidth - panelWidth) / 2)) + "px";
+  panel.style.top = "8px";
+  panel.style.right = "auto";
   loadRecurringTasks(true);
   renderRecurringDefinitions();
 }
