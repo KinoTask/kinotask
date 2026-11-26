@@ -6444,7 +6444,7 @@ function agendaLoadInstance(box,force){
     agendaInstanceConfigs[id]=config;box._agendaConfig=config;
     var owner=agendaOwnerForCurrentView();
     var scope=config.scope==="personal"?"personal":"family";
-    var userId=scope==="personal"?(owner?owner.id:(authUserId||"")):"";
+    var userId=scope==="personal"?(owner?owner.id:""):"";
     var path="/events?scope="+scope+(userId?"&user_id="+encodeURIComponent(userId):"");
     googleCalendarRequest("GET",path,null,function(err,data){
       agendaInstanceLoading[id]=false;
@@ -6774,9 +6774,22 @@ function scheduleAgendaRefresh(){
 
 function loadAgenda(){
   scheduleAgendaRefresh();
-  agendaSyncedAt=new Date();
-  safe(renderAgenda);
-  if(!isSharedView(currentView)) safe(renderPersonalTasks);
+  /* Il box SOTTOTASK continua a leggere il calendario Famiglia, indipendentemente
+     dalle sorgenti configurate nelle singole istanze Agenda Google. */
+  googleCalendarRequest("GET","/events?scope=family",null,function(err,data){
+    if(!err&&data&&Array.isArray(data.events)){
+      agendaData=data;agendaErr=false;agendaSyncedAt=new Date();
+    }else{
+      agendaErr=true;if(err)console.error("Google family calendar:",err);
+    }
+    var boxes=document.querySelectorAll(".dashboard-box[data-renderer-key='agenda']");
+    for(var i=0;i<boxes.length;i++){
+      var id=agendaInstanceId(boxes[i]);
+      if(id)agendaInstanceEvents[id]=null;
+    }
+    safe(renderAgenda);
+    if(!isSharedView(currentView))safe(renderPersonalTasks);
+  });
 }
 
 var routesConfigEditButton=$("routesConfigEdit");
