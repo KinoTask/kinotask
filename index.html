@@ -6861,7 +6861,7 @@ function eventTaskOwnerByName(name){
 
 function parseTasks(desc){
   var lines = String(desc || "").split(/\r?\n/);
-  var tasks = [], owners = [], details = [];
+  var tasks = [], owners = [], displayTasks = [], details = [];
   var hasMarker = false, started = false, i, line, m;
 
   for(i = 0; i < lines.length; i++){
@@ -6880,6 +6880,7 @@ function parseTasks(desc){
       if(taskOwner){
         tasks.push(m[2].replace(/^\s+|\s+$/g, ""));
         owners.push(taskOwner);
+        displayTasks.push(taskLine);
         continue;
       }
     }
@@ -6893,9 +6894,10 @@ function parseTasks(desc){
     if(line){
       tasks.push(line);
       owners.push("");
+      displayTasks.push(line);
     }
   }
-  return {tasks: tasks, owners: owners, details: details.join("\n")};
+  return {tasks: tasks, owners: owners, displayTasks: displayTasks, details: details.join("\n")};
 }
 
 function eventTasksQuery(id){ return "?list=event-tasks&eventId=" + encodeURIComponent(id); }
@@ -6948,7 +6950,7 @@ function renderEventTasks(ev, box, owner, onDone){
       for(var k = 0; k < idx.length; k++){
         var t = data.tasks[idx[k]];
         var key = idx[k] + ":" + t;
-        var label = t.replace(/^[^:]{1,60}:\s*/, "");
+        var label = normalizedOwner ? t : (data.displayTasks[idx[k]] || t);
         box.appendChild(eventTaskRow(label, key, completed[key] === true, ev.eventId));
       }
     }
