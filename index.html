@@ -13248,7 +13248,7 @@ function openCustomBoxEditor(def, anchor){
   /* Posiziona il pannello accanto al box, senza coprire il pulsante che lo apre. */
   var anchorRect=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
   var wrap=mk('div','','');wrap.style.padding='10px';wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.gap='9px';
-  var editorTitle=mk('div','custom-box-editor-title','MODIFICA BOX');
+  var editorTitle=mk('div','','MODIFICA BOX');
   wrap.appendChild(editorTitle);
   var name=document.createElement('input');name.type='text';name.maxLength=80;name.value=def.title||'';name.placeholder='Nome del box';name.style.padding='9px';name.style.width='100%';name.style.boxSizing='border-box';
   var boxKind=document.createElement('select');boxKind.style.padding='9px';boxKind.style.width='100%';
