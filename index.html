@@ -6479,10 +6479,10 @@ function agendaLoadInstance(box,force){
     if(!Array.isArray(config.calendar_ids))config.calendar_ids=[];
     agendaInstanceConfigs[id]=config;box._agendaConfig=config;
     var owner=agendaOwnerForCurrentView();
-    var scope=config.scope==="personal"?"personal":"family";
+    var scope=config.scope==="personal"?"personal":(config.scope==="instance"?"instance":"family");
     var userId=scope==="personal"?(owner?owner.id:""):"";
     var selectedIds=config.calendar_ids||[];
-    var cacheKey=scope+"|"+userId+"|"+selectedIds.slice().sort().join(",");
+    var cacheKey=scope+"|"+userId+"|"+(scope==="instance"?id:"")+"|"+selectedIds.slice().sort().join(",");
     if(agendaFetchCache[cacheKey]){
       agendaInstanceEvents[id]=agendaFetchCache[cacheKey];
       agendaInstanceLoading[id]=false;
@@ -6490,6 +6490,7 @@ function agendaLoadInstance(box,force){
       return;
     }
     var path="/events?scope="+scope+(userId?"&user_id="+encodeURIComponent(userId):"")+
+      (scope==="instance"?"&instance_id="+encodeURIComponent(id):"")+
       (selectedIds.length?"&calendar_ids="+encodeURIComponent(selectedIds.join(",")):"");
     googleCalendarRequest("GET",path,null,function(err,data){
       if(agendaInstanceVersion[id]!==requestVersion)return;
@@ -6551,9 +6552,10 @@ function renderAgenda(){
     })(boxes[i]);
   }
 }
-function agendaConnect(scope,userId,callback){
+function agendaConnect(scope,userId,instanceId,callback){
   var path="/connect?scope="+encodeURIComponent(scope);
   if(userId)path+="&user_id="+encodeURIComponent(userId);
+  if(scope==="instance"&&instanceId)path+="&instance_id="+encodeURIComponent(instanceId);
   googleCalendarRequest("GET",path,null,function(err,data){
     if(err||!data||!data.authorization_url){if(callback)callback(err||(data&&data.error)||"Impossibile collegare Google Calendar");return;}
     window.location.href=data.authorization_url;
@@ -6571,7 +6573,7 @@ function openAgendaInstanceConfig(box){
   var wrap=mk("div","","");wrap.style.padding="12px";wrap.style.display="flex";wrap.style.flexDirection="column";wrap.style.gap="9px";
   wrap.appendChild(mk("div","","CONFIGURA AGENDA GOOGLE"));
   var mode=document.createElement("select");mode.style.width="100%";mode.style.padding="8px";
-  [["family","Agenda Google condivisa: tutti gli eventi"],["family_assigned","Agenda Google condivisa: solo i miei sottotask"],["personal","Il mio Google Calendar personale"]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=x[1];mode.appendChild(o);});
+  [["family","Agenda Google condivisa: tutti gli eventi"],["family_assigned","Agenda Google condivisa: solo i miei sottotask"],["personal","Il mio Google Calendar personale"],["instance","Un altro account Google (solo questa agenda)"]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=x[1];mode.appendChild(o);});
   var saved=agendaInstanceConfigs[id]||{scope:isSharedView(currentView)?"family":"family_assigned",calendar_ids:[]};
   mode.value=saved.scope||"family";if(!owner){mode.querySelector('option[value="family_assigned"]').disabled=true;mode.querySelector('option[value="personal"]').disabled=true;if(mode.value!=="family")mode.value="family";}
   wrap.appendChild(mode);
@@ -6583,12 +6585,13 @@ function openAgendaInstanceConfig(box){
   var save=mk("button","route-config-save","SALVA");save.type="button";save.disabled=true;
   var close=mk("button","route-config-back","CHIUDI");close.type="button";close.onclick=function(){setHidden(panel,true);};
   footer.appendChild(save);footer.appendChild(close);wrap.appendChild(footer);panel.appendChild(wrap);
-  var accountScope=mode.value==="personal"?"personal":"family";
+  var accountScope=mode.value==="personal"?"personal":(mode.value==="instance"?"instance":"family");
   var accountUser=accountScope==="personal"?(owner?owner.id:""):"";
   function loadAccount(){
-    accountScope=mode.value==="personal"?"personal":"family";
+    accountScope=mode.value==="personal"?"personal":(mode.value==="instance"?"instance":"family");
     accountUser=accountScope==="personal"?(owner?owner.id:""):"";
     var suffix=accountUser?"&user_id="+encodeURIComponent(accountUser):"";
+    if(accountScope==="instance")suffix+="&instance_id="+encodeURIComponent(id);
     googleCalendarRequest("GET","/status?scope="+accountScope+suffix,null,function(err,connection){
       clear(calendarSelect);
       if(err||!connection||!connection.connected){
@@ -6608,7 +6611,7 @@ function openAgendaInstanceConfig(box){
     });
   }
   mode.onchange=function(){saved={scope:mode.value,calendar_ids:[]};loadAccount();};
-  connect.onclick=function(){agendaConnect(accountScope,accountUser,function(err){status.textContent=err;});};
+  connect.onclick=function(){agendaConnect(accountScope,accountUser,id,function(err){status.textContent=err;});};
   save.onclick=function(){
     var config={scope:mode.value,calendar_ids:Array.prototype.filter.call(calendarSelect.options,function(o){return o.selected;}).map(function(o){return o.value;})};
     save.disabled=true;
