@@ -1203,9 +1203,11 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   gap:4px;
 }
 .recurring-definition-actions button {
-  margin:0;
-  padding:4px 7px;
-  font-size:.8em;
+  box-sizing:border-box!important;
+  min-height:34px!important;
+  margin:0!important;
+  padding:9px 10px!important;
+  font:700 .82em/1.2 Arial,sans-serif!important;
 }
 body.k .recurring-config-panel {
   padding:10px;
@@ -8464,10 +8466,10 @@ function renderRecurringDefinitions() {
       main.appendChild(mk("div", "small", detail));
       row.appendChild(main);
       var actions = mk("div", "recurring-definition-actions");
-      var edit = mk("button", "", "Modifica");
+      var edit = mk("button", "route-config-save", "Modifica");
       edit.type = "button";
       edit.onclick = function() { editRecurringDefinition(item.id); };
-      var del = mk("button", "", "Elimina");
+      var del = mk("button", "route-config-back", "Elimina");
       del.type = "button";
       del.onclick = function() {
         if (!confirm("Eliminare questa attività ricorrente?")) return;
