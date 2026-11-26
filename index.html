@@ -10614,6 +10614,12 @@ function personalRow(){
 }
 
 
+function dashboardNewInstanceId(){
+  if(window.crypto&&typeof window.crypto.randomUUID==="function")return window.crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(c){
+    var r=Math.random()*16|0;return (c==="x"?r:(r&3|8)).toString(16);
+  });
+}
 function dashboardLegacyRowsToSections(rows){
   var sections=[],i=0;
   rows=(rows||[]).slice().sort(function(a,b){return a.position-b.position;});
@@ -10773,7 +10779,7 @@ function buildLayout(view, previewSections){
       b=$(def.element_id);
     }
     if(!b && def && !def.custom_box_id){
-      b=createDashboardBoxElement(def,item.instance_id||item.id||("agenda_"+Math.random().toString(36).slice(2)));
+      b=createDashboardBoxElement(def,item.instance_id||item.id||dashboardNewInstanceId());
     }
     /* Se il catalogo non dispone di un renderer, salta soltanto il box
        non implementato e lascia proseguire il rendering della vista. */
@@ -14030,7 +14036,7 @@ function openLayoutManagement(){
 
 		currentRows.push([{
 			box_id: boxId,
-			instance_id: (findItem(DASHBOARD_BOXES,function(x){return String(x.id)===String(boxId);})||{}).element_key==="agenda"?(window.crypto&&crypto.randomUUID?crypto.randomUUID():("agenda_"+Date.now()+"_"+Math.random().toString(36).slice(2))):null,
+			instance_id: (findItem(DASHBOARD_BOXES,function(x){return String(x.id)===String(boxId);})||{}).element_key==="agenda"?dashboardNewInstanceId():null,
 			is_public: 1
 		}]);
 
