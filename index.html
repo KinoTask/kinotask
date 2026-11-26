@@ -6611,7 +6611,16 @@ function openAgendaInstanceConfig(box){
     });
   }
   mode.onchange=function(){saved={scope:mode.value,calendar_ids:[]};loadAccount();};
-  connect.onclick=function(){agendaConnect(accountScope,accountUser,id,function(err){status.textContent=err;});};
+  connect.onclick=function(){
+    var pendingConfig={scope:accountScope,calendar_ids:Array.prototype.filter.call(calendarSelect.options,function(o){return o.selected;}).map(function(o){return o.value;})};
+    connect.disabled=true;
+    usersRequest("PUT","/agenda-instances/"+encodeURIComponent(id),pendingConfig,function(saveErr,saveResult){
+      connect.disabled=false;
+      if(saveErr||!saveResult||!saveResult.ok){status.textContent=saveErr||(saveResult&&saveResult.error)||"Impossibile salvare la sorgente agenda.";return;}
+      agendaInstanceConfigs[id]=pendingConfig;box._agendaConfig=pendingConfig;
+      agendaConnect(accountScope,accountUser,id,function(err){status.textContent=err;});
+    });
+  };
   save.onclick=function(){
     var config={scope:mode.value,calendar_ids:Array.prototype.filter.call(calendarSelect.options,function(o){return o.selected;}).map(function(o){return o.value;})};
     save.disabled=true;
