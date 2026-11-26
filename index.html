@@ -966,42 +966,9 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   text-transform:uppercase!important;
   letter-spacing:.025em;
 }
-.recurring-config-popup button {
-  box-sizing:border-box!important;
-  min-height:34px;
-  margin:0;
-  padding:8px 10px!important;
-  border:1px solid #d4dce1!important;
-  border-radius:7px!important;
-  background:#fff!important;
-  color:#46545d!important;
-  font:700 .82em/1.2 "Trebuchet MS",Arial,sans-serif!important;
-  cursor:pointer;
-}
-/* Riproduce esplicitamente le varianti SALVA e CHIUDI di Configura Agenda Google:
-   le regole generiche del popup non devono sovrascrivere i colori dei pulsanti. */
-.recurring-config-popup button.route-config-save,
-.recurring-config-popup #recurringSaveButton,
-.recurring-config-popup #recurringPermissionsToggle,
-.recurring-config-popup .recurring-button-save {
-  border:1px solid #29495b!important;
-  border-radius:7px!important;
-  background:#29495b!important;
-  color:#fff!important;
-  font:700 .82em/1.2 Arial,sans-serif!important;
-  padding:9px 10px!important;
-}
-.recurring-config-popup button.route-config-back,
-.recurring-config-popup #recurringConfigClose,
-.recurring-config-popup #recurringCancelEditButton,
-.recurring-config-popup #recurringSubtaskAddButton,
-.recurring-config-popup .recurring-button-close {
-  border:1px solid #d4dce1!important;
-  border-radius:7px!important;
-  background:#fff!important;
-  color:#46545d!important;
-  font:700 .82em/1.2 Arial,sans-serif!important;
-  padding:9px 10px!important;
+.recurring-config-popup button:disabled {
+  opacity:.55;
+  cursor:default;
 }
 
 .recurring-config-popup button:disabled {
@@ -1065,7 +1032,7 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   flex:0 0 auto;
   flex-wrap:nowrap;
 }
-.recurring-config-header-actions button { float:none!important; margin:0!important; padding:6px 9px; font-size:.85em; white-space:nowrap; }
+.recurring-config-header-actions button { float:none!important; margin:0!important; white-space:nowrap; }
 .recurring-config-header-actions #recurringConfigClose {
   flex:0 0 auto;
 }
@@ -1201,13 +1168,6 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   flex:0 0 auto;
   display:flex;
   gap:4px;
-}
-.recurring-definition-actions button {
-  box-sizing:border-box!important;
-  min-height:34px!important;
-  margin:0!important;
-  padding:9px 10px!important;
-  font:700 .82em/1.2 Arial,sans-serif!important;
 }
 body.k .recurring-config-panel {
   padding:10px;
@@ -8532,8 +8492,13 @@ function renderRecurringPermissions(users) {
   });
 }
 
+function canManageRecurringUserPermissions(){
+  var role = String(authUserType || "").toLowerCase();
+  return role === "family" || role === "family_admin";
+}
+
 function openRecurringPermissions() {
-  if(authUserType !== "family") return;
+  if(!canManageRecurringUserPermissions()) return;
   var panel = $("recurringPermissionsPanel");
   setText(panel, "Caricamento utenti...");
   usersRequest("GET", "/users", null, function(err, data){
@@ -8568,7 +8533,7 @@ function openRecurringConfig(anchor) {
   resetRecurringForm();
   setText($("recurringConfigStatus"), "");
   setHidden($("recurringPermissionsPanel"), true);
-  setHidden($("recurringPermissionsToggle"), authUserType !== "family");
+  setHidden($("recurringPermissionsToggle"), !canManageRecurringUserPermissions());
   setHidden(panel, false);
   var rect = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
   if(typeof positionCustomBoxPanel === "function") {
