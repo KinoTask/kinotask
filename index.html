@@ -5544,6 +5544,7 @@ body .recurring-task-time,body.k .recurring-task-time,body:not(.k) .recurring-ta
   line-height:1;
   cursor:pointer;
 }
+.dashboard-box[data-renderer-key="agenda"] [data-agenda-config][hidden] { display:none !important; }
 </style>
 </head>
 <body>
@@ -6518,7 +6519,7 @@ function renderAgenda(){
       var configButton=box.querySelector("[data-agenda-config]");
       var agendaHeading=box.querySelector(".section-heading");
       var legacyTools=box.querySelector("[data-agenda-google-tools]");
-      if(legacyTools)legacyTools.hidden=true;
+      if(legacyTools&&legacyTools.parentNode)legacyTools.parentNode.removeChild(legacyTools);
       if(configButton&&agendaHeading&&configButton.parentNode!==agendaHeading)agendaHeading.appendChild(configButton);
       if(configButton){
         configButton.hidden=true;
