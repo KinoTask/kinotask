@@ -979,11 +979,15 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   cursor:pointer;
 }
 .recurring-config-popup #recurringSaveButton,
-.recurring-config-popup #recurringPermissionsToggle,
-.recurring-config-popup #recurringSubtaskAddButton {
+.recurring-config-popup #recurringPermissionsToggle {
   border-color:#29495b!important;
   background:#29495b!important;
   color:#fff!important;
+}
+.recurring-config-popup #recurringSubtaskAddButton {
+  border-color:#b9cbd5!important;
+  background:#edf3f6!important;
+  color:#29495b!important;
 }
 .recurring-config-popup button:disabled {
   opacity:.55;
@@ -997,7 +1001,7 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   box-shadow:0 2px 6px rgba(28,48,62,.07);
 }
 .agenda-config-title {
-  font-weight:800;
+  font-weight:400;
   text-transform:uppercase;
   letter-spacing:.025em;
 }
@@ -6123,7 +6127,7 @@ body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
     </div>
     <div id="recurringPermissionsPanel" class="recurring-permissions-panel" hidden></div>
     <div class="custom-box-editor-section recurring-config-section">
-      <div class="custom-box-editor-section-title">CONFIGURAZIONE ATTIVITÀ RICORRENTI</div>
+      <div class="custom-box-editor-section-title">NUOVA ATTIVITÀ</div>
       <div class="recurring-config-form" id="recurringConfigForm">
       <label class="recurring-field">
         <span>Titolo attività</span>
@@ -6184,8 +6188,8 @@ body.k .dashboard-box[data-renderer-key="agenda"] .section-heading h2 {
         <div id="recurringOwners" class="recurring-owner-options"></div>
       </div>
       <div class="recurring-config-actions" id="recurringConfigActions">
-        <button type="button" id="recurringSaveButton">Salva attività</button>
-        <button type="button" id="recurringCancelEditButton">Annulla</button>
+        <button type="button" id="recurringSaveButton" class="route-config-save">Salva attività</button>
+        <button type="button" id="recurringCancelEditButton" class="route-config-back">Annulla</button>
       </div>
       <div class="small" id="recurringConfigStatus"></div>
       </div>
@@ -7023,17 +7027,6 @@ function openAgendaInstanceConfig(box){
   panel.style.boxSizing="border-box";panel.style.background="#fff";panel.style.border="1px solid #999";panel.style.borderRadius="5px";panel.style.boxShadow="0 4px 18px rgba(0,0,0,.25)";
   var wrap=mk("div","agenda-config-card","");wrap.style.padding="12px";wrap.style.display="flex";wrap.style.flexDirection="column";wrap.style.gap="9px";
   wrap.appendChild(mk("div","agenda-config-title","CONFIGURA AGENDA GOOGLE"));
-  var addSharedAgenda=mk("button","route-config-save","AGGIUNGI AGENDA CON TASK CONDIVISI");
-  addSharedAgenda.type="button";
-  addSharedAgenda.style.width="100%";
-  addSharedAgenda.title="Aggiunge una seconda Agenda Google a questa vista personale";
-  addSharedAgenda.onclick=function(){
-    setHidden(panel,true);
-    var layoutPanel=$("viewMenuPanel");
-    if(layoutPanel)setHidden(layoutPanel,false);
-    openLayoutManagement();
-  };
-  wrap.appendChild(addSharedAgenda);
   var mode=document.createElement("select");mode.style.width="100%";mode.style.padding="8px";
   [["family","Agenda Google condivisa: tutti gli eventi"],["family_assigned","Agenda Google condivisa: solo i miei sottotask"],["instance","Un altro account Google"]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=x[1];mode.appendChild(o);});
   var saved=agendaInstanceConfigs[id]||{scope:isSharedView(currentView)?"family":"family_assigned",calendar_ids:[]};
@@ -14227,9 +14220,14 @@ function openLayoutManagement(){
 	var addButton = mk("button", "", "AGGIUNGI BOX");
 	addButton.type = "button";
 	addButton.style.padding = "10px";
-
+	var addAgendaButton = mk("button", "", "+ AGENDA");
+	addAgendaButton.type = "button";
+	addAgendaButton.style.padding = "10px";
+	addAgendaButton.title = "Aggiungi una nuova istanza di Agenda Google";
+	addArea.style.flexWrap = "wrap";
 	addArea.appendChild(addSelect);
 	addArea.appendChild(addButton);
+	addArea.appendChild(addAgendaButton);
 
 	var saveButton = mk("button", "", "SALVA CONFIGURAZIONE");
 	saveButton.type = "button";
@@ -14464,7 +14462,8 @@ function openLayoutManagement(){
 		addSelect.appendChild(firstOption);
 		for(var i = 0; i < availableBoxes.length; i++){
 			var catalogBox = availableBoxes[i];
-			if(used.indexOf(catalogBox.id) !== -1 && catalogBox.element_key!=="agenda"){ continue; }
+			if(catalogBox.element_key === "agenda") continue;
+			if(used.indexOf(catalogBox.id) !== -1){ continue; }
 			var option = document.createElement("option");
 			option.value = catalogBox.id;
 			option.textContent = catalogBox.title;
@@ -14472,9 +14471,11 @@ function openLayoutManagement(){
 		}
 
 		addButton.disabled = !canEdit || addSelect.options.length <= 1;
+		addAgendaButton.disabled = !canEdit || !findItem(availableBoxes,function(b){return b.element_key==="agenda";});
 		addSelect.disabled = !canEdit;
 		saveButton.disabled = !canEdit;
 		addButton.style.display = canEdit ? "" : "none";
+		addAgendaButton.style.display = canEdit ? "" : "none";
 		addSelect.style.display = canEdit ? "" : "none";
 		saveButton.style.display = canEdit ? "" : "none";
 	}
@@ -14656,10 +14657,25 @@ function openLayoutManagement(){
 
 		currentRows.push([{
 			box_id: boxId,
-			instance_id: (findItem(DASHBOARD_BOXES,function(x){return String(x.id)===String(boxId);})||{}).element_key==="agenda"?dashboardNewInstanceId():null,
+			instance_id: null,
 			is_public: 1
 		}]);
 
+		renderEditor();
+	};
+
+	addAgendaButton.onclick = function(){
+		if(!canEdit)return;
+		var agendaBox = findItem(DASHBOARD_BOXES,function(x){
+			return x.element_key === "agenda" &&
+				(x.view_type === selectedView.view_type || x.view_type === "both");
+		});
+		if(!agendaBox)return;
+		currentRows.push([{
+			box_id: agendaBox.id,
+			instance_id: dashboardNewInstanceId(),
+			is_public: 1
+		}]);
 		renderEditor();
 	};
 
