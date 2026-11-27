@@ -1037,15 +1037,16 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   min-height:34px;
   margin:0;
   padding:9px 10px;
-  border:1px solid #d4dce1;
-  border-radius:7px;
-  background:#fff;
-  color:#46545d;
-  font:700 .82em/1.2 Arial,sans-serif;
+  border:1px solid #c9bea6;
+  border-radius:12px;
+  background:#f2f0e6;
+  color:#111;
+  font:600 .82em/1.2 Arial,sans-serif;
   white-space:nowrap;
 }
 .recurring-config-header-actions button.route-config-save {
   border-color:#29495b;
+  border-radius:7px;
   background:#29495b;
   color:#fff;
 }
@@ -8563,18 +8564,11 @@ function openRecurringConfig(anchor) {
     };
   }
   setHidden(panel, false);
-  /* La configurazione è un dialogo autonomo: non ancorarla al pulsante
-     della testata del box, dove può coprire il refresh e rubargli i tocchi. */
-  if(panel._customBoxPositionHandler){
-    window.removeEventListener("resize",panel._customBoxPositionHandler);
-    window.removeEventListener("scroll",panel._customBoxPositionHandler,true);
-    panel._customBoxPositionHandler = null;
-  }
-  var viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-  var panelWidth = panel.getBoundingClientRect().width || Math.min(680, viewportWidth - 16);
-  panel.style.left = Math.max(8, Math.round((viewportWidth - panelWidth) / 2)) + "px";
-  panel.style.top = "8px";
-  panel.style.right = "auto";
+  /* Apri il pannello accanto al pulsante, sotto la testata: così resta
+     associato al comando senza coprire il refresh del box. */
+  var anchorRect = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
+  positionCustomBoxPanel(panel, anchorRect, true);
+  bindCustomBoxPanelPosition(panel, anchorRect, true);
   loadRecurringTasks(true);
   renderRecurringDefinitions();
 }
