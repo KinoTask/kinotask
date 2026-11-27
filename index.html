@@ -1165,6 +1165,54 @@ body.k .dashboard-box[data-renderer-key="recurringTasks"] .recurring-config-butt
   flex:1 1 0;
   margin:0;
 }
+.recurring-definition-actions button {
+  margin:0;
+  padding:7px 12px;
+  font-size:.9em;
+  font-weight:600;
+  white-space:nowrap;
+}
+/* Tutti i comandi della configurazione ricorrenti riprendono i pulsanti
+   della configurazione agenda: avorio, bordo beige, pillola e hover coerente. */
+#recurringConfigOverlay .recurring-config-header-actions button,
+#recurringConfigOverlay .recurring-config-actions button,
+#recurringConfigOverlay .recurring-definition-actions button,
+#recurringConfigOverlay .recurring-permission-row button {
+  box-sizing:border-box!important;
+  min-height:34px;
+  margin:0;
+  padding:7px 12px!important;
+  border:1px solid #c9bea6!important;
+  border-radius:12px!important;
+  background:#f2f0e6!important;
+  color:#111!important;
+  font-family:inherit!important;
+  font-size:.9em!important;
+  font-weight:600!important;
+  line-height:1.2!important;
+  text-transform:none!important;
+  box-shadow:none!important;
+  cursor:pointer;
+}
+#recurringConfigOverlay .recurring-config-header-actions button:hover,
+#recurringConfigOverlay .recurring-config-actions button:hover,
+#recurringConfigOverlay .recurring-definition-actions button:hover,
+#recurringConfigOverlay .recurring-permission-row button:hover {
+  background:#e5dfce!important;
+  border-color:#b8a98a!important;
+}
+#recurringConfigOverlay button:focus-visible {
+  outline:2px solid #9a8968;
+  outline-offset:2px;
+}
+#recurringConfigOverlay button:disabled {
+  opacity:.55;
+  cursor:default;
+}
+#recurringConfigOverlay button:disabled:hover {
+  background:#f2f0e6!important;
+  border-color:#c9bea6!important;
+}
 .recurring-definition {
   display:flex;
   align-items:center;
