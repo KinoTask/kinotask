@@ -16210,7 +16210,9 @@ function initBoxRefresh() {
     button.setAttribute("aria-label", "Aggiorna");
     button.style.position = "absolute";
     button.style.top = "-6px";
-    button.style.right = "0";
+    /* Nel box attività ricorrenti la rotella configurazione occupa l'angolo
+       destro: sposta il refresh a sinistra per evitare la sovrapposizione. */
+    button.style.right = box.getAttribute("data-renderer-key") === "recurringTasks" ? "28px" : "0";
     button.style.left = "auto";
     button.style.margin = "0";
     button.style.padding = "0 2px";
