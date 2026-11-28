@@ -16265,12 +16265,23 @@ function initBoxRefresh() {
       }
     }
     for(var labelIndex = 0; labelIndex < labels.length; labelIndex++){
-      heading.appendChild(labels[labelIndex]);
+      if(labels[labelIndex].parentNode !== heading) heading.appendChild(labels[labelIndex]);
     }
-    heading.appendChild(button);
+    if(button.parentNode !== heading) heading.appendChild(button);
     if(footer && footer.parentNode) footer.parentNode.removeChild(footer);
   }
 }
+
+/* I box vengono creati/ricreati dal rendering del layout. Aggiorna i controlli
+   dopo ogni montaggio, non soltanto all'avvio della dashboard. */
+(function observeDashboardBoxMounts(){
+  if(window.__kinotaskRefreshObserver || !document.body || !window.MutationObserver) return;
+  window.__kinotaskRefreshObserver = new MutationObserver(function(){
+    initBoxRefresh();
+  });
+  window.__kinotaskRefreshObserver.observe(document.body,{childList:true,subtree:true});
+  initBoxRefresh();
+})();
 
 /* I controlli dei box vengono montati dinamicamente dal layout D1.
    Gestione delegata: i pulsanti restano funzionanti anche dopo un cambio vista
